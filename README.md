@@ -29,6 +29,8 @@ Then it's ready to fly!
 
 This software runs ONLY on Linux systems!!!
 
+It probably runs on Mac, but never on Windows!! Please use WSL.
+
 ## Known issue
 __LINE animated stickers will never be supported beacause of Telegram's restrictions.__
 
