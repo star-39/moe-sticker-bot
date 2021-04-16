@@ -31,6 +31,25 @@ This software runs ONLY on Linux systems!!!
 
 It probably runs on Mac, but never on Windows!! Please use WSL.
 
+## Step by Step Usage
+### Ubuntu / Debian
+```
+apt install imagemagick libwebp6 libarchive-tools curl 
+pip3 install python-telegram-bot requests beautifulsoup4 emoji 
+git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+### open config.ini and fill your bot api.
+python3 main.py
+```
+
+### Fedora / RHEL / CentOS
+```
+dnf install imagemagick libwebp bsdtar curl 
+pip3 install python-telegram-bot requests beautifulsoup4 emoji 
+git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+### open config.ini and fill your bot api.
+python3 main.py
+```
+
 ## Known issue
 __LINE animated stickers will never be supported beacause of Telegram's restrictions.__
 
