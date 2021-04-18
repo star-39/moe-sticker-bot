@@ -5,7 +5,7 @@ Telegram用萌萌貼圖BOT, 可以從LINE Store導入貼圖包到Telegram, 可�
 
 Telegram用萌え萌えのスタンプBOTです、LINEストアからスタンプをTelegramへインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
 
-
+<!--This is actually an AVIF image! -->
 <img src="https://user-images.githubusercontent.com/75669297/115140518-b9de4680-a072-11eb-815f-73ef4238d53a.png" width="500">
 
 
@@ -16,28 +16,28 @@ Telegram用萌え萌えのスタンプBOTです、LINEストアからスタン�
 * bs4
 * emoji
 
-
 ### System Dependencies
 * ImageMagick
 * libwebp
+* ffmpeg
 * bsdtar (libarchive-tools)
 * curl
 
 ## Usage
 Fill your telegram Bot API in `config.ini`
 
-Then it's ready to fly!
+Then it's ready to fly! Just run with:
 
 `python3 main.py`
 
-This software runs ONLY on Linux systems!!!
+Please note that this software runs ONLY on Linux systems!!!
 
-It probably runs on Mac, but never on Windows!! Please use WSL.
+It probably runs on Mac, but never on Windows!! Please use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 ## Step by Step Usage
 ### Ubuntu / Debian
 ```
-apt install imagemagick libwebp6 libarchive-tools curl 
+apt install imagemagick libwebp6 ffmpeg libarchive-tools curl 
 pip3 install python-telegram-bot requests beautifulsoup4 emoji 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 ### open config.ini and fill your bot api.
@@ -45,8 +45,9 @@ python3 main.py
 ```
 
 ### Fedora / RHEL / CentOS
+You may need to add [RPM Fusion](https://rpmfusion.org/Configuration)
 ```
-dnf install ImageMagick libwebp bsdtar curl 
+dnf install ffmpeg ImageMagick libwebp bsdtar curl 
 pip3 install python-telegram-bot requests beautifulsoup4 emoji 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 ### open config.ini and fill your bot api.
