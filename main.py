@@ -1,3 +1,5 @@
+import time
+
 from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, ConversationHandler, \
     MessageHandler, Filters
@@ -148,7 +150,8 @@ def do_auto_import_line_sticker(update, _):
                                      name=_.user_data['telegram_sticker_id'],
                                      emojis=_.user_data['telegram_sticker_emoji'],
                                      png_sticker=open(img_file_path, 'rb'))
-
+            # Fix #1, workaround for flood control
+            time.sleep(1)
             report_progress(message_progress, index + 1, len(img_files_path))
 
         notify_sticker_done(update, _)
@@ -431,9 +434,11 @@ def do_get_animated_line_sticker(update, _):
                                   "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
         return ConversationHandler.END
     notify_import_starting(update, _)
-    for index, gif_file in enumerate(prepare_sticker_files(_, want_animated=True)):
+    for gif_file in prepare_sticker_files(_, want_animated=True):
         _.bot.send_animation(chat_id=update.effective_chat.id,
                              animation=open(gif_file, 'rb'))
+        # Fix #1, workaround for flood control
+        time.sleep(1)
 
 
 def ask_emoji(update):
