@@ -3,7 +3,7 @@ A Telegram bot doing sticker stuffs, it imports LINE sticker set to Telegram, do
 
 Telegram用萌萌貼圖BOT, 可以從LINE Store導入貼圖包到Telegram, 可以下載LINE和telegram的貼圖包, 可以創建新的貼圖包.
 
-Telegram用萌え萌えのスタンプBOTです、LINEストアからスタンプをTelegramへインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
+Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
 
 <img src="https://user-images.githubusercontent.com/75669297/115157491-87f5d000-a0c4-11eb-9942-4e2900cdd9be.png" width="500">
 
@@ -19,7 +19,7 @@ Telegram用萌え萌えのスタンプBOTです、LINEストアからスタン�
 ### System Dependencies
 * ImageMagick
 * libwebp
-* ffmpeg
+* ffmpeg (with libwebp and libx264)
 * bsdtar (libarchive-tools)
 * curl
 
