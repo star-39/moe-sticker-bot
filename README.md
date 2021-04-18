@@ -5,7 +5,7 @@ Telegram用萌萌貼圖BOT, 可以從LINE Store導入貼圖包到Telegram, 可�
 
 Telegram用萌え萌えのスタンプBOTです、LINEストアからスタンプをTelegramへインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
 
-<img src="https://user-images.githubusercontent.com/75669297/115144453-bd2ffd00-a087-11eb-83f4-12882826dc0f.png" width="500">
+<img src="https://user-images.githubusercontent.com/75669297/115157491-87f5d000-a0c4-11eb-9942-4e2900cdd9be.png" width="500">
 
 ## Dependencies
 * python 3.6+
@@ -55,7 +55,13 @@ python3 main.py
 ```
 
 ## Known issue
-__LINE animated stickers will never be supported beacause of Telegram's restrictions.__
+
+### No response?
+Telegram's flood control might be triggered, I'm currently working on this.
+If you encountered such a problem. Please wait a while.
+
+
+### LINE animated stickers will never be supported beacause of Telegram's restrictions
 
 LINE's animated stickers are in APNG bitmap format and convertable to GIFs, however,
 Telegram's animated sticker only allow vector images, which is a completely different
