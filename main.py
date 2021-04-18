@@ -154,7 +154,7 @@ def do_auto_import_line_sticker(update, _):
             time.sleep(1)
             report_progress(message_progress, index + 1, len(img_files_path))
 
-        notify_sticker_done(update, _)
+    notify_sticker_done(update, _)
 
 
 def notify_import_starting(update, _):
