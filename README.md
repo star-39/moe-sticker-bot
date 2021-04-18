@@ -5,11 +5,11 @@ Telegram用萌萌貼圖BOT, 可以從LINE Store導入貼圖包到Telegram, 可�
 
 Telegram用萌え萌えのスタンプBOTです、LINEストアからスタンプをTelegramへインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
 
-<!--This is actually an AVIF image! -->
-<img src="https://user-images.githubusercontent.com/75669297/115140518-b9de4680-a072-11eb-815f-73ef4238d53a.png" width="500">
-
+<img src="https://user-images.githubusercontent.com/75669297/115144453-bd2ffd00-a087-11eb-83f4-12882826dc0f.png" width="500">
 
 ## Dependencies
+* python 3.6+
+
 ### Python Dependencies
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
 * requests
