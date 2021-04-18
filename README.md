@@ -43,7 +43,7 @@ python3 main.py
 
 ### Fedora / RHEL / CentOS
 ```
-dnf install imagemagick libwebp bsdtar curl 
+dnf install ImageMagick libwebp bsdtar curl 
 pip3 install python-telegram-bot requests beautifulsoup4 emoji 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 ### open config.ini and fill your bot api.
