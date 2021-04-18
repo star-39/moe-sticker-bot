@@ -1,9 +1,12 @@
-# moe-sticker-bot
+# [`moe_sticker_bot`](https://t.me/moe_sticker_bot)
 A Telegram bot doing sticker stuffs, it imports LINE sticker set to Telegram, downloads LINE and Telegram stickers, creates new sticker set. 
 
 Telegram用萌萌貼圖BOT, 可以從LINE Store導入貼圖包到Telegram, 可以下載LINE和telegram的貼圖包, 可以創建新的貼圖包.
 
 Telegram用萌え萌えのスタンプBOTです、LINEストアからスタンプをTelegramへインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
+
+
+<img src="https://user-images.githubusercontent.com/75669297/115140518-b9de4680-a072-11eb-815f-73ef4238d53a.png" width="500">
 
 
 ## Dependencies
