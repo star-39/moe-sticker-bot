@@ -460,8 +460,8 @@ def get_line_sticker_detail(link, webpage_text):
     split_line_url = link.split('/')
     if split_line_url[split_line_url.index("store.line.me") + 1] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
-        if '<span class="MdIcoPlay_b" data-test="animation-sticker-icon">Animation only icon</span>' or \
-            '<span class="MdIcoPlay_s" data-test="animation-sticker-icon">Animation only icon</span>' in webpage_text:
+        if '<span class="MdIcoPlay_b" data-test="animation-sticker-icon">Animation only icon</span>' in webpage_text or \
+                '<span class="MdIcoPlay_s" data-test="animation-sticker-icon">Animation only icon</span>' in webpage_text:
             t = "sticker_animated"
         else:
             t = "sticker"
