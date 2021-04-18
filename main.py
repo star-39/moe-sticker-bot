@@ -55,6 +55,11 @@ Hello\! I\'m moe\_sticker\_bot doing sticker stuffs\! Please select command belo
 `    獲取GIF版LINE STORE動態貼圖`
 `    LINE STOREから動くスタンプをGIF形式で入手`
 
+*/download\_telegram\_sticker*
+`    Download Telegram sticker set.(webp png)`
+`    下載Telegram的貼圖包.(webp png)`
+`    Telegramのステッカーセットをダウンロード(webp png)`
+
 */help*
 `    Get help. 幫助訊息. ヘルプ`
 
@@ -294,6 +299,7 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
 
 
 def notify_next(update, _):
+    time.sleep(1)
     _.bot.send_photo(chat_id=update.effective_chat.id,
                      caption="Please send an emoji representing this sticker\n"
                              "請輸入一個代表這個貼圖的emoji\n"
@@ -303,6 +309,7 @@ def notify_next(update, _):
 
 
 def notify_sticker_done(update, _):
+    time.sleep(1)
     update.message.reply_text("The sticker set has been successfully created!\n"
                               "貼圖包已經成功創建!\n"
                               "ステッカーセットの作成が成功しました！\n\n"
