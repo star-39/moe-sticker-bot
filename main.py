@@ -20,6 +20,7 @@ class GlobalConfigs:
 # TODO: Add functionality for manipulating Telegram Stickers.
 # TODO: parse_mode=MarkdownV2 sucks, too many escapes, change all to HTML
 # TODO: Separate text messages to a standalone "helper" python file.
+# TODO: #1
 
 LINE_STICKER_INFO, EMOJI, ID, TITLE, MANUAL_EMOJI = range(5)
 
@@ -122,36 +123,35 @@ VERSION: {GlobalConfigs.BOT_VERSION}
 def do_auto_import_line_sticker(update, _):
     notify_import_starting(update, _)
 
+    img_files_path = prepare_sticker_files(_, want_animated=False)
+    # Create a new sticker set using the first image.
     try:
-        img_files_path = prepare_sticker_files(_, want_animated=False)
-        # Create a new sticker set using the first image.
-        if _.bot.create_new_sticker_set(user_id=update.message.from_user.id,
-                                        name=_.user_data['telegram_sticker_id'],
-                                        title=_.user_data['telegram_sticker_title'],
-                                        emojis=_.user_data['telegram_sticker_emoji'],
-                                        png_sticker=open(img_files_path[0], 'rb')) is True:
-            # Only continue when the set is successfully created.
-            update.message.reply_text(
-                "Please wait while the sticker set is being completed, this might take minutes...\n"
-                "請稍後, 貼圖包正在完成, 這可能需要幾分鐘...\n"
-                "作業が進んでいます、少々お待ちください。"
-            )
-            message_progress = report_progress(None, 1, len(img_files_path), update=update)
-            for index, img_file_path in enumerate(img_files_path):
-                # Skip the first file.
-                if index != 0:
-                    _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                             name=_.user_data['telegram_sticker_id'],
-                                             emojis=_.user_data['telegram_sticker_emoji'],
-                                             png_sticker=open(img_file_path, 'rb'))
-
-                    report_progress(message_progress, index + 1, len(img_files_path))
-
-            notify_sticker_done(update, _)
-        return 0
+        _.bot.create_new_sticker_set(user_id=update.message.from_user.id,
+                                     name=_.user_data['telegram_sticker_id'],
+                                     title=_.user_data['telegram_sticker_title'],
+                                     emojis=_.user_data['telegram_sticker_emoji'],
+                                     png_sticker=open(img_files_path[0], 'rb'))
     except Exception as e:
-        update.message.reply_text(e)
-        return 1
+        update.message.reply_text("Failed to create new sticker set!\n" + str(e))
+        return ConversationHandler.END
+
+    update.message.reply_text(
+        "Please wait while the sticker set is being completed, this might take minutes...\n"
+        "請稍後, 貼圖包正在完成, 這可能需要幾分鐘...\n"
+        "作業が進んでいます、少々お待ちください。"
+    )
+    message_progress = report_progress(None, 1, len(img_files_path), update=update)
+    for index, img_file_path in enumerate(img_files_path):
+        # Skip the first file.
+        if index != 0:
+            _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
+                                     name=_.user_data['telegram_sticker_id'],
+                                     emojis=_.user_data['telegram_sticker_emoji'],
+                                     png_sticker=open(img_file_path, 'rb'))
+
+            report_progress(message_progress, index + 1, len(img_files_path))
+
+        notify_sticker_done(update, _)
 
 
 def notify_import_starting(update, _):
@@ -346,14 +346,14 @@ def parse_id(update: Update, _: CallbackContext) -> int:
                                   "IDは自動的にこのように設定します: \n\n"
                                   "<code>" + _.user_data['telegram_sticker_id'] + "</code>", parse_mode="HTML")
     else:
-        _.user_data['telegram_sticker_id'] = update.message.text.strip() + "_by_" + GlobalConfigs.BOT_NAME
+        _.user_data['telegram_sticker_id'] = update.message.text.strip() + "_" + secrets.token_hex(nbytes=3) + \
+                                             "_by_" + GlobalConfigs.BOT_NAME
         if not re.match(r'^[a-zA-Z0-9_]+$', _.user_data['telegram_sticker_id']):
             update.message.reply_text(
-                "Error: Wrong format!"
-                "Short name of sticker set, to be used in t.me/addstickers/ URLs (e.g., animals). "
-                "Can contain only english letters, digits and underscores. Must begin with a letter,"
-                "can't contain consecutive underscores and must end in “_by_<bot username>”.")
-        return ID
+                "Error: Wrong format!\n"
+                "Can contain only english letters, digits and underscores.\n"
+                "Must begin with a letter, can't contain consecutive underscores.")
+            return ID
 
     update.message.reply_text(
         "Please set a title for this sticker set\. Send `auto` to automatically set original title from LINE Store\n"
