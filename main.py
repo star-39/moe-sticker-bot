@@ -17,7 +17,7 @@ import traceback
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "0.1 BETA"
+    BOT_VERSION = "0.2 BETA"
 
 # DO NOT log user's activity if you are aiming for "privacy"
 # TODO: Add functionality for manipulating Telegram Stickers.
