@@ -566,7 +566,7 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
 
 def command_download_telegram_sticker(update: Update, _: CallbackContext):
     update.message.reply_text("Please send a sticker.\n"
-                              "請傳送一張Telegram貼圖."
+                              "請傳送一張Telegram貼圖.\n"
                               "ステッカーを一つ送信してください。")
     return GET_TG_STICKER
 
