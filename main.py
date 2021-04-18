@@ -333,8 +333,7 @@ def parse_title(update: Update, _: CallbackContext) -> int:
         manual_add_emoji(update, _)
         return MANUAL_EMOJI
 
-    if do_auto_import_line_sticker(update, _) != 0:
-        update.message.reply_text("Sorry, an unknown error has occurred. Please try again later.")
+    do_auto_import_line_sticker(update, _)
     return ConversationHandler.END
 
 
