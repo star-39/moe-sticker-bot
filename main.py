@@ -11,6 +11,7 @@ import re
 import os
 import subprocess
 import secrets
+import traceback
 
 
 class GlobalConfigs:
@@ -25,6 +26,8 @@ class GlobalConfigs:
 # TODO: #1
 
 LINE_STICKER_INFO, EMOJI, ID, TITLE, MANUAL_EMOJI = range(5)
+
+GET_TG_STICKER = range(1)
 
 reply_kb_for_auto_markup = ReplyKeyboardMarkup([['auto']], one_time_keyboard=True)
 reply_kb_for_manual_markup = ReplyKeyboardMarkup([['manual']], one_time_keyboard=True)
@@ -519,6 +522,48 @@ def command_get_animated_line_sticker(update: Update, _: CallbackContext):
     return LINE_STICKER_INFO
 
 
+def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
+    sticker_set = _.bot.get_sticker_set(name=update.message.sticker.set_name)
+    update.message.reply_text("This might take some time, please wait...\n"
+                              "此項作業可能需時較長, 請稍後...\n"""
+                              "少々お待ちください...\n"
+                              "<code>\n"
+                              f"Name: {sticker_set.name}\n"
+                              f"Title: {sticker_set.title}\n"
+                              f"Amount: {str(len(sticker_set.stickers))}\n"
+                              "</code>",
+                              parse_mode="HTML")
+    save_path = "tg_sticker/" + sticker_set.name + "/"
+    os.makedirs(save_path, exist_ok=True)
+    subprocess.run("rm " + save_path + "*", shell=True)
+    for index, sticker in enumerate(sticker_set.stickers):
+        try:
+            _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name + "_" + str(index) + "_" +
+                                                      emoji.demojize(sticker.emoji)[1:-1] + ".webp")
+        except Exception as e:
+            print(str(e))
+    subprocess.run("mogrify -format png " + save_path + "*.webp", shell=True)
+    subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_webp.zip " + save_path + "*.webp", shell=True)
+    subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_png.zip " + save_path + "*.png", shell=True)
+    try:
+        _.bot.send_document(chat_id=update.effective_chat.id,
+                            document=open(save_path + sticker_set.name + "_webp.zip", 'rb'))
+        time.sleep(2)
+        _.bot.send_document(chat_id=update.effective_chat.id,
+                            document=open(save_path + sticker_set.name + "_png.zip", 'rb'))
+    except Exception as e:
+        print(str(e))
+
+    return ConversationHandler.END
+
+
+def command_download_telegram_sticker(update: Update, _: CallbackContext):
+    update.message.reply_text("Please send a sticker.\n"
+                              "請傳送一張Telegram貼圖."
+                              "ステッカーを一つ送信してください。")
+    return GET_TG_STICKER
+
+
 def ask_line_store_link(update):
     update.message.reply_text("Please enter LINE store URL or sticker ID\n"
                               "請輸入貼圖包的LINE STORE連結或貼圖包的ID\n"
@@ -578,10 +623,18 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel)],
     )
+    conv_download_telegram_sticker = ConversationHandler(
+        entry_points=[CommandHandler('download_telegram_sticker', command_download_telegram_sticker)],
+        states={
+            GET_TG_STICKER: [MessageHandler(Filters.sticker, parse_tg_sticker)],
+        },
+        fallbacks=[CommandHandler('cancel', command_cancel)],
+    )
     # 派遣します！
     dispatcher.add_handler(conv_import_line_sticker)
     dispatcher.add_handler(conv_get_animated_line_sticker)
     dispatcher.add_handler(conv_download_line_sticker)
+    dispatcher.add_handler(conv_download_telegram_sticker)
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(CommandHandler('test', command_test))
