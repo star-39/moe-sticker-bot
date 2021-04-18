@@ -459,8 +459,10 @@ def get_line_sticker_detail(link, webpage_text):
             t = "sticker_animated"
         else:
             t = "sticker"
+    elif split_line_url[split_line_url.index("store.line.me") + 1] == "emojishop":
+        t = "emoji"
     else:
-        t = split_line_url[split_line_url.index("store.line.me") + 1]
+        t = ""
 
     i = split_line_url[split_line_url.index("product") + 1]
     return t, i
