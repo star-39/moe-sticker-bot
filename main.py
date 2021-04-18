@@ -381,11 +381,11 @@ def parse_emoji(update: Update, _: CallbackContext) -> int:
     update.message.reply_text("Please enter an unique ID for this sticker set. Must contain alphanum and _ mark only.\n"
                               "請輸入一個用於識別此貼圖包的ID, 只可以由英文數字和 _ 記號組成\.\n"
                               "スタンプにIDを付けてください。内容は英字と数字と _ 記号のみです。\n\n"
-                              "<code>eg. gochiusa_chino_stamp_1</code>\n\n"
+                              "<code>eg. gochiusa_chino_stamp_1</code>\n"
                               "-----------------------------------------------------------\n"
-                              "Send <code>auto</code> to automatically generate ID (NOT RECOMMENDED!)\n"
-                              "傳送<code>auto</code>來自動生成ID (不推薦!)\n"
-                              "<code>auto</code>を入力すると、IDが自動的生成されます（非推奨！）",
+                              "Send <code>auto</code> to automatically generate ID\n"
+                              "傳送<code>auto</code>來自動生成ID\n"
+                              "<code>auto</code>を入力すると、IDが自動的生成されます",
                               reply_markup=reply_kb_for_auto_markup,
                               parse_mode="HTML")
     return ID
