@@ -2,7 +2,6 @@ from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRem
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, ConversationHandler, \
     MessageHandler, Filters
 from bs4 import BeautifulSoup
-import lottie
 import emoji
 import requests
 import configparser
