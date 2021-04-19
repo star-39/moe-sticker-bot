@@ -164,8 +164,9 @@ def do_auto_import_line_sticker(update, _):
                                              emojis=_.user_data['telegram_sticker_emoji'],
                                              png_sticker=open(img_file_path, 'rb'))
                     report_progress(message_progress, index + 1, len(img_files_path))
-                except telegram.error.RetryAfter:
-                    print("!!! Flood limit triggered, logging this incident.")
+                except telegram.error.RetryAfter as ra:
+                    print("!!! Flood limit triggered@do_auto_import_line_sticker, logging this incident.")
+                    time.sleep(ra.retry_after)
                     continue
                 except Exception as e:
                     update.message.reply_text("Fatal error!\n" + str(e))
@@ -215,7 +216,7 @@ def prepare_sticker_files(_, want_animated):
         # Magic!!
         # LINE's apng has fps of 9, however ffmpeg defaults to 25
         subprocess.run(f'find {directory_path}*.png -type f -print0 | '
-                       'xargs -I{} -0 ffmpeg -hide_banner -loglevel error -i {} '
+                       'xargs -I{} -0 ffmpeg -hide_banner -loglevel warning -i {} '
                        '-lavfi "color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1" '
                        '-c:v libx264 -r 9 -crf 26 -y {}.mp4', shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
@@ -306,6 +307,9 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
                                          _.user_data['img_files_path'][ _.user_data['manual_emoji_index'] ], 'rb'
                                          )
                                      )
+        except telegram.error.RetryAfter as ra:
+            time.sleep(8)
+            update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(ra))
         except Exception as e:
             update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(e))
             return MANUAL_EMOJI
@@ -589,6 +593,7 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
 
 
 def command_download_telegram_sticker(update: Update, _: CallbackContext):
+    initialize_user_data(update, _)
     update.message.reply_text("Please send a sticker.\n"
                               "請傳送一張Telegram貼圖.\n"
                               "ステッカーを一つ送信してください。")
@@ -617,7 +622,10 @@ def reject_text(update: Update, _: CallbackContext):
                               "請不要直接傳送文字! 請傳送 /start 來看看可用的指令\n"
                               "テキストを直接入力しないでください。/start を送信してコマンドで始めましょう")
 
-# def error_handler(update: Update, _: CallbackContext):
+
+def print_warning(update: Update, _: CallbackContext):
+    update.message.reply_text("You are already in command : " + _.user_data['in_command'][1:] + "\n"
+                              "If you encountered a problem, please send /cancel and start over.")
 
 
 def main() -> None:
@@ -640,7 +648,7 @@ def main() -> None:
             TITLE: [MessageHandler(Filters.text & ~Filters.command, parse_title)],
             MANUAL_EMOJI : [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
         },
-        fallbacks=[CommandHandler('cancel', command_cancel)],
+        fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(Filters.command, print_warning)],
         run_async=True
     )
     conv_get_animated_line_sticker = ConversationHandler(
@@ -648,7 +656,7 @@ def main() -> None:
         states={
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
         },
-        fallbacks=[CommandHandler('cancel', command_cancel)],
+        fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(Filters.command, print_warning)],
         run_async=True
     )
     conv_download_line_sticker = ConversationHandler(
@@ -657,7 +665,7 @@ def main() -> None:
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
             EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji)],
         },
-        fallbacks=[CommandHandler('cancel', command_cancel)],
+        fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(Filters.command, print_warning)],
         run_async=True
     )
     conv_download_telegram_sticker = ConversationHandler(
@@ -665,7 +673,7 @@ def main() -> None:
         states={
             GET_TG_STICKER: [MessageHandler(Filters.sticker, parse_tg_sticker)],
         },
-        fallbacks=[CommandHandler('cancel', command_cancel)],
+        fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(Filters.command, print_warning)],
         run_async=True
     )
     # 派遣します！
