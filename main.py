@@ -1,5 +1,6 @@
 import time
 
+import telegram.error
 from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, ConversationHandler, \
     MessageHandler, Filters
@@ -159,12 +160,16 @@ def do_auto_import_line_sticker(update, _):
     for index, img_file_path in enumerate(img_files_path):
         # Skip the first file.
         if index != 0:
-            time.sleep(1)
-            _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                     name=_.user_data['telegram_sticker_id'],
-                                     emojis=_.user_data['telegram_sticker_emoji'],
-                                     png_sticker=open(img_file_path, 'rb'))
-            report_progress(message_progress, index + 1, len(img_files_path))
+            try:
+                time.sleep(1)
+                _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
+                                         name=_.user_data['telegram_sticker_id'],
+                                         emojis=_.user_data['telegram_sticker_emoji'],
+                                         png_sticker=open(img_file_path, 'rb'))
+                report_progress(message_progress, index + 1, len(img_files_path))
+            except telegram.error.RetryAfter as e:
+
+                update.message.reply_text("Error when adding sticker to set!\n" + str(e))
 
     notify_sticker_done(update, _)
 
@@ -482,7 +487,7 @@ def get_line_sticker_detail(link, webpage_text):
     if split_line_url[split_line_url.index("store.line.me") + 1] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
         if '<span class="MdIcoPlay_b" data-test="animation-sticker-icon">Animation only icon</span>' in webpage_text or \
-                '<span class="MdIcoPlay_s" data-test="animation-sticker-icon">Animation only icon</span>' in webpage_text:
+                '<span class="MdIcoAni_b" data-test="animation-sound-sticker-icon">Animation & Sound icon</span>' in webpage_text:
             t = "sticker_animated"
         else:
             t = "sticker"
@@ -660,6 +665,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(CommandHandler('test', command_test))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, reject_text))
+    # dispatcher.add_error_handler(error_handler)
 
 
     updater.start_polling()
