@@ -155,31 +155,41 @@ def do_auto_import_line_sticker(update, _):
     for index, img_file_path in enumerate(img_files_path):
         # Skip the first file.
         if index != 0:
-            try:
-                time.sleep(1)
-                _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                         name=_.user_data['telegram_sticker_id'],
-                                         emojis=_.user_data['telegram_sticker_emoji'],
-                                         png_sticker=open(img_file_path, 'rb'))
-                report_progress(message_progress, index + 1, len(img_files_path))
-            except telegram.error.RetryAfter as e:
-
-                update.message.reply_text("Error when adding sticker to set!\n" + str(e))
+            # Retry 3 times
+            for __ in range(3):
+                try:
+                    time.sleep(1)
+                    _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
+                                             name=_.user_data['telegram_sticker_id'],
+                                             emojis=_.user_data['telegram_sticker_emoji'],
+                                             png_sticker=open(img_file_path, 'rb'))
+                    report_progress(message_progress, index + 1, len(img_files_path))
+                except telegram.error.RetryAfter:
+                    print("!!! Flood limit triggered, logging this incident.")
+                    continue
+                except Exception as e:
+                    update.message.reply_text("Fatal error!\n" + str(e))
+                    return ConversationHandler.END
+                else:
+                    break
 
     notify_sticker_done(update, _)
 
 
 def notify_import_starting(update, _):
-    update.message.reply_text("Now starting, please wait...\n"
-                              "正在開始, 請稍後...\n"
-                              "作業がまもなく開始します、少々お時間を...\n\n"
-                              "<code>"
-                              f"LINE TYPE: {_.user_data['line_sticker_type']}\n"
-                              f"LINE ID: {_.user_data['line_sticker_id']}\n"
-                              f"TG ID: {_.user_data['telegram_sticker_id']}\n"
-                              f"TG TITLE: {_.user_data['telegram_sticker_title']}\n"
-                              "</code>",
-                              parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+    try:
+        update.message.reply_text("Now starting, please wait...\n"
+                                  "正在開始, 請稍後...\n"
+                                  "作業がまもなく開始します、少々お時間を...\n\n"
+                                  "<code>"
+                                  f"LINE TYPE: {_.user_data['line_sticker_type']}\n"
+                                  f"LINE ID: {_.user_data['line_sticker_id']}\n"
+                                  f"TG ID: {_.user_data['telegram_sticker_id']}\n"
+                                  f"TG TITLE: {_.user_data['telegram_sticker_title']}\n"
+                                  "</code>",
+                                  parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+    except:
+        pass
 
 
 def prepare_sticker_files(_, want_animated):
