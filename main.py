@@ -475,16 +475,16 @@ def ask_emoji(update):
     update.message.reply_text("Please enter emoji(s) representing this sticker set\n"
                               "請輸入用於表示這個貼圖包的emoji(可以多個)\n"
                               "このスタンプセットにふさわしい絵文字を入力してください\n"
-                              "eg\. ☕ \n"
-                              "`---------------------------------------------------`\n"
+                              "eg. ☕ \n"
+                              "---------------------------------------------------\n"
                               "This operation assigns the same emoji for every stickers\n"
-                              "If you want to manually assign different emoji for each sticker, send `manual`\n"
+                              "If you want to manually assign different emoji for each sticker, send <code>manual</code>\n"
                               "這個操作將會為貼圖包內每一個貼圖都設定相同的emoji,\n"
-                              "如果您想要手動為每個貼圖設定不同的emoji, 請傳送 ` manual`\n"
+                              "如果您想要手動為每個貼圖設定不同的emoji, 請傳送<code>manual</code>\n"
                               "このステップでは、すべてのステッカーに同じ絵文字を付けます。\n"
-                              "一つずつ絵文字を付けたいなら、`manual`を送信してください。",
+                              "一つずつ絵文字を付けたいなら、<code>manual</code>を送信してください。",
                               reply_markup=reply_kb_for_manual_markup,
-                              parse_mode="MarkdownV2")
+                              parse_mode="HTML")
 
 
 def get_line_sticker_detail(link, webpage_text):
