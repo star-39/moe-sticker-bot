@@ -612,6 +612,8 @@ def reject_text(update: Update, _: CallbackContext):
                               "請不要直接傳送文字! 請傳送 /start 來看看可用的指令\n"
                               "テキストを直接入力しないでください。/start を送信してコマンドで始めましょう")
 
+# def error_handler(update: Update, _: CallbackContext):
+
 
 def main() -> None:
     # Load configs
@@ -623,6 +625,7 @@ def main() -> None:
     updater = Updater(GlobalConfigs.BOT_TOKEN)
     dispatcher = updater.dispatcher
 
+    # Each conversation is time consuming, enable run_async
     conv_import_line_sticker = ConversationHandler(
         entry_points=[CommandHandler('import_line_sticker', command_import_line_sticker)],
         states={
@@ -633,6 +636,7 @@ def main() -> None:
             MANUAL_EMOJI : [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
         },
         fallbacks=[CommandHandler('cancel', command_cancel)],
+        run_async=True
     )
     conv_get_animated_line_sticker = ConversationHandler(
         entry_points=[CommandHandler('get_animated_line_sticker', command_get_animated_line_sticker)],
@@ -640,6 +644,7 @@ def main() -> None:
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
         },
         fallbacks=[CommandHandler('cancel', command_cancel)],
+        run_async=True
     )
     conv_download_line_sticker = ConversationHandler(
         entry_points=[CommandHandler('download_line_sticker', command_download_line_sticker)],
@@ -648,6 +653,7 @@ def main() -> None:
             EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji)],
         },
         fallbacks=[CommandHandler('cancel', command_cancel)],
+        run_async=True
     )
     conv_download_telegram_sticker = ConversationHandler(
         entry_points=[CommandHandler('download_telegram_sticker', command_download_telegram_sticker)],
@@ -655,6 +661,7 @@ def main() -> None:
             GET_TG_STICKER: [MessageHandler(Filters.sticker, parse_tg_sticker)],
         },
         fallbacks=[CommandHandler('cancel', command_cancel)],
+        run_async=True
     )
     # 派遣します！
     dispatcher.add_handler(conv_import_line_sticker)
