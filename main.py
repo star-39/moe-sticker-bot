@@ -323,9 +323,9 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
 def notify_next(update, _):
     time.sleep(1)
     _.bot.send_photo(chat_id=update.effective_chat.id,
-                     caption="Please send an emoji representing this sticker\n"
-                             "請輸入一個代表這個貼圖的emoji\n"
-                             "このスタンプにふさわしい絵文字を一つ入力してください\n" +
+                     caption="Please send emoji(s) representing this sticker\n"
+                             "請輸入代表這個貼圖的emoji(可以多個)\n"
+                             "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
                              f"{_.user_data['manual_emoji_index'] + 2} of {len(_.user_data['img_files_path'])}",
                      photo=open(_.user_data['img_thumbnails_path'][_.user_data['manual_emoji_index'] + 1], 'rb'))
 
@@ -472,8 +472,8 @@ def do_get_animated_line_sticker(update, _):
 
 
 def ask_emoji(update):
-    update.message.reply_text("Please enter a emoji representing this sticker set\n"
-                              "請輸入一個用於表示這個貼圖包的emoji\n"
+    update.message.reply_text("Please enter emoji(s) representing this sticker set\n"
+                              "請輸入用於表示這個貼圖包的emoji(可以多個)\n"
                               "このスタンプセットにふさわしい絵文字を入力してください\n"
                               "eg\. ☕ \n"
                               "`---------------------------------------------------`\n"
