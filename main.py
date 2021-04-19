@@ -215,7 +215,7 @@ def prepare_sticker_files(_, want_animated):
         # Magic!!
         # LINE's apng has fps of 9, however ffmpeg defaults to 25
         subprocess.run(f'find {directory_path}*.png -type f -print0 | '
-                       'xargs -I{} -0 ffmpeg -hide_banner -i {} '
+                       'xargs -I{} -0 ffmpeg -hide_banner -loglevel error -i {} '
                        '-lavfi "color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1" '
                        '-c:v libx264 -r 9 -crf 26 -y {}.mp4', shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
