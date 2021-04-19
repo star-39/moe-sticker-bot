@@ -154,12 +154,11 @@ def do_auto_import_line_sticker(update, _):
     for index, img_file_path in enumerate(img_files_path):
         # Skip the first file.
         if index != 0:
+            time.sleep(1)
             _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
                                      name=_.user_data['telegram_sticker_id'],
                                      emojis=_.user_data['telegram_sticker_emoji'],
                                      png_sticker=open(img_file_path, 'rb'))
-            # Fix #1, workaround for flood control
-            time.sleep(1)
             report_progress(message_progress, index + 1, len(img_files_path))
 
     notify_sticker_done(update, _)
@@ -271,23 +270,31 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
 
     # First sticker to create new set.
     elif _.user_data['manual_emoji_index'] == 0:
-
-        _.bot.create_new_sticker_set(user_id=update.message.from_user.id,
-                                     name=_.user_data['telegram_sticker_id'],
-                                     title=_.user_data['telegram_sticker_title'],
-                                     emojis=em,
-                                     png_sticker=open(_.user_data['img_files_path'][0], 'rb'))
+        try:
+            _.bot.create_new_sticker_set(user_id=update.message.from_user.id,
+                                         name=_.user_data['telegram_sticker_id'],
+                                         title=_.user_data['telegram_sticker_title'],
+                                         emojis=em,
+                                         png_sticker=open(_.user_data['img_files_path'][0], 'rb'))
+        except Exception as e:
+            update.message.reply_text("Error creating! Please send the same emoji again.\n" + str(e))
+            return MANUAL_EMOJI
         # This is the next sticker (in this case, the SECOND one).
         notify_next(update, _)
 
     else:
-        _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                 name=_.user_data['telegram_sticker_id'],
-                                 emojis=em,
-                                 png_sticker=open(
-                                     _.user_data['img_files_path'][ _.user_data['manual_emoji_index'] ], 'rb'
+        try:
+            _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
+                                     name=_.user_data['telegram_sticker_id'],
+                                     emojis=em,
+                                     png_sticker=open(
+                                         _.user_data['img_files_path'][ _.user_data['manual_emoji_index'] ], 'rb'
+                                         )
                                      )
-                                 )
+        except Exception as e:
+            update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(e))
+            return MANUAL_EMOJI
+
         if _.user_data['manual_emoji_index'] == len(_.user_data['img_files_path']) - 1:
             notify_sticker_done(update, _)
             return ConversationHandler.END
@@ -444,10 +451,9 @@ def do_get_animated_line_sticker(update, _):
         return ConversationHandler.END
     notify_import_starting(update, _)
     for gif_file in prepare_sticker_files(_, want_animated=True):
+        time.sleep(1)
         _.bot.send_animation(chat_id=update.effective_chat.id,
                              animation=open(gif_file, 'rb'))
-        # Fix #1, workaround for flood control
-        time.sleep(1)
 
 
 def ask_emoji(update):
