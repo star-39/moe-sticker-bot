@@ -151,11 +151,6 @@ def do_auto_import_line_sticker(update, _):
         update.message.reply_text("Failed to create new sticker set!\n" + str(e))
         return ConversationHandler.END
 
-    update.message.reply_text(
-        "Please wait while the sticker set is being completed, this might take minutes...\n"
-        "請稍後, 貼圖包正在完成, 這可能需要幾分鐘...\n"
-        "作業が進んでいます、少々お待ちください。"
-    )
     message_progress = report_progress(None, 1, len(img_files_path), update=update)
     for index, img_file_path in enumerate(img_files_path):
         # Skip the first file.
