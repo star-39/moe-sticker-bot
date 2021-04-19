@@ -512,6 +512,25 @@ def compose_line_download_url(type, id):
 
 
 def command_import_line_sticker(update: Update, _: CallbackContext):
+    initialize_user_data(update, _)
+    ask_line_store_link(update)
+    return LINE_STICKER_INFO
+
+
+def command_download_line_sticker(update: Update, _: CallbackContext):
+    initialize_user_data(update, _)
+    ask_line_store_link(update)
+    return LINE_STICKER_INFO
+
+
+def command_get_animated_line_sticker(update: Update, _: CallbackContext):
+    initialize_user_data(update, _)
+    _.user_data['line_sticker_type'] = "sticker_animated"
+    ask_line_store_link(update)
+    return LINE_STICKER_INFO
+
+
+def initialize_user_data(update, _):
     _.user_data['in_command'] = update.message.text
     _.user_data['manual_emoji'] = False
     _.user_data['line_sticker_url'] = ""
@@ -522,22 +541,6 @@ def command_import_line_sticker(update: Update, _: CallbackContext):
     _.user_data['telegram_sticker_emoji'] = ""
     _.user_data['telegram_sticker_id'] = ""
     _.user_data['telegram_sticker_title'] = ""
-    ask_line_store_link(update)
-    return LINE_STICKER_INFO
-
-
-def command_download_line_sticker(update: Update, _: CallbackContext):
-    _.user_data['in_command'] = update.message.text
-    _.user_data['line_sticker_type'] = "sticker"
-    ask_line_store_link(update)
-    return LINE_STICKER_INFO
-
-
-def command_get_animated_line_sticker(update: Update, _: CallbackContext):
-    _.user_data['in_command'] = update.message.text
-    _.user_data['line_sticker_type'] = "sticker_animated"
-    ask_line_store_link(update)
-    return LINE_STICKER_INFO
 
 
 def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
