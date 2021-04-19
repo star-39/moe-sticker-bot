@@ -117,6 +117,11 @@ Please send /start to start using!
 =>A: It is technically impossible due to Telegram's restrictions.
 　　  因為Telegram的限制, 這個方法技術上不可行
      Telegram側の制限により技術的に無理です。
+     
+=>Q: No response? 沒有反應? 応答なし？
+=>A: The bot might triggered Telegram's flood control or encountered an error, please check GitHub issue:
+     BOT可能觸發了Telegram的消息數量限制或遇到了問題, 請檢視GitHub issue網頁:
+     https://github.com/star-39/moe-sticker-bot/issues
 <code>
 ========================
 PRIVACY NOTICE:
