@@ -199,6 +199,7 @@ def prepare_sticker_files(_, want_animated):
     os.makedirs("line_sticker", exist_ok=True)
     directory_path = "line_sticker/" + _.user_data['line_sticker_id'] + "/"
     os.makedirs(directory_path, exist_ok=True)
+    subprocess.run(f"rm -r {directory_path}*", shell=True)
     if _.user_data['line_sticker_type'] == "sticker_message":
         for element in BeautifulSoup(_.user_data['line_store_webpage_text'], "html.parser").find_all('li'):
             json_text = element.get('data-preview')
@@ -218,7 +219,6 @@ def prepare_sticker_files(_, want_animated):
 
     zip_file_path = "line_sticker/" + _.user_data['line_sticker_id'] + ".zip"
     subprocess.run("curl -Lo " + zip_file_path + " " + _.user_data['line_sticker_download_url'], shell=True)
-    subprocess.run(f"rm -r {directory_path}*", shell=True)
     subprocess.run("bsdtar -xf " + zip_file_path + " -C " + directory_path, shell=True)
     if not want_animated:
         # Remove garbage
