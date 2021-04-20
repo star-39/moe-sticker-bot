@@ -22,7 +22,6 @@ class GlobalConfigs:
 
 # DO NOT log user's activity if you are aiming for "privacy"
 # TODO: Add functionality for manipulating Telegram Stickers.
-# TODO: parse_mode=MarkdownV2 sucks, too many escapes, change all to HTML
 # TODO: Separate text messages to a standalone "helper" python file.
 # TODO: #1
 
@@ -35,41 +34,42 @@ reply_kb_for_manual_markup = ReplyKeyboardMarkup([['manual']], one_time_keyboard
 
 
 def start(update: Update, _: CallbackContext) -> None:
-    update.message.reply_text(''
+    update.message.reply_text(
 """
-Hello\! I\'m moe\_sticker\_bot doing sticker stuffs\! Please select command below:
-你好\! 歡迎使用萌萌貼圖BOT, 請從下方選擇指令:
+Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
+你好! 歡迎使用萌萌貼圖BOT, 請從下方選擇指令:
 こんにちは！　萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
 
-*/import\_line\_sticker*
-`    Import sticker set from LINE Store to Telegram`
-`    從LINE STORE將貼圖包導入成Telegram的貼圖包`
-`    LINE STOREからスタンプをTelegramへインポート`
-
-*/download\_line\_sticker*
-`    Download sticker set from LINE Store`
-`    從LINE STORE下載貼圖包`
-`    LINE STOREからスタンプをダウンロード`
-
-*/get\_animated\_line\_sticker*
-`    Get GIF sticker from LINE Store animated sticker set`
-`    獲取GIF版LINE STORE動態貼圖`
-`    LINE STOREから動くスタンプをGIF形式で入手`
-
-*/download\_telegram\_sticker*
-`    Download Telegram sticker set.(webp png)`
-`    下載Telegram的貼圖包.(webp png)`
-`    Telegramのステッカーセットをダウンロード(webp png)`
-
-*/help*
-`    Get help. 幫助訊息. ヘルプ`
-
-*/cancel*
-`    Cancel interacting process.`
-`    終止互動式過程.`
-`    プロセスを中止する`
+<b>/import_line_sticker</b><code>
+    Import sticker set from LINE Store to Telegram
+    從LINE STORE將貼圖包導入成Telegram的貼圖包
+    LINE STOREからスタンプをTelegramへインポート
+</code>
+<b>/download_line_sticker</b><code>
+    Download sticker set from LINE Store
+    從LINE STORE下載貼圖包
+    LINE STOREからスタンプをダウンロード
+</code>
+<b>/get_animated_line_sticker</b><code>
+    Get GIF sticker from LINE Store animated sticker set
+    獲取GIF版LINE STORE動態貼圖
+    LINE STOREから動くスタンプをGIF形式で入手
+</code>
+<b>/download_telegram_sticker</b><code>
+    Download Telegram sticker set.(webp png)
+    下載Telegram的貼圖包.(webp png)
+    Telegramのステッカーセットをダウンロード(webp png)
+</code>
+<b>/help</b><code>
+    Get help. 幫助訊息. ヘルプ
+</code>
+<b>/cancel</b><code>
+    Cancel interacting process.
+    終止互動式過程.
+    プロセスを中止する
+</code>
 """
-                              , parse_mode="MarkdownV2")
+                              , parse_mode="HTML")
 
 
 def help_command(update: Update, _: CallbackContext) -> None:
@@ -394,11 +394,11 @@ def parse_id(update: Update, _: CallbackContext) -> int:
             return ID
 
     update.message.reply_text(
-        "Please set a title for this sticker set\. Send `auto` to automatically set original title from LINE Store\n"
-        "請設定貼圖包的標題, 也就是名字\. 輸入`auto`可以自動設為LINE Store中原版的標題\n"
-        "スタンプのタイトルを入力してください。`auto`を入力すると、LINE STORE上に表記されているのタイトルが自動的に設定されます。",
+        "Please set a title for this sticker set. Send <code>auto</code> to automatically set original title from LINE Store\n"
+        "請設定貼圖包的標題, 也就是名字. 輸入<code>auto</code>可以自動設為LINE Store中原版的標題\n"
+        "スタンプのタイトルを入力してください。<code>auto</code>を入力すると、LINE STORE上に表記されているのタイトルが自動的に設定されます。",
         reply_markup=reply_kb_for_auto_markup,
-        parse_mode="MarkdownV2")
+        parse_mode="HTML")
     return TITLE
 
 
@@ -604,7 +604,8 @@ def ask_line_store_link(update):
     update.message.reply_text("Please enter LINE store URL or sticker ID\n"
                               "請輸入貼圖包的LINE STORE連結或貼圖包的ID\n"
                               "スタンプのLINE STOREリンクを入力してください\n\n"
-                              "`eg. https://store.line.me/stickershop/product/9961437/ja`", parse_mode="MarkdownV2")
+                              "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
+                              parse_mode="HTML")
 
 
 def command_cancel(update: Update, _: CallbackContext) -> int:
