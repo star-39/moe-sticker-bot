@@ -21,9 +21,7 @@ class GlobalConfigs:
     BOT_VERSION = "0.2 BETA"
 
 # DO NOT log user's activity if you are aiming for "privacy"
-# TODO: Add functionality for manipulating Telegram Stickers.
 # TODO: Separate text messages to a standalone "helper" python file.
-# TODO: #1
 
 LINE_STICKER_INFO, EMOJI, ID, TITLE, MANUAL_EMOJI = range(5)
 
