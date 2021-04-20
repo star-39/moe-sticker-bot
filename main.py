@@ -19,7 +19,7 @@ import traceback
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "0.2 BETA"
+    BOT_VERSION = "0.3 BETA"
 
 # DO NOT log user's activity if you are aiming for "privacy"
 # TODO: Separate text messages to a standalone "helper" python file.
