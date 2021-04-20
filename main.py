@@ -373,7 +373,8 @@ def notify_sticker_done(update, _):
 def parse_title(update: Update, _: CallbackContext) -> int:
     if update.message.text.strip().lower() == "auto":
         _.user_data['telegram_sticker_title'] = BeautifulSoup(_.user_data['line_store_webpage_text'], 'html.parser'
-                                                              ).find("title").get_text().split('|')[0].strip()
+                               ).find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
+                               f" by @{GlobalConfigs.BOT_NAME}"
         update.message.reply_text("The title will be automatically set to:\n"
                                   "標題將會自動設定為: \n"
                                   "タイトルは自動的にこのように設定します: \n\n"
