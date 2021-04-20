@@ -242,10 +242,6 @@ def prepare_sticker_files(_, want_animated):
                        os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".mp4")])
 
 
-def prepare_sticker_message_files(_):
-
-
-
 def get_sticker_thumbnails_path(_):
     directory_path = "line_sticker/" + _.user_data['line_sticker_id'] + "/"
     thumb_files_path = sorted([directory_path + f for f in os.listdir(directory_path) if
