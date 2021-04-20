@@ -1,3 +1,4 @@
+import json
 import time
 
 import telegram.error
@@ -187,6 +188,9 @@ def notify_import_starting(update, _):
                                   f"TG TITLE: {_.user_data['telegram_sticker_title']}\n"
                                   "</code>",
                                   parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+        if _.user_data['line_sticker_type'] == "sticker_message":
+            update.message.reply_text("You are importing LINE Message Stickers which needs more time to complete.\n"
+                                      "您正在導入LINE訊息貼圖, 這需要更長的等候時間.")
     except:
         pass
 
@@ -194,9 +198,26 @@ def notify_import_starting(update, _):
 def prepare_sticker_files(_, want_animated):
     os.makedirs("line_sticker", exist_ok=True)
     directory_path = "line_sticker/" + _.user_data['line_sticker_id'] + "/"
+    os.makedirs(directory_path, exist_ok=True)
+    if _.user_data['line_sticker_type'] == "sticker_message":
+        for element in BeautifulSoup(_.user_data['line_store_webpage_text'], "html.parser").find_all('li'):
+            json_text = element.get('data-preview')
+            if json_text is not None:
+                json_data = json.loads(json_text)
+                base_image = json_data['staticUrl'].split(';')[0]
+                overlay_image = json_data['customOverlayUrl'].split(';')[0]
+                base_image_link_split = base_image.split('/')
+                image_id = base_image_link_split[base_image_link_split.index('sticker') + 1]
+                subprocess.run(f"curl -Lo {directory_path}{image_id}.base.png {base_image}", shell=True)
+                subprocess.run(f"curl -Lo {directory_path}{image_id}.overlay.png {overlay_image}", shell=True)
+                subprocess.run(f"convert {directory_path}{image_id}.base.png {directory_path}{image_id}.overlay.png "
+                               f"-background none -filter Lanczos -resize 512x512 -composite "
+                               f"{directory_path}{image_id}.composite.png", shell=True)
+        return sorted([directory_path + f for f in os.listdir(directory_path) if
+                       os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".composite.png")])
+
     zip_file_path = "line_sticker/" + _.user_data['line_sticker_id'] + ".zip"
     subprocess.run("curl -Lo " + zip_file_path + " " + _.user_data['line_sticker_download_url'], shell=True)
-    os.makedirs("line_sticker/" + _.user_data['line_sticker_id'], exist_ok=True)
     subprocess.run(f"rm -r {directory_path}*", shell=True)
     subprocess.run("bsdtar -xf " + zip_file_path + " -C " + directory_path, shell=True)
     if not want_animated:
@@ -219,6 +240,10 @@ def prepare_sticker_files(_, want_animated):
                        '-c:v libx264 -r 9 -crf 26 -y {}.mp4', shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
                        os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".mp4")])
+
+
+def prepare_sticker_message_files(_):
+
 
 
 def get_sticker_thumbnails_path(_):
@@ -493,9 +518,10 @@ def get_line_sticker_detail(link, webpage_text):
     split_line_url = link.split('/')
     if split_line_url[split_line_url.index("store.line.me") + 1] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
-        if '<span class="MdIcoPlay_b" data-test="animation-sticker-icon">Animation only icon</span>' in webpage_text or \
-                '<span class="MdIcoAni_b" data-test="animation-sound-sticker-icon">Animation &amp; Sound icon</span>' in webpage_text:
+        if 'MdIcoPlay_b' in webpage_text or 'MdIcoAni_b' in webpage_text:
             t = "sticker_animated"
+        elif 'MdIcoMessageSticker_b' in webpage_text:
+            t = "sticker_message"
         else:
             t = "sticker"
     elif split_line_url[split_line_url.index("store.line.me") + 1] == "emojishop":
