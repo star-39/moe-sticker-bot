@@ -458,24 +458,18 @@ def parse_emoji(update: Update, _: CallbackContext) -> int:
 # LINE_STICKER_INFO
 def parse_line_url(update: Update, _: CallbackContext) -> int:
     message = update.message.text.strip()
-    if not message.isdigit():
-        try:
-            _.user_data['line_store_webpage'] = requests.get(message)
-            _.user_data['line_sticker_url'] = _.user_data['line_store_webpage'].url
-            _.user_data['line_sticker_type'], _.user_data['line_sticker_id'] = \
-                get_line_sticker_detail(_.user_data['line_store_webpage'])
-        except:
-            update.message.reply_text('URL parse error! Make sure you sent a LINE Store URL !! Try again please.\n'
-                                      'URL解析錯誤!! 請確認輸入的是正確的LINE商店URL連結. 請重試.\n'
-                                      'URL解析エラー！もう一度、正しいLINEスタンプストアのリンクを入力してください')
-            return LINE_STICKER_INFO
-    else:
-        _.user_data['line_sticker_id'] = message
-        _.user_data['line_sticker_url'] = compose_line_store_url(_.user_data['line_sticker_type'],
-                                                                 _.user_data['line_sticker_id'])
+    try:
+        _.user_data['line_store_webpage'] = requests.get(message)
+        _.user_data['line_sticker_url'] = _.user_data['line_store_webpage'].url
+        _.user_data['line_sticker_type'], \
+        _.user_data['line_sticker_id'] ,\
+        _.user_data['line_sticker_download_url']= get_line_sticker_detail(_.user_data['line_store_webpage'])
+    except:
+        update.message.reply_text('URL parse error! Make sure you sent a LINE Store URL !! Try again please.\n'
+                                  'URL解析錯誤!! 請確認輸入的是正確的LINE商店URL連結. 請重試.\n'
+                                  'URL解析エラー！もう一度、正しいLINEスタンプストアのリンクを入力してください')
+        return LINE_STICKER_INFO
 
-    _.user_data['line_sticker_download_url'] = compose_line_download_url(_.user_data['line_sticker_type'],
-                                                                         _.user_data['line_sticker_id'])
 
     if str(_.user_data['in_command']).startswith("/import_line_sticker"):
         ask_emoji(update)
@@ -533,25 +527,16 @@ def get_line_sticker_detail(webpage):
         t = "emoji"
     else:
         t = ""
-
     i = split_line_url[split_line_url.index("product") + 1]
-    return t, i
-
-
-def compose_line_store_url(type, id):
-    if type == "sticker" or type == "sticker_animated":
-        return "https://store.line.me/stickershop/product/" + id
-    elif type == "emoji":
-        return "https://store.line.me/emojishop/product/" + id
-
-
-def compose_line_download_url(type, id):
-    if type == "sticker":
-        return "https://stickershop.line-scdn.net/stickershop/v1/product/" + id + "/iphone/stickers@2x.zip"
-    elif type == "sticker_animated":
-        return "https://stickershop.line-scdn.net/stickershop/v1/product/" + id + "/iphone/stickerpack@2x.zip"
-    elif type == "emoji":
-        return "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + id + "/iphone/package.zip"
+    if t == "sticker":
+        u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/stickers@2x.zip"
+    elif t == "sticker_animated":
+        u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/stickerpack@2x.zip"
+    elif t == "emoji":
+        u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + i + "/iphone/package.zip"
+    else:
+        u = ""
+    return t, i, u
 
 
 def command_import_line_sticker(update: Update, _: CallbackContext):
