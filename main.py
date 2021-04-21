@@ -166,18 +166,18 @@ def do_auto_import_line_sticker(update, _):
                                              name=_.user_data['telegram_sticker_id'],
                                              emojis=_.user_data['telegram_sticker_emoji'],
                                              png_sticker=open(img_file_path, 'rb'))
-                    report_progress(message_progress, index + 1, len(img_files_path))
                 except telegram.error.RetryAfter as ra:
                     subprocess.run("date", shell=True)
                     print("!!! Flood limit triggered@do_auto_import_line_sticker, logging this incident.")
                     print("!!! RA=" + str(ra.retry_after))
-                    time.sleep(10)
+                    time.sleep(int(ra.retry_after))
                     continue
                 except Exception as e:
                     update.message.reply_text("Fatal error!\n" + str(e))
                     return ConversationHandler.END
                 else:
                     break
+            report_progress(message_progress, index + 1, len(img_files_path))
 
     notify_sticker_done(update, _)
 
@@ -261,32 +261,34 @@ def report_progress(message_progress, current, total, update=None):
     progress_50 = '[=========>          ]'
     progress_75 = '[==============>     ]'
     progress_100 ='[====================]'
-
-    if update is not None:
-        return update.message.reply_text("<b>Current Status</b>\n"
-                                   "<code>" + progress_1 + "</code>\n"
-                                   "<code>       " + str(current) + " of " + str(total) + "     </code>",
-                                   parse_mode="HTML")
-    if current == int(0.25 * total):
-        message_progress.edit_text("<b>Current Status</b>\n"
-                                   "<code>" + progress_25 + "</code>\n"
-                                   "<code>       " + str(current) + " of " + str(total) + "     </code>",
-                                   parse_mode="HTML")
-    if current == int(0.5 * total):
-        message_progress.edit_text("<b>Current Status</b>\n"
-                                   "<code>" + progress_50 + "</code>\n"
-                                   "<code>       " + str(current) + " of " + str(total) + "     </code>",
-                                   parse_mode="HTML")
-    if current == int(0.75 * total):
-        message_progress.edit_text("<b>Current Status</b>\n"
-                                   "<code>" + progress_75 + "</code>\n"
-                                   "<code>       " + str(current) + " of " + str(total) + "     </code>",
-                                   parse_mode="HTML")
-    if current == total:
-        message_progress.edit_text("<b>Current Status</b>\n"
-                                   "<code>" + progress_100 + "</code>\n"
-                                   "<code>       " + str(current) + " of " + str(total) + "     </code>",
-                                   parse_mode="HTML")
+    try:
+        if update is not None:
+            return update.message.reply_text("<b>Current Status</b>\n"
+                                       "<code>" + progress_1 + "</code>\n"
+                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       parse_mode="HTML")
+        if current == int(0.25 * total):
+            message_progress.edit_text("<b>Current Status</b>\n"
+                                       "<code>" + progress_25 + "</code>\n"
+                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       parse_mode="HTML")
+        if current == int(0.5 * total):
+            message_progress.edit_text("<b>Current Status</b>\n"
+                                       "<code>" + progress_50 + "</code>\n"
+                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       parse_mode="HTML")
+        if current == int(0.75 * total):
+            message_progress.edit_text("<b>Current Status</b>\n"
+                                       "<code>" + progress_75 + "</code>\n"
+                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       parse_mode="HTML")
+        if current == total:
+            message_progress.edit_text("<b>Current Status</b>\n"
+                                       "<code>" + progress_100 + "</code>\n"
+                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       parse_mode="HTML")
+    except:
+        pass
 
 
 def do_download_line_sticker(update, _):
