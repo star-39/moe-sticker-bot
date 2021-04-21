@@ -45,8 +45,8 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 
 <b>/import_line_sticker</b><code>
     Import sticker set from LINE Store to Telegram
-    從LINE STORE將貼圖包導入成Telegram的貼圖包
-    LINE STOREからスタンプをTelegramへインポート
+    從LINE STORE將貼圖包導入至Telegram
+    LINE STOREからスタンプをTelegramにインポート
 </code>
 <b>/download_line_sticker</b><code>
     Download sticker set from LINE Store
@@ -616,8 +616,8 @@ def command_download_telegram_sticker(update: Update, _: CallbackContext):
 
 
 def ask_line_store_link(update):
-    update.message.reply_text("Please enter LINE store URL or sticker ID\n"
-                              "請輸入貼圖包的LINE STORE連結或貼圖包的ID\n"
+    update.message.reply_text("Please enter LINE store URL of the sticker set\n"
+                              "請輸入貼圖包的LINE STORE連結\n"
                               "スタンプのLINE STOREリンクを入力してください\n\n"
                               "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
                               parse_mode="HTML")
