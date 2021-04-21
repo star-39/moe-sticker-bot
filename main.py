@@ -1,6 +1,6 @@
 import json
 import time
-
+import logging
 import telegram.error
 from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, ConversationHandler, \
@@ -21,7 +21,11 @@ class GlobalConfigs:
     BOT_TOKEN = ""
     BOT_VERSION = "0.3 BETA"
 
-# DO NOT log user's activity if you are aiming for "privacy"
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 # TODO: Separate text messages to a standalone "helper" python file.
 
 LINE_STICKER_INFO, EMOJI, ID, TITLE, MANUAL_EMOJI = range(5)
@@ -164,8 +168,10 @@ def do_auto_import_line_sticker(update, _):
                                              png_sticker=open(img_file_path, 'rb'))
                     report_progress(message_progress, index + 1, len(img_files_path))
                 except telegram.error.RetryAfter as ra:
+                    subprocess.run("date", shell=True)
                     print("!!! Flood limit triggered@do_auto_import_line_sticker, logging this incident.")
-                    time.sleep(ra.retry_after)
+                    print("!!! RA=" + str(ra.retry_after))
+                    time.sleep(10)
                     continue
                 except Exception as e:
                     update.message.reply_text("Fatal error!\n" + str(e))
