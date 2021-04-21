@@ -19,7 +19,7 @@ import traceback
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "0.3 BETA"
+    BOT_VERSION = "0.4 BETA"
 
 
 logging.basicConfig(level=logging.INFO,
