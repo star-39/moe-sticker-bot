@@ -300,8 +300,8 @@ def initialise_manual_import(update, _):
     _.user_data['img_files_path'] = prepare_sticker_files(_, want_animated=False)
     _.user_data['img_thumbnails_path'] = get_sticker_thumbnails_path(_)
     # This is the FIRST sticker.
-    notify_next(update, _)
     _.user_data['manual_emoji_index'] = 0
+    notify_next(update, _)
 
 
 # MANUAL_EMOJI
@@ -342,8 +342,8 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
             notify_sticker_done(update, _)
             return ConversationHandler.END
 
-    notify_next(update, _)
     _.user_data['manual_emoji_index'] += 1
+    notify_next(update, _)
     return MANUAL_EMOJI
 
 
@@ -354,14 +354,13 @@ def notify_next(update, _):
                              caption="Please send emoji(s) representing this sticker\n"
                                      "請輸入代表這個貼圖的emoji(可以多個)\n"
                                      "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
-                                     f"{_.user_data['manual_emoji_index'] + 2} of {len(_.user_data['img_files_path'])}",
-                             photo=open(_.user_data['img_thumbnails_path'][_.user_data['manual_emoji_index']+1], 'rb'))
+                                     f"{_.user_data['manual_emoji_index'] + 1} of {len(_.user_data['img_files_path'])}",
+                             photo=open(_.user_data['img_thumbnails_path'][_.user_data['manual_emoji_index']], 'rb'))
         except telegram.error.RetryAfter as ra:
             time.sleep(int(ra.retry_after))
             continue
         else:
             break
-
 
 
 def notify_sticker_done(update, _):
