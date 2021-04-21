@@ -547,7 +547,7 @@ def compose_line_download_url(type, id):
     if type == "sticker":
         return "https://stickershop.line-scdn.net/stickershop/v1/product/" + id + "/iphone/stickers@2x.zip"
     elif type == "sticker_animated":
-        return "https://stickershop.line-scdn.net/stickershop/v1/product/" + id + "/iphone/stickerpack@2x.zip.zip"
+        return "https://stickershop.line-scdn.net/stickershop/v1/product/" + id + "/iphone/stickerpack@2x.zip"
     elif type == "emoji":
         return "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + id + "/iphone/package.zip"
 
