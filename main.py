@@ -518,6 +518,8 @@ def ask_emoji(update):
 
 
 def get_line_sticker_detail(webpage):
+    if not webpage.url.startswith("https://store.line.me"):
+        raise Exception("Not valid link!")
     split_line_url = webpage.url.split('/')
     if split_line_url[split_line_url.index("store.line.me") + 1] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
