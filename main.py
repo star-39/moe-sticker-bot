@@ -295,24 +295,25 @@ def do_download_line_sticker(update, _):
     update.message.reply_text(_.user_data['line_sticker_download_url'])
 
 
+def initialise_manual_import(update, _):
+    notify_import_starting(update, _)
+    _.user_data['img_files_path'] = prepare_sticker_files(_, want_animated=False)
+    _.user_data['img_thumbnails_path'] = get_sticker_thumbnails_path(_)
+    # This is the FIRST sticker.
+    notify_next(update, _)
+    _.user_data['manual_emoji_index'] = 0
+
+
 # MANUAL_EMOJI
 def manual_add_emoji(update: Update, _: CallbackContext) -> int:
     # Verify emoji.
     em = ''.join(e for e in re.findall(emoji.get_emoji_regexp(), update.message.text))
-    if _.user_data['manual_emoji_index'] != -1 and em == '':
+    if em == '':
         update.message.reply_text("Please send emoji! Try again")
         return MANUAL_EMOJI
 
-    # Initialise
-    if _.user_data['manual_emoji_index'] == -1:
-        notify_import_starting(update, _)
-        _.user_data['img_files_path'] = prepare_sticker_files(_, want_animated=False)
-        _.user_data['img_thumbnails_path'] = get_sticker_thumbnails_path(_)
-        # This is the FIRST sticker.
-        notify_next(update, _)
-
     # First sticker to create new set.
-    elif _.user_data['manual_emoji_index'] == 0:
+    if _.user_data['manual_emoji_index'] == 0:
         try:
             _.bot.create_new_sticker_set(user_id=update.message.from_user.id,
                                          name=_.user_data['telegram_sticker_id'],
@@ -322,9 +323,6 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
         except Exception as e:
             update.message.reply_text("Error creating! Please send the same emoji again.\n" + str(e))
             return MANUAL_EMOJI
-        # This is the next sticker (in this case, the SECOND one).
-        notify_next(update, _)
-
     else:
         try:
             _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
@@ -335,49 +333,60 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
                                          )
                                      )
         except telegram.error.RetryAfter as ra:
-            time.sleep(8)
+            time.sleep(int(ra.retry_after))
             update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(ra))
-        except Exception as e:
-            update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(e))
             return MANUAL_EMOJI
+
 
         if _.user_data['manual_emoji_index'] == len(_.user_data['img_files_path']) - 1:
             notify_sticker_done(update, _)
             return ConversationHandler.END
 
-        notify_next(update, _)
-
+    notify_next(update, _)
     _.user_data['manual_emoji_index'] += 1
     return MANUAL_EMOJI
 
 
 def notify_next(update, _):
-    time.sleep(1)
-    _.bot.send_photo(chat_id=update.effective_chat.id,
-                     caption="Please send emoji(s) representing this sticker\n"
-                             "請輸入代表這個貼圖的emoji(可以多個)\n"
-                             "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
-                             f"{_.user_data['manual_emoji_index'] + 2} of {len(_.user_data['img_files_path'])}",
-                     photo=open(_.user_data['img_thumbnails_path'][_.user_data['manual_emoji_index'] + 1], 'rb'))
+    for __ in range(3):
+        try:
+            _.bot.send_photo(chat_id=update.effective_chat.id,
+                             caption="Please send emoji(s) representing this sticker\n"
+                                     "請輸入代表這個貼圖的emoji(可以多個)\n"
+                                     "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
+                                     f"{_.user_data['manual_emoji_index'] + 2} of {len(_.user_data['img_files_path'])}",
+                             photo=open(_.user_data['img_thumbnails_path'][_.user_data['manual_emoji_index']+1], 'rb'))
+        except telegram.error.RetryAfter as ra:
+            time.sleep(int(ra.retry_after))
+            continue
+        else:
+            break
+
 
 
 def notify_sticker_done(update, _):
-    time.sleep(1)
-    update.message.reply_text("The sticker set has been successfully created!\n"
-                              "貼圖包已經成功創建!\n"
-                              "ステッカーセットの作成が成功しました！\n\n"
-                              "https://t.me/addstickers/" + _.user_data['telegram_sticker_id'])
-    if _.user_data['line_sticker_type'] == "sticker_animated":
-        update.message.reply_text("It seems the sticker set you imported also has a animated version\n"
-                                  "Please use /get_animated_line_sticker to have their GIF version\n"
-                                  "您導入的貼圖包還有動態貼圖版本\n"
-                                  "請使用 /get_animated_line_sticker 獲取GIF版動態貼圖\n"
-                                  "このスタンプの動くバージョンもございます。\n"
-                                  "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
+    for __ in range(3):
+        try:
+            update.message.reply_text("The sticker set has been successfully created!\n"
+                                      "貼圖包已經成功創建!\n"
+                                      "ステッカーセットの作成が成功しました！\n\n"
+                                      "https://t.me/addstickers/" + _.user_data['telegram_sticker_id'])
+            if _.user_data['line_sticker_type'] == "sticker_animated":
+                update.message.reply_text("It seems the sticker set you imported also has a animated version\n"
+                                          "Please use /get_animated_line_sticker to have their GIF version\n"
+                                          "您導入的貼圖包還有動態貼圖版本\n"
+                                          "請使用 /get_animated_line_sticker 獲取GIF版動態貼圖\n"
+                                          "このスタンプの動くバージョンもございます。\n"
+                                          "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
+        except telegram.error.RetryAfter as ra:
+            time.sleep(int(ra.retry_after))
+            continue
+        else:
+            break
 
 # TITLE
 # This is the final step, if user wants to assign each sticker a different emoji, return to MANUAL_EMOJI,
-# otherwise, END conversation.
+# otherwise, do auto import then END conversation.
 def parse_title(update: Update, _: CallbackContext) -> int:
     if update.message.text.strip().lower() == "auto":
         _.user_data['telegram_sticker_title'] = BeautifulSoup(_.user_data['line_store_webpage'].text, 'html.parser'
@@ -391,10 +400,7 @@ def parse_title(update: Update, _: CallbackContext) -> int:
         _.user_data['telegram_sticker_title'] = update.message.text.strip()
 
     if _.user_data['manual_emoji'] is True:
-        _.user_data['manual_emoji_index'] = -1
-        # Note that MANUAL_EMOJI will be called AFTER user send a emoji!!
-        # Hence we need to call it in advance to "initialise" the process.
-        manual_add_emoji(update, _)
+        initialise_manual_import(update, _)
         return MANUAL_EMOJI
 
     do_auto_import_line_sticker(update, _)
@@ -454,7 +460,6 @@ def parse_emoji(update: Update, _: CallbackContext) -> int:
     return ID
 
 
-# TODO: This function does too much, refactor needed
 # LINE_STICKER_INFO
 def parse_line_url(update: Update, _: CallbackContext) -> int:
     message = update.message.text.strip()
@@ -585,7 +590,7 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
                               parse_mode="HTML")
     save_path = "tg_sticker/" + sticker_set.name + "/"
     os.makedirs(save_path, exist_ok=True)
-    subprocess.run("rm " + save_path + "*", shell=True)
+    subprocess.run("rm -r " + save_path + "*", shell=True)
     for index, sticker in enumerate(sticker_set.stickers):
         try:
             _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name + "_" + str(index).zfill(3) + "_" +
@@ -627,10 +632,6 @@ def command_cancel(update: Update, _: CallbackContext) -> int:
     update.message.reply_text("SESSION END.")
     start(update, _)
     return ConversationHandler.END
-
-
-def command_test(update: Update, _: CallbackContext):
-    update.message.reply_text("A test message.")
 
 
 def reject_text(update: Update, _: CallbackContext):
@@ -699,7 +700,6 @@ def main() -> None:
     dispatcher.add_handler(conv_download_telegram_sticker)
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
-    dispatcher.add_handler(CommandHandler('test', command_test))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, reject_text))
     # dispatcher.add_error_handler(error_handler)
 
