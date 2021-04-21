@@ -207,7 +207,7 @@ def prepare_sticker_files(_, want_animated):
     os.makedirs(directory_path, exist_ok=True)
     subprocess.run(f"rm -r {directory_path}*", shell=True)
     if _.user_data['line_sticker_type'] == "sticker_message":
-        for element in BeautifulSoup(_.user_data['line_store_webpage_text'], "html.parser").find_all('li'):
+        for element in BeautifulSoup(_.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
             json_text = element.get('data-preview')
             if json_text is not None:
                 json_data = json.loads(json_text)
@@ -378,7 +378,7 @@ def notify_sticker_done(update, _):
 # otherwise, END conversation.
 def parse_title(update: Update, _: CallbackContext) -> int:
     if update.message.text.strip().lower() == "auto":
-        _.user_data['telegram_sticker_title'] = BeautifulSoup(_.user_data['line_store_webpage_text'], 'html.parser'
+        _.user_data['telegram_sticker_title'] = BeautifulSoup(_.user_data['line_store_webpage'].text, 'html.parser'
                                ).find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
                                f" by @{GlobalConfigs.BOT_NAME}"
         update.message.reply_text("The title will be automatically set to:\n"
@@ -458,10 +458,10 @@ def parse_line_url(update: Update, _: CallbackContext) -> int:
     message = update.message.text.strip()
     if not message.isdigit():
         try:
-            _.user_data['line_store_webpage_text'] = requests.get(message).text
+            _.user_data['line_store_webpage'] = requests.get(message)
+            _.user_data['line_sticker_url'] = _.user_data['line_store_webpage'].url
             _.user_data['line_sticker_type'], _.user_data['line_sticker_id'] = \
-                get_line_sticker_detail(message, _.user_data['line_store_webpage_text'])
-            _.user_data['line_sticker_url'] = message
+                get_line_sticker_detail(_.user_data['line_store_webpage'])
         except:
             update.message.reply_text('URL parse error! Make sure you sent a LINE Store URL !! Try again please.\n'
                                       'URL解析錯誤!! 請確認輸入的是正確的LINE商店URL連結. 請重試.\n'
@@ -517,13 +517,13 @@ def ask_emoji(update):
                               parse_mode="HTML")
 
 
-def get_line_sticker_detail(link, webpage_text):
-    split_line_url = link.split('/')
+def get_line_sticker_detail(webpage):
+    split_line_url = webpage.url.split('/')
     if split_line_url[split_line_url.index("store.line.me") + 1] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
-        if 'MdIcoPlay_b' in webpage_text or 'MdIcoAni_b' in webpage_text:
+        if 'MdIcoPlay_b' in webpage.text or 'MdIcoAni_b' in webpage.text:
             t = "sticker_animated"
-        elif 'MdIcoMessageSticker_b' in webpage_text:
+        elif 'MdIcoMessageSticker_b' in webpage.text:
             t = "sticker_message"
         else:
             t = "sticker"
@@ -575,7 +575,7 @@ def initialize_user_data(update, _):
     _.user_data['in_command'] = update.message.text
     _.user_data['manual_emoji'] = False
     _.user_data['line_sticker_url'] = ""
-    _.user_data['line_store_webpage_text'] = ""
+    _.user_data['line_store_webpage'] = None
     _.user_data['line_sticker_download_url'] = ""
     _.user_data['line_sticker_type'] = "sticker"
     _.user_data['line_sticker_id'] = ""
