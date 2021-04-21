@@ -584,6 +584,7 @@ def initialize_user_data(update, _):
     _.user_data['telegram_sticker_title'] = ""
 
 
+# GET_TG_STICKER
 def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
     sticker_set = _.bot.get_sticker_set(name=update.message.sticker.set_name)
     update.message.reply_text("This might take some time, please wait...\n"
@@ -600,7 +601,7 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
     subprocess.run("rm " + save_path + "*", shell=True)
     for index, sticker in enumerate(sticker_set.stickers):
         try:
-            _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name + "_" + str(index) + "_" +
+            _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name + "_" + str(index).zfill(3) + "_" +
                                                       emoji.demojize(sticker.emoji)[1:-1] + ".webp")
         except Exception as e:
             print(str(e))
