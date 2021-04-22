@@ -1,6 +1,7 @@
 import json
 import time
 import logging
+from urllib.parse import urlparse
 import telegram.error
 from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, ConversationHandler, \
@@ -19,13 +20,13 @@ import traceback
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "0.5 BETA"
+    BOT_VERSION = "0.6 BETA"
 
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
 # TODO: Separate text messages to a standalone "helper" python file.
 
 LINE_STICKER_INFO, EMOJI, ID, TITLE, MANUAL_EMOJI = range(5)
@@ -461,9 +462,10 @@ def parse_emoji(update: Update, _: CallbackContext) -> int:
 
 # LINE_STICKER_INFO
 def parse_line_url(update: Update, _: CallbackContext) -> int:
-    message = update.message.text.strip()
     try:
-        _.user_data['line_store_webpage'] = requests.get(message)
+        message_url = re.findall(r'\b(?:https?):[\w/#~:.?+=&%@!\-.:?\\-]+?(?=[.:?\-]*(?:[^\w/#~:.?+=&%@!\-.:?\-]|$))',
+                                 update.message.text)[0]
+        _.user_data['line_store_webpage'] = requests.get(message_url)
         _.user_data['line_sticker_url'] = _.user_data['line_store_webpage'].url
         _.user_data['line_sticker_type'], \
         _.user_data['line_sticker_id'] ,\
@@ -518,30 +520,30 @@ def ask_emoji(update):
 
 
 def get_line_sticker_detail(webpage):
-    if not webpage.url.startswith("https://store.line.me"):
+    if not webpage.url.startswith("https://store.line.me") or not webpage.status_code == 200:
         raise Exception("Not valid link!")
-    split_line_url = webpage.url.split('/')
-    if split_line_url[split_line_url.index("store.line.me") + 1] == "stickershop":
+    url_comps = urlparse(webpage.url).path[1:].split('/')
+    i = str(url_comps[2])
+    if not re.match(r'^[a-zA-Z0-9]+$', i):
+        raise Exception("Not valid link!")
+
+    if url_comps[0] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
         if 'MdIcoPlay_b' in webpage.text or 'MdIcoAni_b' in webpage.text:
             t = "sticker_animated"
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/stickerpack@2x.zip"
         elif 'MdIcoMessageSticker_b' in webpage.text:
             t = "sticker_message"
+            u = webpage.url
         else:
             t = "sticker"
-    elif split_line_url[split_line_url.index("store.line.me") + 1] == "emojishop":
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/stickers@2x.zip"
+    elif url_comps[0] == "emojishop":
         t = "emoji"
-    else:
-        t = ""
-    i = split_line_url[split_line_url.index("product") + 1]
-    if t == "sticker":
-        u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/stickers@2x.zip"
-    elif t == "sticker_animated":
-        u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/stickerpack@2x.zip"
-    elif t == "emoji":
         u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + i + "/iphone/package.zip"
     else:
-        u = ""
+        raise Exception("Not a supported sticker type!")
+
     return t, i, u
 
 
