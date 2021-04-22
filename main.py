@@ -162,7 +162,7 @@ def do_auto_import_line_sticker(update, _):
             # Retry 3 times
             for __ in range(3):
                 try:
-                    time.sleep(1)
+                    time.sleep(2)
                     _.bot.add_sticker_to_set(user_id=update.message.from_user.id,
                                              name=_.user_data['telegram_sticker_id'],
                                              emojis=_.user_data['telegram_sticker_emoji'],
@@ -170,9 +170,12 @@ def do_auto_import_line_sticker(update, _):
                 except telegram.error.RetryAfter as ra:
                     subprocess.run("date", shell=True)
                     print("!!! Flood limit triggered@do_auto_import_line_sticker, logging this incident.")
-                    print("!!! RA=" + str(ra.retry_after))
                     time.sleep(int(ra.retry_after))
-                    continue
+                    # API sometimes return retry_after EVEN addStickerToSet has success! Check sticker set's actual status.
+                    if index + 1 == _.bot.get_sticker_set(name=_.user_data['telegram_sticker_id']).stickers:
+                        break
+                    else:
+                        continue
                 except Exception as e:
                     update.message.reply_text("Fatal error!\n" + str(e))
                     return ConversationHandler.END
@@ -336,9 +339,14 @@ def manual_add_emoji(update: Update, _: CallbackContext) -> int:
                                      )
         except telegram.error.RetryAfter as ra:
             time.sleep(int(ra.retry_after))
-            update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(ra))
-            return MANUAL_EMOJI
-
+            if _.user_data['manual_emoji_index'] + 1 == _.bot.get_sticker_set(name=_.user_data['telegram_sticker_id']).stickers:
+                pass
+            else:
+                update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(ra))
+                return MANUAL_EMOJI
+        except Exception as e:
+            update.message.reply_text("Fatal error! " + str(e))
+            return ConversationHandler.END
 
         if _.user_data['manual_emoji_index'] == len(_.user_data['img_files_path']) - 1:
             notify_sticker_done(update, _)
