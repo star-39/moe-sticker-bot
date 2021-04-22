@@ -221,6 +221,7 @@ def prepare_sticker_files(_, want_animated):
                 subprocess.run(f"convert {directory_path}{image_id}.base.png {directory_path}{image_id}.overlay.png "
                                f"-background none -filter Lanczos -resize 512x512 -composite "
                                f"{directory_path}{image_id}.composite.png", shell=True)
+        subprocess.run(f"mogrify -format webp {directory_path}*.composite.png", shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
                        os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".composite.png")])
 
