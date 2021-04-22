@@ -467,7 +467,7 @@ def parse_line_url(update: Update, _: CallbackContext) -> int:
         message_url = re.findall(r'\b(?:https?):[\w/#~:.?+=&%@!\-.:?\\-]+?(?=[.:?\-]*(?:[^\w/#~:.?+=&%@!\-.:?\-]|$))',
                                  update.message.text)[0]
         _.user_data['line_store_webpage'] = requests.get(message_url)
-        _.user_data['line_sticker_url'] = _.user_data['line_store_webpage'].url
+        _.user_data['line_sticker_url'], \
         _.user_data['line_sticker_type'], \
         _.user_data['line_sticker_id'] ,\
         _.user_data['line_sticker_download_url']= get_line_sticker_detail(_.user_data['line_store_webpage'])
@@ -523,11 +523,13 @@ def ask_emoji(update):
 def get_line_sticker_detail(webpage):
     if not webpage.url.startswith("https://store.line.me") or not webpage.status_code == 200:
         raise Exception("Not valid link!")
-    url_comps = urlparse(webpage.url).path[1:].split('/')
-    i = str(url_comps[2])
-    if not re.match(r'^[a-zA-Z0-9]+$', i):
-        raise Exception("Not valid link!")
-
+    json_details = json.loads(BeautifulSoup(webpage.text, "html.parser").find_all('script')[0].contents[0])
+    i = json_details['sku']
+    url = json_details['url']
+    url_comps = urlparse(url).path[1:].split('/')
+    # i = str(url_comps[2])
+    # if not re.match(r'^[a-zA-Z0-9]+$', i):
+    #     raise Exception("Not valid link!")
     if url_comps[0] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
         if 'MdIcoPlay_b' in webpage.text or 'MdIcoAni_b' in webpage.text:
@@ -545,7 +547,7 @@ def get_line_sticker_detail(webpage):
     else:
         raise Exception("Not a supported sticker type!")
 
-    return t, i, u
+    return url, t, i, u
 
 
 def command_import_line_sticker(update: Update, _: CallbackContext):
