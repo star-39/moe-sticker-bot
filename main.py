@@ -561,7 +561,6 @@ def command_download_line_sticker(update: Update, _: CallbackContext):
 
 def command_get_animated_line_sticker(update: Update, _: CallbackContext):
     initialize_user_data(update, _)
-    _.user_data['line_sticker_type'] = "sticker_animated"
     ask_line_store_link(update)
     return LINE_STICKER_INFO
 
