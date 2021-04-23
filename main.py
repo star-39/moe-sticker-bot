@@ -223,7 +223,7 @@ def prepare_sticker_files(_, want_animated):
                 subprocess.run(f"curl -Lo {directory_path}{image_id}.base.png {base_image}", shell=True)
                 subprocess.run(f"curl -Lo {directory_path}{image_id}.overlay.png {overlay_image}", shell=True)
                 subprocess.run(f"convert {directory_path}{image_id}.base.png {directory_path}{image_id}.overlay.png "
-                               f"-background none -filter Lanczos -resize 512x512 -composite "
+                               f"-background none -filter Lanczos -resize 512x512 -composite -define webp:lossless=true "
                                f"{directory_path}{image_id}.webp", shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
                        os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".webp")])
@@ -236,7 +236,8 @@ def prepare_sticker_files(_, want_animated):
         subprocess.run(f"rm {directory_path}*key* {directory_path}tab* {directory_path}productInfo.meta", shell=True)
         # Resize to fulfill telegram's requirement, AR is automatically retained
         # Lanczos resizing produces much sharper image.
-        subprocess.run(f"mogrify -background none -filter Lanczos -resize 512x512 -format webp {directory_path}*.png", shell=True)
+        subprocess.run(f"mogrify -background none -filter Lanczos -resize 512x512 "
+                       f"-format webp -define webp:lossless=true {directory_path}*.png", shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
                        os.path.isfile(os.path.join(directory_path, f)) and f.endswith("webp")])
     else:
@@ -600,12 +601,12 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
                 _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name +
                                                          "_" + str(index).zfill(3) + "_" +
                                                           emoji.demojize(sticker.emoji)[1:-1] +
-                                                         ".tgs" if sticker_set.is_animated else ".webp")
+                                                         (".tgs" if sticker_set.is_animated else ".webp"))
             else:
                 subprocess.run("cp " + _.bot.get_file(sticker.file_id).download() +
                                " " + save_path + sticker.set_name + "_" +
                                str(index).zfill(3) + "_" + emoji.demojize(sticker.emoji)[1:-1] +
-                               ".tgs" if sticker_set.is_animated else ".webp"
+                               (".tgs" if sticker_set.is_animated else ".webp")
                                , shell=True)
         except Exception as e:
             print(str(e))
