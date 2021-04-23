@@ -21,7 +21,7 @@ class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
     BOT_VERSION = "0.7 BETA"
-    LOCAL_API = True
+    LOCAL_API = False
 
 
 logging.basicConfig(level=logging.INFO,
@@ -597,22 +597,41 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
     for index, sticker in enumerate(sticker_set.stickers):
         try:
             if not GlobalConfigs.LOCAL_API:
-                _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name + "_" + str(index).zfill(3) + "_" +
-                                                          emoji.demojize(sticker.emoji)[1:-1] + ".webp")
+                _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name +
+                                                         "_" + str(index).zfill(3) + "_" +
+                                                          emoji.demojize(sticker.emoji)[1:-1] +
+                                                         ".tgs" if sticker_set.is_animated else ".webp")
             else:
-                subprocess.run("cp " + _.bot.get_file(sticker.file_id).download() + " " + save_path + sticker.set_name + "_" +
-                               str(index).zfill(3) + "_" + emoji.demojize(sticker.emoji)[1:-1] + ".webp", shell=True)
+                subprocess.run("cp " + _.bot.get_file(sticker.file_id).download() +
+                               " " + save_path + sticker.set_name + "_" +
+                               str(index).zfill(3) + "_" + emoji.demojize(sticker.emoji)[1:-1] +
+                               ".tgs" if sticker_set.is_animated else ".webp"
+                               , shell=True)
         except Exception as e:
             print(str(e))
-    subprocess.run("mogrify -format png " + save_path + "*.webp", shell=True)
+    if sticker_set.is_animated:
+        subprocess.run(f'find {save_path}*.tgs -type f -print0 | '
+                       "xargs -I{} -0 lottie_convert.py {} {}.webp", shell=True)
+        # subprocess.run(f"mogrify -format apng {save_path}*.webp", shell=True)
+        subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_tgs.zip " + save_path + "*.tgs", shell=True)
+        # subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_apng.zip " + save_path + "*.apng", shell=True)
+    else:
+        subprocess.run("mogrify -format png " + save_path + "*.webp", shell=True)
+        subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_png.zip " + save_path + "*.png", shell=True)
+
     subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_webp.zip " + save_path + "*.webp", shell=True)
-    subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_png.zip " + save_path + "*.png", shell=True)
+
     try:
-        _.bot.send_document(chat_id=update.effective_chat.id,
-                            document=open(save_path + sticker_set.name + "_webp.zip", 'rb'))
-        time.sleep(2)
-        _.bot.send_document(chat_id=update.effective_chat.id,
-                            document=open(save_path + sticker_set.name + "_png.zip", 'rb'))
+        if sticker_set.is_animated:
+            _.bot.send_document(chat_id=update.effective_chat.id,
+                                document=open(save_path + sticker_set.name + "_tgs.zip", 'rb'))
+            _.bot.send_document(chat_id=update.effective_chat.id,
+                                document=open(save_path + sticker_set.name + "_webp.zip", 'rb'))
+        else:
+            _.bot.send_document(chat_id=update.effective_chat.id,
+                                document=open(save_path + sticker_set.name + "_webp.zip", 'rb'))
+            _.bot.send_document(chat_id=update.effective_chat.id,
+                                document=open(save_path + sticker_set.name + "_png.zip", 'rb'))
     except Exception as e:
         print(str(e))
 
