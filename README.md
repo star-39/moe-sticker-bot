@@ -15,6 +15,7 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 * requests
 * bs4
 * emoji
+* lottie
 
 ### System Dependencies
 * ImageMagick
@@ -38,7 +39,7 @@ It probably runs on Mac, but never on Windows!! Please use [WSL](https://docs.mi
 ### Ubuntu / Debian
 ```
 apt install imagemagick libwebp6 ffmpeg libarchive-tools curl 
-pip3 install python-telegram-bot requests beautifulsoup4 emoji 
+pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 ### open config.ini and fill your bot api.
 python3 main.py
@@ -48,7 +49,7 @@ python3 main.py
 You may need to add [RPM Fusion](https://rpmfusion.org/Configuration)
 ```
 dnf install ffmpeg ImageMagick libwebp bsdtar curl 
-pip3 install python-telegram-bot requests beautifulsoup4 emoji 
+pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 ### open config.ini and fill your bot api.
 python3 main.py
