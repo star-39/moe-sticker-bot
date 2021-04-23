@@ -223,24 +223,21 @@ def prepare_sticker_files(_, want_animated):
                 subprocess.run(f"curl -Lo {directory_path}{image_id}.overlay.png {overlay_image}", shell=True)
                 subprocess.run(f"convert {directory_path}{image_id}.base.png {directory_path}{image_id}.overlay.png "
                                f"-background none -filter Lanczos -resize 512x512 -composite "
-                               f"{directory_path}{image_id}.composite.png", shell=True)
-        subprocess.run(f"mogrify -format webp {directory_path}*.composite.png", shell=True)
+                               f"{directory_path}{image_id}.webp", shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
-                       os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".composite.png")])
+                       os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".webp")])
 
     zip_file_path = "line_sticker/" + _.user_data['line_sticker_id'] + ".zip"
-    subprocess.run("curl -Lo " + zip_file_path + " " + _.user_data['line_sticker_download_url'], shell=True)
-    subprocess.run("bsdtar -xf " + zip_file_path + " -C " + directory_path, shell=True)
+    subprocess.run(f"curl -Lo {zip_file_path} {_.user_data['line_sticker_download_url']}", shell=True)
+    subprocess.run(f"bsdtar -xf {zip_file_path} -C {directory_path}", shell=True)
     if not want_animated:
         # Remove garbage
         subprocess.run(f"rm {directory_path}*key* {directory_path}tab* {directory_path}productInfo.meta", shell=True)
-        # Make a webp version
-        subprocess.run(f"mogrify -format webp {directory_path}*.png", shell=True)
         # Resize to fulfill telegram's requirement, AR is automatically retained
         # Lanczos resizing produces much sharper image.
-        subprocess.run(f"mogrify -background none -filter Lanczos -resize 512x512 {directory_path}*.png", shell=True)
+        subprocess.run(f"mogrify -background none -filter Lanczos -resize 512x512 -format webp {directory_path}*.png", shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
-                       os.path.isfile(os.path.join(directory_path, f)) and f.endswith("png")])
+                       os.path.isfile(os.path.join(directory_path, f)) and f.endswith("webp")])
     else:
         directory_path += "animation@2x/"
         # Magic!!
@@ -251,13 +248,6 @@ def prepare_sticker_files(_, want_animated):
                        '-c:v libx264 -r 9 -crf 26 -y {}.mp4', shell=True)
         return sorted([directory_path + f for f in os.listdir(directory_path) if
                        os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".mp4")])
-
-
-def get_sticker_thumbnails_path(_):
-    directory_path = "line_sticker/" + _.user_data['line_sticker_id'] + "/"
-    thumb_files_path = sorted([directory_path + f for f in os.listdir(directory_path) if
-                               os.path.isfile(os.path.join(directory_path, f)) and f.endswith(".webp")])
-    return thumb_files_path
 
 
 def report_progress(message_progress, current, total, update=None):
@@ -303,7 +293,6 @@ def do_download_line_sticker(update, _):
 def initialise_manual_import(update, _):
     notify_import_starting(update, _)
     _.user_data['img_files_path'] = prepare_sticker_files(_, want_animated=False)
-    _.user_data['img_thumbnails_path'] = get_sticker_thumbnails_path(_)
     # This is the FIRST sticker.
     _.user_data['manual_emoji_index'] = 0
     notify_next(update, _)
@@ -365,7 +354,7 @@ def notify_next(update, _):
                                      "請輸入代表這個貼圖的emoji(可以多個)\n"
                                      "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
                                      f"{_.user_data['manual_emoji_index'] + 1} of {len(_.user_data['img_files_path'])}",
-                             photo=open(_.user_data['img_thumbnails_path'][_.user_data['manual_emoji_index']], 'rb'))
+                             photo=open(_.user_data['img_files_path'][_.user_data['manual_emoji_index']], 'rb'))
         except telegram.error.RetryAfter as ra:
             time.sleep(int(ra.retry_after))
             continue
