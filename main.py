@@ -20,7 +20,7 @@ import traceback
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "0.7 BETA"
+    BOT_VERSION = "0.8 BETA"
     LOCAL_API = False
 
 
