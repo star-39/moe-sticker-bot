@@ -21,6 +21,7 @@ class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
     BOT_VERSION = "0.7 BETA"
+    LOCAL_API = True
 
 
 logging.basicConfig(level=logging.INFO,
@@ -595,8 +596,12 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
     subprocess.run("rm -r " + save_path + "*", shell=True)
     for index, sticker in enumerate(sticker_set.stickers):
         try:
-            _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name + "_" + str(index).zfill(3) + "_" +
-                                                      emoji.demojize(sticker.emoji)[1:-1] + ".webp")
+            if not GlobalConfigs.LOCAL_API:
+                _.bot.get_file(sticker.file_id).download(save_path + sticker.set_name + "_" + str(index).zfill(3) + "_" +
+                                                          emoji.demojize(sticker.emoji)[1:-1] + ".webp")
+            else:
+                subprocess.run("cp " + _.bot.get_file(sticker.file_id).download() + " " + save_path + sticker.set_name + "_" +
+                               str(index).zfill(3) + "_" + emoji.demojize(sticker.emoji)[1:-1] + ".webp", shell=True)
         except Exception as e:
             print(str(e))
     subprocess.run("mogrify -format png " + save_path + "*.webp", shell=True)
@@ -653,8 +658,10 @@ def main() -> None:
     config.read('config.ini')
     GlobalConfigs.BOT_TOKEN = config['TELEGRAM']['BOT_TOKEN']
     GlobalConfigs.BOT_NAME = Bot(GlobalConfigs.BOT_TOKEN).get_me().username
-
-    updater = Updater(GlobalConfigs.BOT_TOKEN)
+    if not GlobalConfigs.LOCAL_API:
+        updater = Updater(GlobalConfigs.BOT_TOKEN)
+    else:
+        updater = Updater(GlobalConfigs.BOT_TOKEN, base_url="http://127.0.0.1:8081/bot")
     dispatcher = updater.dispatcher
 
     # Each conversation is time consuming, enable run_async
