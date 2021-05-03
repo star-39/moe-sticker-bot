@@ -31,9 +31,9 @@ Then it's ready to fly! Just run with:
 
 `python3 main.py`
 
-Please note that this software runs ONLY on Linux systems!!!
+Please note that this software runs ONLY on Linux systems.
 
-It probably runs on Mac, but never on Windows!! Please use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+It probably runs on Mac, for Windows, Please use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 ## Step by Step Usage
 ### Ubuntu / Debian
@@ -58,16 +58,14 @@ python3 main.py
 ## Known issue
 
 ### No response?
-Telegram's flood control might be triggered, I'm currently working on this.
-If you encountered such a problem. Please wait a while.
+The bot might have encountered some unhandled exception, please report to issues.
 
 
-### LINE animated stickers will never be supported beacause of Telegram's restrictions
-
-LINE's animated stickers are in APNG bitmap format and convertable to GIFs, however,
+### LINE animated stickers will never be supported because of Telegram's restrictions
+LINE's animated stickers are in APNG bitmap , however,
 Telegram's animated sticker only allow vector images, which is a completely different
-format comparing to normal bitmap. Telegram even sets the size limit to 64KB, hence
-converting stickers to Telegram animated format is inpossible.
+format from bitmap. Telegram even sets the size limit to 64KB, hence
+converting stickers to Telegram animated format is impossible.
 
 ## License
 The GPL V3 License
