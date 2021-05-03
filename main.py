@@ -107,14 +107,12 @@ Please send /start to start using!
    　LINEのスタンプは時々多言語対応です、リンクを入力するとき、最後に言語コードがあるかどうかを確認してください。
 
 =>Q: Donation? 捐贈? 寄付？
-=>A: I created this BOT solely for fun and public interest, and hosting it in a small server.
-   　If you want to donate, please support original Sticker creators by purchasing in LINE store.
-   　If you are a power user, why not host your own one!? It's super easy! Please check Github repo.
-  　 我創建這個BOT單純因為興趣和出於公眾利益, 目前host在一個小小伺服器上.
-   　如果您想課金感謝, 請在LINE商店購買原版貼圖包支持原本的各位創作者.
+=>A: I created this BOT solely for fun and public interest, if you want to donate, 
+     please support original sticker creators by purchasing from LINE store.
+   　If you are a power user, you can host your own one! It's super easy! Please check Github repo.
+  　 我創建這個BOT單純因為興趣和出於公眾利益, 如果您想課金感謝, 請在LINE商店購買原版貼圖包支持原本的各位創作者.
    　如果你深諳資訊科技, 那麼完全可以自己host這個BOT! 一點也不難! 請見Github repo.
-   　自分はただ面白いと公衆利益のためこのBOTを作った。今現在、小っちゃいサーバーに生きています。
-   　もし寄付したいなら、ぜひスタンプのクリエーターを応援して、LINEストアからスタンプを購入してください、
+   　自分はただ面白いと公衆利益のためこのBOTを作った。もし寄付したいなら、ぜひスタンプのクリエーターを応援して、LINEストアからスタンプを購入してください、
    　もしあなたがITの達人だったら、自分でこのＢＯＴをホストするのはどうでしょう？すごく簡単ですよ！詳細はGithub repoに。
   
 =>Q: Can I get an animated sticker set instead of GIF.
@@ -125,14 +123,14 @@ Please send /start to start using!
      Telegram側の制限により技術的に無理です。
      
 =>Q: No response? 沒有反應? 応答なし？
-=>A: The bot might triggered Telegram's flood control or encountered an error, please check GitHub issue:
-     BOT可能觸發了Telegram的消息數量限制或遇到了問題, 請檢視GitHub issue網頁:
+=>A: The bot might encountered an error, please check GitHub issue:
+     BOT可能遇到了問題, 請檢視GitHub issue網頁:
      https://github.com/star-39/moe-sticker-bot/issues
 <code>
 ========================
 PRIVACY NOTICE:
     This software(bot) does not collect or save any kind of your personal information.
-    This software complies with Hong Kong Legislation Cap. 486 Personal Data (Privacy) Ordinance.
+    Complies with Hong Kong Legislation Cap. 486 Personal Data (Privacy) Ordinance.
 ========================
 BOT NAME: {GlobalConfigs.BOT_NAME} 
 VERSION: {GlobalConfigs.BOT_VERSION} 
