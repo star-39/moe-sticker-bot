@@ -20,7 +20,7 @@ import traceback
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "0.8 BETA"
+    BOT_VERSION = "0.9 BETA"
     LOCAL_API = False
 
 
@@ -519,14 +519,11 @@ def ask_emoji(update):
 
 def get_line_sticker_detail(webpage):
     if not webpage.url.startswith("https://store.line.me") or not webpage.status_code == 200:
-        raise Exception("Not valid link!")
+        raise Exception("Invalid link!")
     json_details = json.loads(BeautifulSoup(webpage.text, "html.parser").find_all('script')[0].contents[0])
     i = json_details['sku']
     url = json_details['url']
     url_comps = urlparse(url).path[1:].split('/')
-    # i = str(url_comps[2])
-    # if not re.match(r'^[a-zA-Z0-9]+$', i):
-    #     raise Exception("Not valid link!")
     if url_comps[0] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
         if 'MdIcoPlay_b' in webpage.text or 'MdIcoAni_b' in webpage.text:
@@ -582,7 +579,7 @@ def initialize_user_data(update, _):
 def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
     sticker_set = _.bot.get_sticker_set(name=update.message.sticker.set_name)
     update.message.reply_text("This might take some time, please wait...\n"
-                              "此項作業可能需時較長, 請稍後...\n"""
+                              "此項作業可能需時較長, 請稍等...\n"""
                               "少々お待ちください...\n"
                               "<code>\n"
                               f"Name: {sticker_set.name}\n"
@@ -611,9 +608,7 @@ def parse_tg_sticker(update: Update, _: CallbackContext) -> int:
     if sticker_set.is_animated:
         subprocess.run(f'find {save_path}*.tgs -type f -print0 | '
                        "xargs -I{} -0 lottie_convert.py {} {}.webp", shell=True)
-        # subprocess.run(f"mogrify -format apng {save_path}*.webp", shell=True)
         subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_tgs.zip " + save_path + "*.tgs", shell=True)
-        # subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_apng.zip " + save_path + "*.apng", shell=True)
     else:
         subprocess.run("mogrify -format png " + save_path + "*.webp", shell=True)
         subprocess.run("bsdtar -acvf " + save_path + sticker_set.name + "_png.zip " + save_path + "*.png", shell=True)
@@ -660,9 +655,9 @@ def command_cancel(update: Update, _: CallbackContext) -> int:
 
 
 def reject_text(update: Update, _: CallbackContext):
-    update.message.reply_text("Please do not just send text! Use /start to see available commands!\n"
-                              "請不要直接傳送文字! 請傳送 /start 來看看可用的指令\n"
-                              "テキストを直接入力しないでください。/start を送信してコマンドで始めましょう")
+    update.message.reply_text("Please use /start to see available commands!\n"
+                              "請傳送 /start 來看看可用的指令\n"
+                              "/start を送信してコマンドで始めましょう")
 
 
 def print_warning(update: Update, _: CallbackContext):
@@ -728,8 +723,6 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, reject_text))
-    # dispatcher.add_error_handler(error_handler)
-
 
     updater.start_polling()
     updater.idle()
