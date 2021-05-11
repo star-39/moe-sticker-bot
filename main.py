@@ -77,12 +77,16 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 def help_command(update: Update, ctx: CallbackContext) -> None:
     update.message.reply_text(
 f"""
+@moe_sticker_bot by @plow283
+https://github.com/star-39/moe-sticker-bot
+Credit: Thank you @StickerGroup for feedbacks and advices!
 <code>
-moe-sticker-bot by @Plow
 This software comes with ABSOLUTELY NO WARRANTY!
 Released under the GPL v3 License. All rights reserved.
-Source code is available at: </code>
-https://github.com/star-39/moe-sticker-bot
+PRIVACY NOTICE:
+    This software(bot) does not collect or save any kind of your personal information.
+    Complies with Hong Kong Legislation Cap. 486 Personal Data (Privacy) Ordinance.
+</code>
 <b>
 Please send /start to start using!
 請傳送 /start 來開始!
@@ -107,30 +111,19 @@ Please send /start to start using!
 =>A: I created this BOT solely for fun and public interest, if you want to donate, 
      please support original sticker creators by purchasing from LINE store.
    　If you are a power user, you can host your own one! It's super easy! Please check Github repo.
-  　 我創建這個BOT單純因為興趣和出於公眾利益, 如果您想課金感謝, 請在LINE商店購買原版貼圖包支持原本的各位創作者.
-   　如果你深諳資訊科技, 那麼完全可以自己host這個BOT! 一點也不難! 請見Github repo.
+  　 此BOT單純因為興趣和出於公眾利益, 如果您想課金感謝, 請在LINE商店購買原版貼圖包支持原本的各位創作者.
+   　如果你深諳資訊科技, 那麼完全可以自己host這個BOT, 一點也不難! 請見Github repo.
    　自分はただ面白いと公衆利益のためこのBOTを作った。もし寄付したいなら、ぜひスタンプのクリエーターを応援して、LINEストアからスタンプを購入してください、
    　もしあなたがITの達人だったら、自分でこのＢＯＴをホストするのはどうでしょう？すごく簡単ですよ！詳細はGithub repoに。
-  
-=>Q: Can I get an animated sticker set instead of GIF.
-     可以轉換成動態貼圖包而不是GIF嗎?
-     GIFじゃなく動くステッカーセットが欲しいんですけど？
-=>A: It is technically impossible due to Telegram's restrictions.
-　　  因為Telegram的限制, 這個方法技術上不可行
-     Telegram側の制限により技術的に無理です。
-     
+
 =>Q: No response? 沒有反應? 応答なし？
 =>A: The bot might encountered an error, please check GitHub issue:
      BOT可能遇到了問題, 請檢視GitHub issue網頁:
      https://github.com/star-39/moe-sticker-bot/issues
 <code>
 ========================
-PRIVACY NOTICE:
-    This software(bot) does not collect or save any kind of your personal information.
-    Complies with Hong Kong Legislation Cap. 486 Personal Data (Privacy) Ordinance.
-========================
-BOT NAME: {GlobalConfigs.BOT_NAME} 
-VERSION: {GlobalConfigs.BOT_VERSION} 
+BOT NAME: {GlobalConfigs.BOT_NAME}
+VERSION: {GlobalConfigs.BOT_VERSION}
 </code>
 """
         , parse_mode="HTML")
