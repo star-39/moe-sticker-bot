@@ -7,8 +7,8 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 
 <img src="https://user-images.githubusercontent.com/75669297/115797979-27da9300-a410-11eb-9500-594a6006c534.png" width="500">
 
-## Dependencies
-* python 3.6+
+
+## Deployment
 
 ### Python Dependencies
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
@@ -18,37 +18,38 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 * lottie
 
 ### System Dependencies
+* python 3.6+
 * ImageMagick
 * libwebp
 * ffmpeg (with libwebp and libx264)
 * bsdtar (libarchive-tools)
 * curl
 
-## Usage
-Fill your telegram Bot API in `config.ini`
 
-Then it's ready to fly! Just run with:
+Fill your Telegram Bot API in `config.ini`, and it's ready to fly! Just run with:
 
-`python3 main.py`
+```
+python3 main.py
+```
 
-Please note that this software runs ONLY on Linux systems.
+This software runs ONLY on Linux systems.
 
 It probably runs on Mac, for Windows, Please use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
-## Step by Step Usage
-### Ubuntu / Debian
+### Step by Step Deployment
+#### Fedora / RHEL / CentOS
+You may need to add [RPM Fusion](https://rpmfusion.org/Configuration) first.
 ```
-apt install imagemagick libwebp6 ffmpeg libarchive-tools curl 
+dnf install ffmpeg ImageMagick libwebp bsdtar curl 
 pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 ### open config.ini and fill your bot api.
 python3 main.py
 ```
 
-### Fedora / RHEL / CentOS
-You may need to add [RPM Fusion](https://rpmfusion.org/Configuration)
+#### Ubuntu / Debian
 ```
-dnf install ffmpeg ImageMagick libwebp bsdtar curl 
+apt install imagemagick libwebp6 ffmpeg libarchive-tools curl 
 pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 ### open config.ini and fill your bot api.
@@ -60,11 +61,10 @@ python3 main.py
 ### No response?
 The bot might have encountered some unhandled exception, please report to issues.
 
-
-### LINE animated stickers will never be supported because of Telegram's restrictions
-LINE's animated stickers are in APNG bitmap , however,
-Telegram's animated sticker only allow vector images, which is a completely different
-format from bitmap. Telegram even sets the size limit to 64KB, hence
+### LINE animated stickers will never be supported due to Telegram's restrictions
+LINE's animated stickers are in APNG bitmap, however,
+Telegram's animated sticker only allow vector images, which is a completely diffferent.
+Telegram even sets the size limit to 64KB, hence
 converting stickers to Telegram animated format is impossible.
 
 ## License
