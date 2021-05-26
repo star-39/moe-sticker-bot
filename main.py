@@ -20,7 +20,7 @@ import traceback
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "1.0 RC-1"
+    BOT_VERSION = "1.0 RC-2"
 
 
 # logging.basicConfig(level=logging.INFO,
@@ -384,14 +384,6 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
 
 
     if update.message.text.strip().lower() != "auto":
-        # ctx.user_data['telegram_sticker_title'] = BeautifulSoup(ctx.user_data['line_store_webpage'].text, 'html.parser'
-        #                        ).find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
-        #                        f" @{GlobalConfigs.BOT_NAME}"
-        # update.message.reply_text("The title will be automatically set to:\n"
-        #                           "標題將會自動設定為: \n"
-        #                           "タイトルは自動的にこのように設定します: \n\n"
-        #                           "<code>" + ctx.user_data['telegram_sticker_title'] + "</code>", parse_mode="HTML")
-    # else:
         ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
 
     if ctx.user_data['manual_emoji'] is True:
@@ -400,33 +392,6 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
     else:
         do_auto_import_line_sticker(update, ctx)
         return ConversationHandler.END
-
-
-# ID
-# def parse_id(update: Update, ctx: CallbackContext) -> int:
-#     if update.message.text.strip().lower() == "auto":
-
-#         update.message.reply_text("The ID will be automatically set to:\n"
-#                                   "ID將會自動設定為: \n"
-#                                   "IDは自動的にこのように設定します: \n\n"
-#                                   "<code>" + ctx.user_data['telegram_sticker_id'] + "</code>", parse_mode="HTML")
-#     else:
-#         ctx.user_data['telegram_sticker_id'] = update.message.text.strip() + "_" + secrets.token_hex(nbytes=3) + \
-#                                              "_by_" + GlobalConfigs.BOT_NAME
-#         if not re.match(r'^[a-zA-Z0-9_]+$', ctx.user_data['telegram_sticker_id']):
-#             update.message.reply_text(
-#                 "Error: Wrong format!\n"
-#                 "Can contain only english letters, digits and underscores.\n"
-#                 "Must begin with a letter, can't contain consecutive underscores.")
-#             return ID
-
-#     update.message.reply_text(
-#         "Please set a title for this sticker set. Send <code>auto</code> to automatically set original title from LINE Store\n"
-#         "請設定貼圖包的標題, 也就是名字. 輸入<code>auto</code>可以自動設為LINE Store中原版的標題\n"
-#         "スタンプのタイトルを入力してください。<code>auto</code>を入力すると、LINE STORE上に表記されているのタイトルが自動的に設定されます。",
-#         reply_markup=reply_kb_for_auto_markup,
-#         parse_mode="HTML")
-#     return TITLE
 
 
 # EMOJI
@@ -440,20 +405,6 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
             return EMOJI
         ctx.user_data['telegram_sticker_emoji'] = em
 
-    # ctx.user_data['telegram_sticker_id'] = f"line_{ctx.user_data['line_sticker_type']}_" \
-    #                                          f"{ctx.user_data['line_sticker_id']}_" \
-    #                                          f"{secrets.token_hex(nbytes=3)}_by_{GlobalConfigs.BOT_NAME}"
-    # update.message.reply_text("Please enter an unique ID for this sticker set. Must contain alphanum and _ mark only.\n"
-    #                           "請輸入一個用於識別此貼圖包的ID, 只可以由英文數字和 _ 記號組成\.\n"
-    #                           "スタンプにIDを付けてください。内容は英字と数字と _ 記号のみです。\n\n"
-    #                           "<code>eg. gochiusa_chino_stamp_1</code>\n"
-    #                           "-----------------------------------------------------------\n"
-    #                           "Send <code>auto</code> to automatically generate ID\n"
-    #                           "傳送<code>auto</code>來自動生成ID\n"
-    #                           "<code>auto</code>を入力すると、IDが自動的生成されます",
-    #                           reply_markup=reply_kb_for_auto_markup,
-    #                           parse_mode="HTML")
-    # return ID
     ctx.user_data['telegram_sticker_title'] = BeautifulSoup(ctx.user_data['line_store_webpage'].text, 'html.parser')\
                                                             .find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
                                                             f" @{GlobalConfigs.BOT_NAME}"
@@ -668,6 +619,14 @@ def handle_text_message(update: Update, ctx: CallbackContext):
                                     "您傳送了一個LINE商店連結, 是想要把LINE貼圖包匯入至Telegram嗎? 請使用 /import_line_sticker\n"
                                     "LINEスタンプをインポートしたいんですか？ /import_line_sticker で始めてください")
 
+def handel_sticker_message(update: Update, ctx: CallbackContext):
+    update.message.reply_text("Please use /start to see available commands!\n"
+                            "請先傳送 /start 來看看可用的指令\n"
+                            "/start を送信してコマンドで始めましょう")
+    update.message.reply_text("You have sent a sticker, guess you want to download this sticker set? Please send /download_telegram_sticker\n"
+                              "您傳送了一個貼圖, 是想要下載這個Telegram貼圖包嗎? 請使用 /download_telegram_sticker\n"
+                              "このステッカーセットを丸ごとダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
+
 
 def print_warning(update: Update, ctx: CallbackContext):
     update.message.reply_text("You are already in command : " + ctx.user_data['in_command'][1:] + "\n"
@@ -730,6 +689,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_text_message))
+    dispatcher.add_handler(MessageHandler(Filters.sticker, handel_sticker_message))
 
     updater.start_polling()
     updater.idle()
