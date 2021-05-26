@@ -312,16 +312,14 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                                          ctx.user_data['img_files_path'][ ctx.user_data['manual_emoji_index']], 'rb'
                                          )
                                      )
-        except telegram.error.RetryAfter as ra:
-            time.sleep(int(ra.retry_after))
+        # Catch not only retry_after exception when manual_emoji.
+        except Exception as e:
+            time.sleep(10)
             if ctx.user_data['manual_emoji_index'] + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers:
                 pass
             else:
-                update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(ra))
+                update.message.reply_text("Error assigning this one! Please send the same emoji again.\n" + str(e))
                 return MANUAL_EMOJI
-        except Exception as e:
-            update.message.reply_text("Fatal error! Please try again." + str(e))
-            return ConversationHandler.END
 
         if ctx.user_data['manual_emoji_index'] == len(ctx.user_data['img_files_path']) - 1:
             notify_sticker_done(update, ctx)
@@ -365,7 +363,7 @@ def notify_sticker_done(update, ctx):
                                           "可以使用 /get_animated_line_sticker 獲取GIF版動態貼圖\n"
                                           "このスタンプの動くバージョンもございます。\n"
                                           "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
-            update.message.reply_text(ctx.user_data['in_command'] + " DONE! 指令成功結束!")
+            update.message.reply_text(ctx.user_data['in_command'] + " done! 指令成功完成!")
         except:
             time.sleep(10)
             continue
