@@ -25,6 +25,9 @@ cd -
 buildah config --cmd '' $c1
 buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main.py" $c1
 
+# Fix python3.8+'s problem.
+buildah config --env COLUMNS=80
+
 buildah commit $c1 moe-sticker-bot
 
 buildah rm $c1
