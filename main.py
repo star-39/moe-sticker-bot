@@ -525,19 +525,19 @@ def command_alsi(update: Update, ctx: CallbackContext) -> int:
     update.message.reply_text("INFO: You are using Advanced Line Sticker Import (alsi), be sure syntax is correct.")
     if update.message.text.startswith("alsi"):
         alsi_parser = argparse.ArgumentParser(prog="alsi", exit_on_error=False, add_help=False, 
-                                              description="Advanced Line Sticker Import",)
+                                              formatter_class=argparse.RawDescriptionHelpFormatter,
+                                              description="Advanced Line Sticker Import",
+                                              epilog='Example usage:\n'
+                                              '  alsi -id=exmaple_id_00 -title="Example Title" -link=https://store.line.me/stickershop/product/9124676/ja\n\n'
+                                              'Note:\n  Argument containing white space must be closed by quotes.\n'
+                                              '  ID must contain alphabet, number and underscore only.')
         alsi_parser.add_argument('-id', help="Telegram sticker name(ID), used for share link", required=True)
         alsi_parser.add_argument('-title', help="Telegram sticker set title", required=True)
         alsi_parser.add_argument('-link', help="LINE Store link of LINE sticker pack", required=True)
         try:
             alsi_args = alsi_parser.parse_args(shlex.split(update.message.text)[1:])
         except:
-            update.message.reply_text("Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + 
-                                        '\nExample usage:\n'
-                                        '  alsi -id=exmaple_id_00 -title="Example Title" -link=https://store.line.me/stickershop/product/9124676/ja\n\n'
-                                        'Note:\n  Argument containing white space must be closed by quotes.\n'
-                                        '  ID must contain alphabet, number and underscore only.'
-                                      "</code>", parse_mode="HTML")
+            update.message.reply_text("Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + "</code>", parse_mode="HTML")
             return ConversationHandler.END
         # initialise
         ctx.user_data['in_command'] = "alsi"
