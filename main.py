@@ -15,22 +15,23 @@ import os
 import subprocess
 import secrets
 import traceback
+import argparse
+import shlex
+
+from telegram.utils.types import ConversationDict
 
 
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "1.0 RC-2"
+    BOT_VERSION = "2.0 ALPHA-1"
 
 
 # logging.basicConfig(level=logging.INFO,
 #                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 # logger = logging.getLogger(ctx_name_ctx)
 
-# TODO: Separate text messages to a standalone "helper" python file.
 
-# BREAK: "ID" section is now ---REMOVED---
-# LINE_STICKER_INFO, EMOJI, ID, TITLE, MANUAL_EMOJI = range(5)
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
 
 GET_TG_STICKER = range(1)
@@ -94,6 +95,8 @@ Please send /start to start using!
 請傳送 /start 來開始!
 始めるには　/start　を入力してください！
 </b>
+Advanced mode commands: 進階模式指令: <code>alsi</code>
+
 <b>FAQ:</b>
 =>Q: The generated sticker set ID has the bot's name as suffix! 
 　　　創建的貼圖包ID末尾有這個bot的名字!
@@ -301,8 +304,8 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                                          emojis=em,
                                          png_sticker=open(ctx.user_data['img_files_path'][0], 'rb'))
         except Exception as e:
-            update.message.reply_text("Error creating! Please send the same emoji again.\n" + str(e))
-            return MANUAL_EMOJI
+            update.message.reply_text("Error creating sticker set! Please try again!\n" + str(e))
+            return ConversationHandler.END
     else:
         try:
             ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
@@ -424,8 +427,8 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         ctx.user_data['line_store_webpage'] = requests.get(message_url)
         ctx.user_data['line_sticker_url'], \
         ctx.user_data['line_sticker_type'], \
-        ctx.user_data['line_sticker_id'] ,\
-        ctx.user_data['line_sticker_download_url']= get_line_sticker_detail(ctx.user_data['line_store_webpage'])
+        ctx.user_data['line_sticker_id'], \
+        ctx.user_data['line_sticker_download_url'] = get_line_sticker_detail(ctx.user_data['line_store_webpage'])
     except:
         update.message.reply_text('URL parse error! Make sure you sent a LINE Store URL !! Try again please.\n'
                                   'URL解析錯誤! 請確認輸入的是正確的LINE商店URL連結. 請重試.\n'
@@ -519,6 +522,58 @@ def initialize_user_data(update, ctx):
     ctx.user_data['telegram_sticker_emoji'] = ""
     ctx.user_data['telegram_sticker_id'] = ""
     ctx.user_data['telegram_sticker_title'] = ""
+
+
+def command_alsi(update: Update, ctx: CallbackContext) -> int:
+    update.message.reply_text("INFO: You are using Advanced Line Sticker Import (alsi), be sure syntax is correct.")
+    if update.message.text.startswith("alsi"):
+        alsi_parser = argparse.ArgumentParser(prog="alsi", exit_on_error=False, add_help=False, 
+                                              formatter_class=argparse.RawDescriptionHelpFormatter,
+                                              description="Advanced Line Sticker Import",
+                                              epilog='Example usage:\n'
+                                              '  alsi -id=exmaple_id_00 -title="Example Title" -link=https://store.line.me/stickershop/product/9124676/ja\n\n'
+                                              'Note:\n  Argument containing white space must be closed by quotes.\n'
+                                              '  ID must contain alphabet, number and underscore only.')
+        alsi_parser.add_argument('-id', help="Telegram sticker name(ID), used for share link", required=True)
+        alsi_parser.add_argument('-title', help="Telegram sticker set title", required=True)
+        alsi_parser.add_argument('-link', help="LINE Store link of LINE sticker pack", required=True)
+        try:
+            alsi_args = alsi_parser.parse_args(shlex.split(update.message.text)[1:])
+        except:
+            update.message.reply_text("Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + "</code>", parse_mode="HTML")
+            return ConversationHandler.END
+        # initialise
+        ctx.user_data['in_command'] = "alsi"
+        ctx.user_data['manual_emoji'] = True
+        ctx.user_data['line_sticker_url'] = alsi_args.link
+        ctx.user_data['line_store_webpage'] = None
+        ctx.user_data['line_sticker_download_url'] = ""
+        ctx.user_data['line_sticker_type'] = "sticker"
+        ctx.user_data['line_sticker_id'] = ""
+        # parse link
+        try:
+            ctx.user_data['line_store_webpage'] = requests.get(alsi_args.link)
+            ctx.user_data['line_sticker_url'], \
+            ctx.user_data['line_sticker_type'], \
+            ctx.user_data['line_sticker_id'], \
+            ctx.user_data['line_sticker_download_url'] = get_line_sticker_detail(ctx.user_data['line_store_webpage'])
+        except:
+            update.message.reply_text("Wrong link!!")
+            return ConversationHandler.END
+        # add id and title
+        if not re.match('^\w+$',alsi_args.id):
+            update.message.reply_text("Wrong ID!!")
+            return ConversationHandler.END
+        ctx.user_data['telegram_sticker_id'] = alsi_args.id + "_by_" + GlobalConfigs.BOT_NAME
+        ctx.user_data['telegram_sticker_title'] = alsi_args.title
+
+        initialise_manual_import(update, ctx)
+        return MANUAL_EMOJI
+
+
+    else:
+        update.message.reply_text("wrong command!")
+        return ConversationHandler.END 
 
 
 # GET_TG_STICKER
@@ -641,6 +696,15 @@ def main() -> None:
 
     dispatcher = updater.dispatcher
 
+    conv_advanced_import = ConversationHandler(
+        entry_points=[MessageHandler(Filters.regex('^alsi*') & ~Filters.command, command_alsi)],
+        states={
+            MANUAL_EMOJI : [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
+        },
+        fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(Filters.command, print_warning)],
+        run_async=True
+    )
+
     # Each conversation is time consuming, enable run_async
     conv_import_line_sticker = ConversationHandler(
         entry_points=[CommandHandler('import_line_sticker', command_import_line_sticker)],
@@ -684,6 +748,7 @@ def main() -> None:
     dispatcher.add_handler(conv_get_animated_line_sticker)
     dispatcher.add_handler(conv_download_line_sticker)
     dispatcher.add_handler(conv_download_telegram_sticker)
+    dispatcher.add_handler(conv_advanced_import)
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_text_message))
