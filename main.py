@@ -37,7 +37,7 @@ reply_kb_for_auto_markup = ReplyKeyboardMarkup([['auto']], one_time_keyboard=Tru
 reply_kb_for_manual_markup = ReplyKeyboardMarkup([['manual']], one_time_keyboard=True)
 
 
-def start(update: Update, ctx: CallbackContext) -> None:q
+def start(update: Update, ctx: CallbackContext) -> None:
     update.message.reply_text(
 """
 Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
