@@ -26,7 +26,7 @@ buildah config --env COLUMNS=80 $c1
 
 buildah commit $c1 moe-sticker-bot
 
-buildah login ghcr.io -u star-39 -p $GITHUB_TOKEN
+buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 buildah push ghcr.io/star-39/moe-sticker-bot:latest
 
