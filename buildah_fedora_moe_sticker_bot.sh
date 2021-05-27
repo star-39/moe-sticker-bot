@@ -24,7 +24,7 @@ buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main
 # Fix python3.8+'s problem.
 buildah config --env COLUMNS=80 $c1
 
-buildah commit $c1 moe-sticker-bot:fedora-v2a1
+buildah commit $c1 moe-sticker-bot
 
 buildah login ghcr.io -u star-39 -p $GITHUB_TOKEN
 
