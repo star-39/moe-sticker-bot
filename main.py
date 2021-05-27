@@ -635,7 +635,7 @@ def main() -> None:
     # Load configs
     config = configparser.ConfigParser()
     config.read('config.ini')
-    GlobalConfigs.BOT_TOKEN = config['TELEGRAM']['BOT_TOKEN']
+    GlobalConfigs.BOT_TOKEN = os.getenv("BOT_TOKEN", config['TELEGRAM']['BOT_TOKEN'])
     GlobalConfigs.BOT_NAME = Bot(GlobalConfigs.BOT_TOKEN).get_me().username
     updater = Updater(GlobalConfigs.BOT_TOKEN)
 
