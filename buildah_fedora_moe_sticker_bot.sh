@@ -1,5 +1,7 @@
 #!/bin/bash
 
+GITHUB_TOKEN=$1
+
 echo "Building moe-sticker-bot for Github Container Registry!"
 
 c1=$(buildah from fedora:34)

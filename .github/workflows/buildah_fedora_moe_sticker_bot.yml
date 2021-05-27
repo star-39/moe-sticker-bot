@@ -28,5 +28,5 @@ jobs:
       - name: Run a one-line script
         run: |
           chmod +x buildah_fedora_moe_sticker_bot.sh
-          ./buildah_fedora_moe_sticker_bot.sh
+          ./buildah_fedora_moe_sticker_bot.sh ${{ secrets.GITHUB_TOKEN }}
 
