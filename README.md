@@ -18,7 +18,7 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 * lottie
 
 ### System Dependencies
-* python 3.6+
+* python 3.9+
 * ImageMagick
 * libwebp
 * ffmpeg (with libwebp and libx264)

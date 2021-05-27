@@ -4,8 +4,7 @@ import logging
 from urllib.parse import urlparse
 import telegram.error
 from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, ConversationHandler, \
-    MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters
 from bs4 import BeautifulSoup
 import emoji
 import requests
@@ -17,8 +16,6 @@ import secrets
 import traceback
 import argparse
 import shlex
-
-from telegram.utils.types import ConversationDict
 
 
 class GlobalConfigs:
@@ -40,7 +37,7 @@ reply_kb_for_auto_markup = ReplyKeyboardMarkup([['auto']], one_time_keyboard=Tru
 reply_kb_for_manual_markup = ReplyKeyboardMarkup([['manual']], one_time_keyboard=True)
 
 
-def start(update: Update, ctx: CallbackContext) -> None:
+def start(update: Update, ctx: CallbackContext) -> None:q
     update.message.reply_text(
 """
 Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
