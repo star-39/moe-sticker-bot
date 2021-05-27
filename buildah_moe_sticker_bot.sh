@@ -22,8 +22,8 @@ bsdtar -xvf moe-sticker-bot.zip
 cd -
 
 # finish
-buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main.py" $c1
 buildah config --cmd '' $c1
+buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main.py" $c1
 
 buildah commit $c1 moe-sticker-bot
 
