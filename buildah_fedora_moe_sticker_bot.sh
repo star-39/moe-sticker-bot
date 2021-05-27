@@ -30,7 +30,7 @@ buildah commit $c1 moe-sticker-bot
 
 buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
-buildah push ghcr.io/star-39/moe-sticker-bot:latest
+buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:latest
 
 buildah rm $c1
 
