@@ -1,6 +1,7 @@
 import json
 import time
 import logging
+from urllib import parse
 from urllib.parse import urlparse
 import telegram.error
 from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
@@ -21,7 +22,7 @@ import shlex
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "2.0 ALPHA-1"
+    BOT_VERSION = "2.0 ALPHA-2"
 
 
 # logging.basicConfig(level=logging.INFO,
@@ -74,26 +75,42 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
         , parse_mode="HTML")
 
 
-def help_command(update: Update, ctx: CallbackContext) -> None:
+def command_help(update: Update, ctx: CallbackContext) -> None:
     update.message.reply_text(
 f"""
-@moe_sticker_bot by @plow283
+@{GlobalConfigs.BOT_NAME} by @plow283
 https://github.com/star-39/moe-sticker-bot
-Credit: Thank you @StickerGroup for feedbacks and advices!
+Thank you @StickerGroup for feedbacks and advices!
 <code>
-This software comes with ABSOLUTELY NO WARRANTY!
+This free(as in freedom) software comes with ABSOLUTELY NO WARRANTY!
 Released under the GPL v3 License. All rights reserved.
 PRIVACY NOTICE:
     This software(bot) does not collect or save any kind of your personal information.
     Complies with Hong Kong Legislation Cap. 486 Personal Data (Privacy) Ordinance.
+本軟體為免費提供的自由軟體, 您可以自由使用/分發本軟體, 惟無任何保用服務!
+本軟體授權於公共通用許可證(GPL)v3, 保留所有權利.
+私隱聲明:
+   本軟體(bot)不會採集任何用戶數據, 遵守香港法例第四百八十六章「私隱條例」.
 </code>
 <b>
 Please send /start to start using!
 請傳送 /start 來開始!
 始めるには　/start　を入力してください！
 </b>
-Advanced mode commands: 進階模式指令: <code>alsi</code>
+Advanced mode commands:
+進階模式指令: 
+<code>alsi</code>
 
+/faq FAQ 檢閱常見問題
+<code>
+BOT_VERSION: {GlobalConfigs.BOT_VERSION}
+</code>
+"""
+        , parse_mode="HTML")
+
+def command_faq(update: Update, ctx: CallbackContext):
+    update.message.reply_text(
+f"""
 <b>FAQ:</b>
 =>Q: The generated sticker set ID has the bot's name as suffix! 
 　　　創建的貼圖包ID末尾有這個bot的名字!
@@ -113,13 +130,8 @@ Advanced mode commands: 進階模式指令: <code>alsi</code>
 =>A: The bot might encountered an error, please report to GitHub issue:
      BOT可能遇到了問題, 請報告至GitHub issue網頁:
      https://github.com/star-39/moe-sticker-bot/issues
-<code>
-========================
-BOT NAME: {GlobalConfigs.BOT_NAME}
-VERSION: {GlobalConfigs.BOT_VERSION}
-</code>
 """
-        , parse_mode="HTML")
+    ,parse_mode="HTML")
 
 
 def do_auto_import_line_sticker(update, ctx):
@@ -524,20 +536,20 @@ def initialize_user_data(update, ctx):
 def command_alsi(update: Update, ctx: CallbackContext) -> int:
     update.message.reply_text("INFO: You are using Advanced Line Sticker Import (alsi), be sure syntax is correct.")
     if update.message.text.startswith("alsi"):
-        alsi_parser = argparse.ArgumentParser(prog="alsi", exit_on_error=False, add_help=False, 
-                                              formatter_class=argparse.RawDescriptionHelpFormatter,
-                                              description="Advanced Line Sticker Import",
-                                              epilog='Example usage:\n'
-                                              '  alsi -id=exmaple_id_00 -title="Example Title" -link=https://store.line.me/stickershop/product/9124676/ja\n\n'
-                                              'Note:\n  Argument containing white space must be closed by quotes.\n'
-                                              '  ID must contain alphabet, number and underscore only.')
+        alsi_parser = argparse.ArgumentParser(prog="alsi", exit_on_error=False, add_help=False,
+                                              description="Advanced Line Sticker Import",)
         alsi_parser.add_argument('-id', help="Telegram sticker name(ID), used for share link", required=True)
         alsi_parser.add_argument('-title', help="Telegram sticker set title", required=True)
         alsi_parser.add_argument('-link', help="LINE Store link of LINE sticker pack", required=True)
         try:
             alsi_args = alsi_parser.parse_args(shlex.split(update.message.text)[1:])
         except:
-            update.message.reply_text("Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + "</code>", parse_mode="HTML")
+            update.message.reply_text("Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + 
+                                        '\nExample usage:\n'
+                                        '  alsi -id=exmaple_id_00 -title="Example Title" -link=https://store.line.me/stickershop/product/9124676/ja\n\n'
+                                        'Note:\n  Argument containing white space must be closed by quotes.\n'
+                                        '  ID must contain alphabet, number and underscore only.'
+                                      "</code>", parse_mode="HTML")
             return ConversationHandler.END
         # initialise
         ctx.user_data['in_command'] = "alsi"
@@ -747,7 +759,8 @@ def main() -> None:
     dispatcher.add_handler(conv_download_telegram_sticker)
     dispatcher.add_handler(conv_advanced_import)
     dispatcher.add_handler(CommandHandler('start', start))
-    dispatcher.add_handler(CommandHandler('help', help_command))
+    dispatcher.add_handler(CommandHandler('help', command_help))
+    dispatcher.add_handler(CommandHandler('faq', command_faq))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_text_message))
     dispatcher.add_handler(MessageHandler(Filters.sticker, handel_sticker_message))
 
