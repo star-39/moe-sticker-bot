@@ -5,7 +5,7 @@ Telegram用萌萌貼圖BOT, 可以從LINE Store導入貼圖包到Telegram, 可�
 
 Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
 
-<img src="https://user-images.githubusercontent.com/75669297/115797979-27da9300-a410-11eb-9500-594a6006c534.png" width="500">
+<img src="https://user-images.githubusercontent.com/75669297/119772095-9f14b280-bef9-11eb-8b99-d13847a26ea7.png" width="500">
 
 
 ## Deployment
@@ -25,7 +25,6 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 * bsdtar (libarchive-tools)
 * curl
 
-
 Fill your Telegram Bot API in `config.ini`, and it's ready to fly! Just run with:
 
 ```
@@ -36,7 +35,16 @@ This software runs ONLY on Linux systems.
 
 It probably runs on Mac, for Windows, Please use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
-### Step by Step Deployment
+### Deploy with pre-built containers
+A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
+
+Follow GitHub's guide on pulling the container, or you can just run with
+```
+podman run -dt --rm -e BOT_TOKEN=your_bot_token_here ghcr.io/star-39/moe-sticker-bot:latest
+```
+Of course, you can use docker as well.
+
+### Step by step manual deployment
 #### Fedora / RHEL / CentOS
 You may need to add [RPM Fusion](https://rpmfusion.org/Configuration) first.
 ```
