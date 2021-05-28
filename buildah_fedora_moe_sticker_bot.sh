@@ -11,7 +11,7 @@ c1=$(buildah from fedora:34)
 
 # install system dependencies
 buildah run $c1 -- dnf install python3.9 python-pip bsdtar ImageMagick libwebp curl -y
-curl -Lo ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
+curl -Lo ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
 tar -xvf ffmpeg.tar.xz --strip-components=1
 buildah copy $c1 ffmpeg /usr/bin/ffmpeg
 
