@@ -58,6 +58,8 @@ def retry_do(func, is_fake_ra, ctx: CallbackContext) -> Any:
             else:
                 continue
         except Exception as e:
+            # It could probably be a network problem, sleep for a while and try again.
+            time.sleep(5)
             # Even if unknown exception occurred, keep retrying until threshold meet.
             if index == 2:
                 return(str(e))
@@ -98,7 +100,7 @@ def do_auto_import_line_sticker(update, ctx):
                            index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers),
                        ctx)
         if err is not None:
-            update.message.reply_text("Fatal error! Please try again.\n" + err)
+            print_fatal_error(update, str(e))
             return ConversationHandler.END
 
     print_sticker_done(update, ctx)
@@ -207,7 +209,8 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                        ctx
                        )
         if err is not None:
-            print_fatal_error()
+            print_fatal_error(update, str(err))
+            return ConversationHandler.END
             # update.message.reply_text(
             #     "Error assigning this one! Please send the same emoji again.\n" + err)
 
@@ -473,7 +476,7 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
                                                        emoji.demojize(sticker.emoji)[1:-1] +
                                                        (".tgs" if sticker_set.is_animated else ".webp"))
         except Exception as e:
-            update.message.reply_text("Fatal error!\n" + str(e))
+            print_fatal_error(update, str(e))
             return ConversationHandler.END
     webp_zip = os.path.join(dir_path, sticker_set.name + "_webp.zip")
     tgs_zip = os.path.join(dir_path, sticker_set.name + "_tgs.zip")
@@ -503,7 +506,7 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
             ctx.bot.send_document(chat_id=update.effective_chat.id,
                                   document=open(png_zip, 'rb'))
     except Exception as e:
-        update.message.reply_text("Fatal error!\n" + str(e))
+        print_fatal_error(update, str(e))
 
     # clean up
     shutil.rmtree(dir_path, ignore_errors=True)
@@ -529,14 +532,6 @@ def print_ask_emoji(update):
                               "如果您想要為貼圖包內每個貼圖設定不同的emoji, 請傳送<code>manual</code>\n"
                               "一つずつ絵文字を付けたいなら、<code>manual</code>を送信してください。",
                               reply_markup=reply_kb_for_manual_markup,
-                              parse_mode="HTML")
-
-
-def print_ask_line_store_link(update):
-    update.message.reply_text("Please enter LINE store URL of the sticker set\n"
-                              "請輸入貼圖包的LINE STORE連結\n"
-                              "スタンプのLINE STOREリンクを入力してください\n\n"
-                              "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
                               parse_mode="HTML")
 
 

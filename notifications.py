@@ -184,8 +184,16 @@ def print_sticker_done(update, ctx):
         ctx.user_data['in_command'] + " done! 指令成功完成!")
 
 
+def print_ask_line_store_link(update):
+    update.message.reply_text("Please enter LINE store URL of the sticker set\n"
+                              "請輸入貼圖包的LINE STORE連結\n"
+                              "スタンプのLINE STOREリンクを入力してください\n\n"
+                              "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
+                              parse_mode="HTML")
+
+
+
 def print_fatal_error(update, err_msg):
     update.message.reply_text("Fatal error! Please try again.\n"
                               "發生致命錯誤! 請您重新再試一次.\n\n" +
                               err_msg)
-                              
