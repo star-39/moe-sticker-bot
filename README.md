@@ -32,9 +32,9 @@ python3 main.py
 ```
 
 Or you can specify `BOT_TOKEN` environment variable and run:
-`
+```
 BOT_TOKEN=your_token python3 main.py
-`
+```
 
 This software supports all platforms python supports, including Linux, Windows and Mac.
 
@@ -74,11 +74,11 @@ The bot might have encountered some unhandled exception, please report to issues
 
 ### LINE animated stickers will never be supported due to Telegram's restrictions
 LINE's animated stickers are in APNG bitmap, however,
-Telegram's animated sticker only allow vector images, which is a completely diffferent.
+Telegram's animated sticker only allow vector images, which is a completely different.
 Telegram even sets the size limit to 64KB, hence
 converting stickers to Telegram animated format is impossible.
 
 ## License
 The GPL V3 License
 
-![image](http://www.gnu.org/graphics/gplv3-127x51.png)
+![image](https://www.gnu.org/graphics/gplv3-127x51.png)

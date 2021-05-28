@@ -195,7 +195,7 @@ def print_ask_line_store_link(update):
 
 def print_fatal_error(update, err_msg):
     update.message.reply_text("Fatal error! Please try again. /start\n"
-                              "發生致命錯誤! 請您重新試一次. /start\n\n" +
+                              "發生致命錯誤! 請您從頭再試一次. /start\n\n" +
                               err_msg)
 
 

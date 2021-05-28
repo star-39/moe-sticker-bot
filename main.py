@@ -28,7 +28,7 @@ import contextlib
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "2.0 ALPHA-3"
+    BOT_VERSION = "2.0 ALPHA-4"
 
 
 # logging.basicConfig(level=logging.INFO,
