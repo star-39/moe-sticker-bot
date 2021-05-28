@@ -25,15 +25,18 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 * bsdtar (libarchive-tools)
 * curl
 
-Fill your Telegram Bot API in `config.ini`, and it's ready to fly! Just run with:
+Fill your Telegram Bot API in config.ini`, and it's ready to fly! Just run with:
 
 ```
 python3 main.py
 ```
 
-This software runs ONLY on Linux systems.
+Or you can specify `BOT_TOKEN` environment variable and run:
+`
+BOT_TOKEN=your_token python3 main.py
+`
 
-It probably runs on Mac, for Windows, Please use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+This software supports all platforms python supports, including Linux, Windows and Mac.
 
 ### Deploy with pre-built containers
 A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
