@@ -7,10 +7,13 @@ echo "Building moe-sticker-bot for Github Container Registry!"
 c1=$(buildah from fedora:34)
 
 # prepare repos
-buildah run $c1 -- dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-34.noarch.rpm -y
+# buildah run $c1 -- dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-34.noarch.rpm -y
 
 # install system dependencies
-buildah run $c1 -- dnf install python3.9 python-pip bsdtar ImageMagick ffmpeg libwebp curl -y
+buildah run $c1 -- dnf install python3.9 python-pip bsdtar ImageMagick libwebp curl -y
+curl -Lo ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
+bsdtar -xvf ffmpeg.tar.xz --strip-components=1
+buildah copy $c1 ffmpeg /usr/bin/ffmpeg
 
 # grab sources
 buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-sticker-bot/archive/refs/heads/master.zip 
