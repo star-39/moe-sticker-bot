@@ -12,7 +12,7 @@ c1=$(buildah from fedora:34)
 # install system dependencies
 buildah run $c1 -- dnf install python3.9 python-pip bsdtar ImageMagick libwebp curl -y
 curl -Lo ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
-bsdtar -xvf ffmpeg.tar.xz --strip-components=1
+tar -xvf ffmpeg.tar.xz --strip-components=1
 buildah copy $c1 ffmpeg /usr/bin/ffmpeg
 
 # grab sources
@@ -30,7 +30,7 @@ buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main
 buildah config --env COLUMNS=80 $c1
 
 # clean up
-buildah run $c1 -- dnf autoremove python3-pip
+buildah run $c1 -- dnf autoremove python3-pip -y
 buildah run $c1 -- dnf clean all
 
 buildah commit $c1 moe-sticker-bot
