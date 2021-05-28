@@ -194,6 +194,25 @@ def print_ask_line_store_link(update):
 
 
 def print_fatal_error(update, err_msg):
-    update.message.reply_text("Fatal error! Please try again.\n"
-                              "發生致命錯誤! 請您重新再試一次.\n\n" +
+    update.message.reply_text("Fatal error! Please try again. /start\n"
+                              "發生致命錯誤! 請您重新試一次. /start\n\n" +
                               err_msg)
+
+
+def print_use_start_command(update):
+    update.message.reply_text("Please use /start to see available commands!\n"
+                              "請先傳送 /start 來看看可用的指令\n"
+                              "/start を送信してコマンドで始めましょう")
+
+
+def print_suggest_import(update):
+    update.message.reply_text("You have sent a LINE Store link, guess you want to import LINE sticker to Telegram? Please send /import_line_sticker\n"
+                            "您傳送了一個LINE商店連結, 是想要把LINE貼圖包匯入至Telegram嗎? 請使用 /import_line_sticker\n"
+                            "LINEスタンプをインポートしたいんですか？ /import_line_sticker で始めてください")
+
+
+def print_suggest_download(update):
+    update.message.reply_text("You have sent a sticker, guess you want to download this sticker set? Please send /download_telegram_sticker\n"
+                              "您傳送了一個貼圖, 是想要下載這個Telegram貼圖包嗎? 請使用 /download_telegram_sticker\n"
+                              "このステッカーセットを丸ごとダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
+

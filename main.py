@@ -35,8 +35,6 @@ class GlobalConfigs:
 #                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 # logger = logging.getLogger(ctx_name_ctx)
 
-# TODO: Port to non-UNIX platforms
-
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
 
 GET_TG_STICKER = range(1)
@@ -79,9 +77,8 @@ def do_auto_import_line_sticker(update, ctx):
                                        emojis=ctx.user_data['telegram_sticker_emoji'],
                                        png_sticker=open(img_files_path[0], 'rb'))
     except Exception as e:
-        update.message.reply_text(
-            "Failed to create new sticker set!\n" + str(e))
-        return ConversationHandler.END
+        print_fatal_error(update, str(e))
+        return
 
     message_progress = print_progress(
         None, 1, len(img_files_path), update=update)
@@ -100,8 +97,8 @@ def do_auto_import_line_sticker(update, ctx):
                            index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers),
                        ctx)
         if err is not None:
-            print_fatal_error(update, str(e))
-            return ConversationHandler.END
+            print_fatal_error(update, str(err))
+            return
 
     print_sticker_done(update, ctx)
     # clean up
@@ -397,27 +394,28 @@ def initialize_user_data(update, ctx):
 
 
 def command_alsi(update: Update, ctx: CallbackContext) -> int:
-    update.message.reply_text(
-        "INFO: You are using Advanced Line Sticker Import (alsi), be sure syntax is correct.")
     if update.message.text.startswith("alsi"):
         alsi_parser = argparse.ArgumentParser(prog="alsi", exit_on_error=False, add_help=False,
-                                              description="Advanced Line Sticker Import",)
+                                              formatter_class=argparse.RawTextHelpFormatter,
+                                              description="Advanced Line Sticker Import - command line tool to import LINE sticker.\n進階LINE貼圖匯入程式",
+                                              epilog='Example usage:\n'
+                                              '  alsi -id=example_id_1 -title="Example Title" -link=https://store.line.me/stickershop/product/8898\n\n'
+                                              'Note:\n  Argument containing white space must be closed by quotes.\n'
+                                              '  ID must contain alphabet, number and underscore only.')
         alsi_parser.add_argument(
-            '-id', help="Telegram sticker name(ID), used for share link", required=True)
+            '-emoji', help="Emoji to assign to whole sticker set, ignore this option to assign manually\n指定給整個貼圖包的Emoji, 忽略這個選項來手動指定貼圖的emoji", required=False)
         alsi_parser.add_argument(
-            '-title', help="Telegram sticker set title", required=True)
+            '-id', help="Telegram sticker name(ID), used for share link\nTelegram貼圖包ID, 用於分享連結", required=True)
         alsi_parser.add_argument(
-            '-link', help="LINE Store link of LINE sticker pack", required=True)
+            '-title', help="Telegram sticker set title\nTelegram貼圖包的標題", required=True)
+        alsi_parser.add_argument(
+            '-link', help="LINE Store link of LINE sticker pack\nLINE商店貼圖包連結", required=True)
         try:
             alsi_args = alsi_parser.parse_args(
                 shlex.split(update.message.text)[1:])
         except:
-            update.message.reply_text("Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() +
-                                      '\nExample usage:\n'
-                                      '  alsi -id=exmaple_id_00 -title="Example Title" -link=https://store.line.me/stickershop/product/9124676/ja\n\n'
-                                      'Note:\n  Argument containing white space must be closed by quotes.\n'
-                                      '  ID must contain alphabet, number and underscore only.'
-                                      "</code>", parse_mode="HTML")
+            update.message.reply_text(
+                "Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + "</code>", parse_mode="HTML")
             return ConversationHandler.END
         # initialise
         ctx.user_data['in_command'] = "alsi"
@@ -445,9 +443,14 @@ def command_alsi(update: Update, ctx: CallbackContext) -> int:
         ctx.user_data['telegram_sticker_id'] = alsi_args.id + \
             "_by_" + GlobalConfigs.BOT_NAME
         ctx.user_data['telegram_sticker_title'] = alsi_args.title
-
-        initialise_manual_import(update, ctx)
-        return MANUAL_EMOJI
+        
+        if alsi_args.emoji is None:
+            initialise_manual_import(update, ctx)
+            return MANUAL_EMOJI
+        else:
+            ctx.user_data['telegram_sticker_emoji'] = alsi_args.emoji
+            do_auto_import_line_sticker(update, ctx)
+            return ConversationHandler.END
 
     else:
         update.message.reply_text("wrong command!")
@@ -542,22 +545,14 @@ def command_cancel(update: Update, ctx: CallbackContext) -> int:
 
 
 def handle_text_message(update: Update, ctx: CallbackContext):
-    update.message.reply_text("Please use /start to see available commands!\n"
-                              "請先傳送 /start 來看看可用的指令\n"
-                              "/start を送信してコマンドで始めましょう")
+    print_use_start_command(update)
     if update.message.text.startswith("https://store.line.me") or update.message.text.startswith("https://line.me"):
-        update.message.reply_text("You have sent a LINE Store link, guess you want to import LINE sticker to Telegram? Please send /import_line_sticker\n"
-                                  "您傳送了一個LINE商店連結, 是想要把LINE貼圖包匯入至Telegram嗎? 請使用 /import_line_sticker\n"
-                                  "LINEスタンプをインポートしたいんですか？ /import_line_sticker で始めてください")
+        print_suggest_import(update)
 
 
 def handel_sticker_message(update: Update, ctx: CallbackContext):
-    update.message.reply_text("Please use /start to see available commands!\n"
-                              "請先傳送 /start 來看看可用的指令\n"
-                              "/start を送信してコマンドで始めましょう")
-    update.message.reply_text("You have sent a sticker, guess you want to download this sticker set? Please send /download_telegram_sticker\n"
-                              "您傳送了一個貼圖, 是想要下載這個Telegram貼圖包嗎? 請使用 /download_telegram_sticker\n"
-                              "このステッカーセットを丸ごとダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
+    print_use_start_command(update)
+    print_suggest_download(update)
 
 
 def print_warning(update: Update, ctx: CallbackContext):
