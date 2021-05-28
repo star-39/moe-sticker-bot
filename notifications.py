@@ -1,12 +1,13 @@
 import telegram.error
-from telegram import  Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
+from telegram import Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters
 from main import GlobalConfigs
+import main
 
 
 def start(update: Update, ctx: CallbackContext) -> None:
     update.message.reply_text(
-"""
+        """
 Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 你好! 歡迎使用萌萌貼圖BOT, 請從下方選擇指令:
 こんにちは！　萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
@@ -37,13 +38,12 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 <b>/cancel</b><code>
     Cancel conversation. 中斷指令. キャンセル 
 </code>
-"""
-        , parse_mode="HTML")
+""", parse_mode="HTML")
 
 
 def command_help(update: Update, ctx: CallbackContext) -> None:
     update.message.reply_text(
-f"""
+        f"""
 @{GlobalConfigs.BOT_NAME} by @plow283
 https://github.com/star-39/moe-sticker-bot
 Thank you @StickerGroup for feedbacks and advices!
@@ -71,12 +71,12 @@ Advanced mode commands:
 <code>
 BOT_VERSION: {GlobalConfigs.BOT_VERSION}
 </code>
-"""
-        , parse_mode="HTML")
+""", parse_mode="HTML")
+
 
 def command_faq(update: Update, ctx: CallbackContext):
     update.message.reply_text(
-f"""
+        f"""
 <b>FAQ:</b>
 =>Q: The generated sticker set ID has the bot's name as suffix! 
 　　　創建的貼圖包ID末尾有這個bot的名字!
@@ -96,41 +96,96 @@ f"""
 =>A: The bot might encountered an error, please report to GitHub issue:
      BOT可能遇到了問題, 請報告至GitHub issue網頁:
      https://github.com/star-39/moe-sticker-bot/issues
-"""
-    ,parse_mode="HTML")
+""", parse_mode="HTML")
+
+
+def print_import_starting(update, ctx):
+    try:
+        update.message.reply_text("Now starting, please wait...\n"
+                                  "正在開始, 請稍後...\n"
+                                  "作業がまもなく開始します、少々お時間を...\n\n"
+                                  "<code>"
+                                  f"LINE TYPE: {ctx.user_data['line_sticker_type']}\n"
+                                  f"LINE ID: {ctx.user_data['line_sticker_id']}\n"
+                                  f"TG ID: {ctx.user_data['telegram_sticker_id']}\n"
+                                  f"TG TITLE: {ctx.user_data['telegram_sticker_title']}\n"
+                                  "</code>",
+                                  parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+        if ctx.user_data['line_sticker_type'] == "sticker_message":
+            update.message.reply_text("You are importing LINE Message Stickers which needs more time to complete.\n"
+                                      "您正在匯入LINE訊息貼圖, 這需要更長的等候時間.")
+    except:
+        pass
 
 
 def print_progress(message_progress, current, total, update=None):
-    progress_1 =  '[=>                  ]'
+    progress_1 = '[=>                  ]'
     progress_25 = '[====>               ]'
     progress_50 = '[=========>          ]'
     progress_75 = '[==============>     ]'
-    progress_100 ='[====================]'
+    progress_100 = '[====================]'
     try:
         if update is not None:
             return update.message.reply_text("<b>Current Status 當前進度</b>\n"
-                                       "<code>" + progress_1 + "</code>\n"
-                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
-                                       parse_mode="HTML")
+                                             "<code>" + progress_1 + "</code>\n"
+                                             "<code>       " +
+                                             str(current) + " of " +
+                                             str(total) + "     </code>",
+                                             parse_mode="HTML")
         if current == int(0.25 * total):
             message_progress.edit_text("<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_25 + "</code>\n"
-                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       "<code>       " +
+                                       str(current) + " of " +
+                                       str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == int(0.5 * total):
             message_progress.edit_text("<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_50 + "</code>\n"
-                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       "<code>       " +
+                                       str(current) + " of " +
+                                       str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == int(0.75 * total):
             message_progress.edit_text("<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_75 + "</code>\n"
-                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       "<code>       " +
+                                       str(current) + " of " +
+                                       str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == total:
             message_progress.edit_text("<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_100 + "</code>\n"
-                                       "<code>       " + str(current) + " of " + str(total) + "     </code>",
+                                       "<code>       " +
+                                       str(current) + " of " +
+                                       str(total) + "     </code>",
                                        parse_mode="HTML")
     except:
         pass
+
+
+def print_sticker_done(update, ctx):
+
+    main.retry_do(lambda: update.message.reply_text("The sticker set has been successfully created!\n"
+                                                    "貼圖包已經成功創建!\n"
+                                                    "ステッカーセットの作成が成功しました！\n\n"
+                                                    "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id']),
+                  lambda: False,
+                  ctx)
+
+    if ctx.user_data['line_sticker_type'] == "sticker_animated":
+        update.message.reply_text("It seems the sticker set you imported also has a animated version\n"
+                                  "You can use /get_animated_line_sticker to have their GIF version\n"
+                                  "您匯入的貼圖包還有動態貼圖版本\n"
+                                  "可以使用 /get_animated_line_sticker 獲取GIF版動態貼圖\n"
+                                  "このスタンプの動くバージョンもございます。\n"
+                                  "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
+    update.message.reply_text(
+        ctx.user_data['in_command'] + " done! 指令成功完成!")
+
+
+def print_fatal_error(update, err_msg):
+    update.message.reply_text("Fatal error! Please try again.\n"
+                              "發生致命錯誤! 請您重新再試一次.\n\n" +
+                              err_msg)
+                              
