@@ -11,7 +11,7 @@ buildah run $c1 -- dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusi
 
 # install system dependencies
 ## use copr version of bsdtar which supports RAR
-buildah run $c1 -- dnf install 'dnf-command(copr)'
+buildah run $c1 -- dnf install 'dnf-command(copr)' -y
 buildah run $c1 -- dnf copr enable @libarchive/snapshots -y
 buildah run $c1 -- dnf install ffmpeg python3.9 python-pip bsdtar ImageMagick libwebp curl -y
 
