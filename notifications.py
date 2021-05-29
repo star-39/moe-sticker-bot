@@ -259,10 +259,12 @@ def print_suggest_download(update):
 
 def print_ask_sticker_archive(update):
     update.message.reply_text("Please send an archive file containing image files.\n"
-                              "The file could be any archive format, eg. <code>ZIP RAR 7z</code>"
-                              "The archive should not contain directories. Images should be in root directory."
-                              "請傳送一個內含貼圖圖片的歸檔檔案"
-                              "檔案可以是任意歸檔格式, 比如 <code>ZIP RAR 7z</code>"
+                              "The archive could be any archive format, eg. <code>ZIP RAR 7z</code>\n"
+                              "Image could be any image format, eg. <code>PNG JPG WEBP HEIC</code>\n"
+                              "The archive should not contain directories. Images should be in root directory.\n\n"
+                              "請傳送一個內含貼圖圖片的歸檔檔案\n"
+                              "檔案可以是任意歸檔格式, 比如 <code>ZIP RAR 7z</code>\n"
+                              "圖片可以是任意圖片格式, 比如 <code>PNG JPG WEBP HEIC</code>\n"
                               "歸檔內不可以有資料夾, 圖片檔案需直接放進歸檔內.",
                               parse_mode="HTML")
 
