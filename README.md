@@ -12,12 +12,11 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 ### Deploy with pre-built containers
 A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
 
-Follow GitHub's guide on pulling the container, or you can just run with
+Simply run:
 ```
-podman run -dt --rm -e BOT_TOKEN=your_bot_token_here ghcr.io/star-39/moe-sticker-bot:latest
+podman run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:latest
 ```
-Of course, you can use docker as well.
-
+Of course, you can use docker as well, just replace `podman` with `docker`.
 
 ### Python Dependencies
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
@@ -36,7 +35,7 @@ Of course, you can use docker as well.
 
 Specify `BOT_TOKEN` environment variable and run:
 ```
-BOT_TOKEN=your_token python3 main.py
+BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 This software supports all platforms python supports, including Linux, Windows and Mac.
@@ -45,26 +44,23 @@ This software supports all platforms python supports, including Linux, Windows a
 #### Fedora / RHEL / CentOS
 You may need to add [RPM Fusion](https://rpmfusion.org/Configuration) first.
 ```
-dnf install ffmpeg ImageMagick libwebp bsdtar curl 
+dnf install git ffmpeg ImageMagick libwebp bsdtar curl 
 pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
-### open config.ini and fill your bot api.
-python3 main.py
+BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 #### Ubuntu / Debian
 ```
-apt install imagemagick libwebp6 ffmpeg libarchive-tools curl 
+apt install git imagemagick libwebp6 ffmpeg libarchive-tools curl 
 pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
-### open config.ini and fill your bot api.
-python3 main.py
+BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 ## Known issue
-
 ### No response?
-The bot might have encountered some unhandled exception, please report to issues.
+The bot might have encountered some unhandled exception, try sending `/cancel` or report to GitHub issues.
 
 ### LINE animated stickers will never be supported due to Telegram's restrictions
 LINE's animated stickers are in APNG bitmap, however,
