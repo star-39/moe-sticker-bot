@@ -13,27 +13,23 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 こんにちは！　萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
 
 <b>/import_line_sticker</b><code>
-    Import sticker set from LINE Store to Telegram
     從LINE STORE將貼圖包匯入至Telegram
     LINE STOREからスタンプをTelegramにインポート
 </code>
 <b>/download_line_sticker</b><code>
-    Download sticker set from LINE Store
     從LINE STORE下載貼圖包
     LINE STOREからスタンプをダウンロード
 </code>
 <b>/get_animated_line_sticker</b><code>
-    Get GIF sticker from LINE Store animated sticker set
     獲取GIF版LINE STORE動態貼圖
     LINE STOREから動くスタンプをGIF形式で入手
 </code>
 <b>/download_telegram_sticker</b><code>
-    Download Telegram sticker set.(webp png)
     下載Telegram的貼圖包.(webp png)
     Telegramのステッカーセットをダウンロード(webp png)
 </code>
 <b>/help  /faq</b><code>
-    Get help. 幫助訊息. ヘルプ
+    幫助訊息 / 常見問題. ヘルプ / よくある質問
 </code>
 <b>/cancel</b><code>
     Cancel conversation. 中斷指令. キャンセル 

@@ -27,13 +27,7 @@ class GlobalConfigs:
     BOT_TOKEN = ""
     BOT_VERSION = "2.0 ALPHA-4"
 
-
-# logging.basicConfig(level=logging.INFO,
-#                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# logger = logging.getLogger(ctx_name_ctx)
-
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
-
 GET_TG_STICKER = range(1)
 
 reply_kb_for_auto_markup = ReplyKeyboardMarkup(
@@ -42,7 +36,7 @@ reply_kb_for_manual_markup = ReplyKeyboardMarkup(
     [['manual']], one_time_keyboard=True)
 
 
-def retry_do(func, is_fake_ra, ctx: CallbackContext) -> Any:
+def retry_do(func, is_fake_ra) -> Any:
     for index in range(3):
         try:
             func()
