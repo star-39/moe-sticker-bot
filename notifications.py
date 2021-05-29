@@ -1,6 +1,7 @@
 import telegram.error
-from telegram import Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
+from telegram import Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, replykeyboardremove
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters
+from telegram.replymarkup import ReplyMarkup
 from main import GlobalConfigs
 import main
 
@@ -49,10 +50,10 @@ Released under the GPL v3 License. All rights reserved.
 PRIVACY NOTICE:
     This software(bot) does not collect or save any kind of your personal information.
     Complies with Hong Kong Legislation Cap. 486 Personal Data (Privacy) Ordinance.
-本軟體為免費提供的自由軟體, 您可以自由使用/分發本軟體, 惟無任何保用服務!
+本BOT為免費提供的自由軟體, 您可以自由使用/分發, 惟無任何保用服務!
 本軟體授權於公共通用許可證(GPL)v3, 保留所有權利.
 私隱聲明:
-   本軟體(bot)不會採集任何用戶數據, 遵守香港法例第四百八十六章「私隱條例」.
+   本軟體(bot)不會採集或存儲任何用戶數據, 遵守香港法例第四百八十六章「私隱條例」.
 </code>
 <b>
 Please send /start to start using!
@@ -60,10 +61,9 @@ Please send /start to start using!
 始めるには　/start　を入力してください！
 </b>
 Advanced mode commands:
-進階模式指令:
-<code>alsi</code>
-
-/faq FAQ 檢閱常見問題
+進階模式指令:<code>
+alsi
+</code>
 <code>
 BOT_VERSION: {GlobalConfigs.BOT_VERSION}
 </code>
@@ -166,8 +166,7 @@ def print_sticker_done(update, ctx):
                                                     "貼圖包已經成功創建!\n"
                                                     "ステッカーセットの作成が成功しました！\n\n"
                                                     "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id']),
-                  lambda: False,
-                  ctx)
+                  lambda: False)
 
     if ctx.user_data['line_sticker_type'] == "sticker_animated":
         update.message.reply_text("It seems the sticker set you imported also has a animated version\n"
@@ -180,13 +179,58 @@ def print_sticker_done(update, ctx):
         ctx.user_data['in_command'] + " done! 指令成功完成!")
 
 
+def print_ask_id(update):
+    update.message.reply_text(
+        "Please enter an ID for this sticker set, used for share link.\n"
+        "Can contain only english letters, digits and underscores.\n"
+        "Must begin with a letter, can't contain consecutive underscores.\n\n"
+        "請給此貼圖包設定一個ID, 用於分享連結."
+        "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
+
+
+def print_wrong_id_syntax(update):
+    update.message.reply_text(
+        "Wrong ID syntax!! Try again. ID格式錯誤!! 請再試一次.\n\n"
+        "Can contain only english letters, digits and underscores.\n"
+        "Must begin with a letter, can't contain consecutive underscores.\n"
+        "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
+
+
+def print_ask_emoji(update):
+    update.message.reply_text("Please enter emoji representing this sticker set\n"
+                              "請傳送用於表示整個貼圖包的emoji\n"
+                              "このスタンプセットにふさわしい絵文字を入力してください\n"
+                              "eg. ☕ \n\n"
+                              "If you want to manually assign different emoji for each sticker, send <code>manual</code>\n"
+                              "如果您想要為貼圖包內每個貼圖設定不同的emoji, 請傳送<code>manual</code>\n"
+                              "一つずつ絵文字を付けたいなら、<code>manual</code>を送信してください。",
+                              reply_markup=main.reply_kb_for_manual_markup,
+                              parse_mode="HTML")
+
+
+def print_ask_title(update, title: str):
+    if title != "":
+        update.message.reply_text(
+            "Please set a title for this sticker set. Send <code>auto</code> to automatically set original title from LINE Store as shown below:\n"
+            "請設定貼圖包的標題, 也就是名字. 傳送<code>auto</code>可以自動設為LINE Store中原版的標題如下:\n"
+            "スタンプのタイトルを入力してください。<code>auto</code>を入力すると、LINE STORE上に表記されているのタイトルが自動的以下の通りに設定されます。" + "\n\n" +
+            "<code>" + title + "</code>",
+            reply_markup=main.reply_kb_for_auto_markup,
+            parse_mode="HTML")
+    else:
+        update.message.reply_text(
+            "Please set a title for this sticker set.\n"
+            "請設定貼圖包的標題, 也就是名字.\n"
+            "スタンプのタイトルを入力してください。",
+            reply_markup=ReplyKeyboardRemove())
+
+
 def print_ask_line_store_link(update):
     update.message.reply_text("Please enter LINE store URL of the sticker set\n"
                               "請輸入貼圖包的LINE STORE連結\n"
                               "スタンプのLINE STOREリンクを入力してください\n\n"
                               "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
                               parse_mode="HTML")
-
 
 
 def print_fatal_error(update, err_msg):
@@ -203,8 +247,8 @@ def print_use_start_command(update):
 
 def print_suggest_import(update):
     update.message.reply_text("You have sent a LINE Store link, guess you want to import LINE sticker to Telegram? Please send /import_line_sticker\n"
-                            "您傳送了一個LINE商店連結, 是想要把LINE貼圖包匯入至Telegram嗎? 請使用 /import_line_sticker\n"
-                            "LINEスタンプをインポートしたいんですか？ /import_line_sticker で始めてください")
+                              "您傳送了一個LINE商店連結, 是想要把LINE貼圖包匯入至Telegram嗎? 請使用 /import_line_sticker\n"
+                              "LINEスタンプをインポートしたいんですか？ /import_line_sticker で始めてください")
 
 
 def print_suggest_download(update):
@@ -212,3 +256,22 @@ def print_suggest_download(update):
                               "您傳送了一個貼圖, 是想要下載這個Telegram貼圖包嗎? 請使用 /download_telegram_sticker\n"
                               "このステッカーセットを丸ごとダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
 
+
+def print_ask_sticker_archive(update):
+    update.message.reply_text("Please send an archive file containing image files.\n"
+                              "The file could be any archive format, eg. <code>ZIP RAR 7z</code>"
+                              "The archive should not contain directories. Images should be in root directory."
+                              "請傳送一個內含貼圖圖片的歸檔檔案"
+                              "檔案可以是任意歸檔格式, 比如 <code>ZIP RAR 7z</code>"
+                              "歸檔內不可以有資料夾, 圖片檔案需直接放進歸檔內.",
+                              parse_mode="HTML")
+
+
+def print_command_done(update, ctx):
+    update.message.reply_text(ctx.user_data['in_command'] + " done! 指令成功完成!")
+
+
+def print_in_conv_warning(update, ctx):
+    update.message.reply_text("You are already in command : " + str(ctx.user_data['in_command']).removeprefix("/") + "\n\n"
+                              "If you encountered a problem, please send /cancel and start over.\n"
+                              "如果您遇到了問題, 請傳送 /cancel 來試試重新開始.")
