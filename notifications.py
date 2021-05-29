@@ -29,6 +29,10 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
     下載Telegram的貼圖包.(webp png)
     Telegramのステッカーセットをダウンロード(webp png)
 </code>
+<b>/create_sticker_set</b><code>
+    創建新的Telegram的貼圖包.
+    Telegramステッカーセット新規作成
+</code>
 <b>/help  /faq</b><code>
     幫助訊息 / 常見問題. ヘルプ / よくある質問
 </code>
@@ -62,8 +66,7 @@ Please send /start to start using!
 </b>
 Advanced mode commands:
 進階模式指令:<code>
-alsi
-</code>
+alsi</code>
 <code>
 BOT_VERSION: {GlobalConfigs.BOT_VERSION}
 </code>
