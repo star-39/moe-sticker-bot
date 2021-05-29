@@ -490,10 +490,11 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     os.makedirs(dir_path, exist_ok=True)
     for index, sticker in enumerate(sticker_set.stickers):
         try:
-            ctx.bot.get_file(sticker.file_id).download(dir_path + sticker.set_name +
-                                                       "_" + str(index).zfill(3) + "_" +
-                                                       emoji.demojize(sticker.emoji)[1:-1] +
-                                                       (".tgs" if sticker_set.is_animated else ".webp"))
+            ctx.bot.get_file(sticker.file_id).download(os.path.join(dir_path,
+                                                                    sticker.set_name +
+                                                                    "_" + str(index).zfill(3) + "_" +
+                                                                    emoji.demojize(sticker.emoji)[1:-1] +
+                                                                    (".tgs" if sticker_set.is_animated else ".webp")))
         except Exception as e:
             print_fatal_error(update, str(e))
             return ConversationHandler.END
@@ -501,19 +502,17 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     tgs_zip = os.path.join(dir_path, sticker_set.name + "_tgs.zip")
     png_zip = os.path.join(dir_path, sticker_set.name + "_png.zip")
 
-    subprocess.run(["bsdtar", "-acvf", webp_zip,
-                   os.path.join(dir_path, "*.webp")])
-
     if sticker_set.is_animated:
-        for f in glob.glob(os.path.join(dir_path, "*.tgs")):
+        fs = glob.glob(os.path.join(dir_path, "*.tgs"))
+        for f in fs:
             subprocess.run(["lottie_convert.py", f, f + ".webp"])
-        subprocess.run(["bsdtar", "-acvf", tgs_zip,
-                       os.path.join(dir_path, "*.tgs")])
+        subprocess.run(["bsdtar", "-acvf", tgs_zip] + fs)
     else:
-        for f in glob.glob(os.path.join(dir_path, "*.webp")):
-            subprocess.run(["mogrify", "-format", "png", f])
-        subprocess.run(["bsdtar", "-acvf", png_zip,
-                       os.path.join(dir_path, "*.png")])
+        subprocess.run(["mogrify", "-format", "png"] + glob.glob(os.path.join(dir_path, "*.webp")))
+        subprocess.run(["bsdtar", "-acvf", png_zip] + glob.glob(os.path.join(dir_path, "*.png")))
+
+    subprocess.run(["bsdtar", "-acvf", webp_zip] +
+                   glob.glob(os.path.join(dir_path, "*.webp")))
 
     try:
         ctx.bot.send_document(chat_id=update.effective_chat.id,
@@ -526,7 +525,8 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
                                   document=open(png_zip, 'rb'))
     except Exception as e:
         print_fatal_error(update, str(e))
-
+    
+    print_command_done(update, ctx)
     # clean up
     shutil.rmtree(dir_path, ignore_errors=True)
     os.makedirs(dir_path, exist_ok=True)
