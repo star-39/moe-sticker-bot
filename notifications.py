@@ -58,8 +58,7 @@ PRIVACY NOTICE:
 本軟體授權於公共通用許可證(GPL)v3, 保留所有權利.
 私隱聲明:
    本軟體(bot)不會採集或存儲任何用戶數據, 遵守香港法例第四百八十六章「私隱條例」.
-</code>
-<b>
+</code><b>
 Please send /start to start using!
 請傳送 /start 來開始!
 始めるには　/start　を入力してください！
