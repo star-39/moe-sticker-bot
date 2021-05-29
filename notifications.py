@@ -186,7 +186,7 @@ def print_ask_id(update):
         "Please enter an ID for this sticker set, used for share link.\n"
         "Can contain only english letters, digits and underscores.\n"
         "Must begin with a letter, can't contain consecutive underscores.\n\n"
-        "請給此貼圖包設定一個ID, 用於分享連結."
+        "請給此貼圖包設定一個ID, 用於分享連結.\n"
         "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
 
 
@@ -262,12 +262,10 @@ def print_suggest_download(update):
 def print_ask_sticker_archive(update):
     update.message.reply_text("Please send an archive file containing image files.\n"
                               "The archive could be any archive format, eg. <code>ZIP RAR 7z</code>\n"
-                              "Image could be any image format, eg. <code>PNG JPG WEBP HEIC</code>\n"
-                              "The archive should not contain directories. Images should be in root directory.\n\n"
+                              "Image could be any image format, eg. <code>PNG JPG WEBP HEIC</code>\n\n"
                               "請傳送一個內含貼圖圖片的歸檔檔案\n"
                               "檔案可以是任意歸檔格式, 比如 <code>ZIP RAR 7z</code>\n"
-                              "圖片可以是任意圖片格式, 比如 <code>PNG JPG WEBP HEIC</code>\n"
-                              "歸檔內不可以有資料夾, 圖片檔案需直接放進歸檔內.",
+                              "圖片可以是任意圖片格式, 比如 <code>PNG JPG WEBP HEIC</code>\n",
                               parse_mode="HTML")
 
 

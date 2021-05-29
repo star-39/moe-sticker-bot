@@ -1,3 +1,4 @@
+from genericpath import isfile
 import json
 import time
 import logging
@@ -129,7 +130,7 @@ def prepare_sticker_files(ctx, want_animated):
                                 f"{dir_path}{image_id}.webp"])
     elif str(ctx.user_data['in_command']).startswith("/create_sticker_set"):
         subprocess.run(['bsdtar', '-xf', archive_path, '-C', dir_path])
-        for f in glob.glob(os.path.join(dir_path, "*")):
+        for f in [f for f in glob.glob(os.path.join(dir_path, "**"), recursive=True) if os.path.isfile(f)]:
             if os.path.isfile(f):
                 subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                 "-format", "webp", "-define", "webp:lossless=true", f])
@@ -158,7 +159,7 @@ def prepare_sticker_files(ctx, want_animated):
                                 "-c:v", "libx264", "-r", "9", "-crf", "26", "-y", f + ".mp4"])
             return sorted([f for f in glob.glob(os.path.join(dir_path, "*.mp4"))])
 
-    return sorted([f for f in glob.glob(os.path.join(dir_path, "*.webp"))])
+    return sorted([f for f in glob.glob(os.path.join(dir_path, "**", "*.webp"), recursive=True)])
 
 
 def do_download_line_sticker(update, ctx):
