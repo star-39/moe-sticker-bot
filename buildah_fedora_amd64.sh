@@ -10,6 +10,8 @@ c1=$(buildah from fedora:34)
 buildah run $c1 -- dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-34.noarch.rpm -y
 
 # install system dependencies
+## use copr version of bsdtar which supports RAR
+buildah run $c1 -- dnf copr enable @libarchive/snapshots -y
 buildah run $c1 -- dnf install ffmpeg python3.9 python-pip bsdtar ImageMagick libwebp curl -y
 
 # commit a layer of dependencies

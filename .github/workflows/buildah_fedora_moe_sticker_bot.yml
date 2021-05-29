@@ -25,8 +25,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Run a one-line script
+      - name: Build fedora OCI container amd64
         run: |
-          chmod +x buildah_fedora_moe_sticker_bot.sh
-          ./buildah_fedora_moe_sticker_bot.sh ${{ secrets.GITHUB_TOKEN }}
+          chmod +x buildah_fedora_amd64.sh
+          ./buildah_fedora_amd64.sh ${{ secrets.GITHUB_TOKEN }}
 
