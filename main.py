@@ -20,9 +20,7 @@ import argparse
 import shlex
 from notifications import *
 import shutil
-import pathlib
 import glob
-import contextlib
 
 
 class GlobalConfigs:
@@ -229,7 +227,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
 def notify_next(update, ctx):
     retry_do(lambda: ctx.bot.send_photo(chat_id=update.effective_chat.id,
                                         caption="Please send emoji(s) representing this sticker\n"
-                                        "請輸入代表這個貼圖的emoji(可以多個)\n"
+                                        "請傳送代表這個貼圖的emoji(可以多個)\n"
                                         "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
                                         f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
                                         photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb')),
@@ -274,7 +272,7 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
         f" @{GlobalConfigs.BOT_NAME}"
     update.message.reply_text(
         "Please set a title for this sticker set. Send <code>auto</code> to automatically set original title from LINE Store as shown below:\n"
-        "請設定貼圖包的標題, 也就是名字. 輸入<code>auto</code>可以自動設為LINE Store中原版的標題如下:\n"
+        "請設定貼圖包的標題, 也就是名字. 傳送<code>auto</code>可以自動設為LINE Store中原版的標題如下:\n"
         "スタンプのタイトルを入力してください。<code>auto</code>を入力すると、LINE STORE上に表記されているのタイトルが自動的以下の通りに設定されます。" + "\n\n" +
         "<code>" + ctx.user_data['telegram_sticker_title'] + "</code>",
         reply_markup=reply_kb_for_auto_markup,
@@ -293,10 +291,10 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
             ctx.user_data['line_sticker_id'], \
             ctx.user_data['line_sticker_download_url'] = get_line_sticker_detail(
                 ctx.user_data['line_store_webpage'])
-    except:
-        update.message.reply_text('URL parse error! Make sure you sent a LINE Store URL !! Try again please.\n'
-                                  'URL解析錯誤! 請確認輸入的是正確的LINE商店URL連結. 請重試.\n'
-                                  'URL解析エラー！もう一度、正しいLINEスタンプストアのリンクを入力してください')
+    except Exception as e:
+        update.message.reply_text('URL parse error! Make sure you sent a correct LINE Store URL! Try again please.\n'
+                                  'URL解析錯誤! 請確認傳送的是正確的LINE商店URL連結. 請重試.\n'
+                                  'URL解析エラー！もう一度、正しいLINEスタンプストアのリンクを入力してください\n\n' + str(e))
         return LINE_STICKER_INFO
     if str(ctx.user_data['in_command']).startswith("/import_line_sticker"):
         print_ask_emoji(update)
@@ -311,29 +309,9 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         pass
 
 
-def do_get_animated_line_sticker(update, ctx):
-    if ctx.user_data['line_sticker_type'] != "sticker_animated":
-        update.message.reply_text("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
-                                  "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
-                                  "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
-        return ConversationHandler.END
-    print_import_starting(update, ctx)
-    for gif_file in prepare_sticker_files(ctx, want_animated=True):
-        time.sleep(1)
-        for _ in range(3):
-            try:
-                ctx.bot.send_animation(
-                    chat_id=update.effective_chat.id, animation=open(gif_file, 'rb'))
-            except telegram.error.RetryAfter as ra:
-                time.sleep(int(ra.retry_after))
-                continue
-            else:
-                break
-
-
 def get_line_sticker_detail(webpage):
-    if not webpage.url.startswith("https://store.line.me") or not webpage.status_code == 200:
-        raise Exception("Invalid link!")
+    if not webpage.url.startswith("https://store.line.me"):
+        raise Exception("Not a LINE Store link! 不是LINE商店之連結!")
     json_details = json.loads(BeautifulSoup(
         webpage.text, "html.parser").find_all('script')[0].contents[0])
     i = json_details['sku']
@@ -357,9 +335,23 @@ def get_line_sticker_detail(webpage):
         u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
             i + "/iphone/package.zip"
     else:
-        raise Exception("Not a supported sticker type!")
+        raise Exception("Not a supported sticker type!\nLink is: " + url)
 
     return url, t, i, u
+
+
+def do_get_animated_line_sticker(update, ctx):
+    if ctx.user_data['line_sticker_type'] != "sticker_animated":
+        update.message.reply_text("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
+                                  "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
+                                  "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
+        return ConversationHandler.END
+    print_import_starting(update, ctx)
+    for gif_file in prepare_sticker_files(ctx, want_animated=True):
+        retry_do(lambda: ctx.bot.send_animation(
+            chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')),
+            lambda: False,
+            ctx)
 
 
 def command_import_line_sticker(update: Update, ctx: CallbackContext):
@@ -443,7 +435,7 @@ def command_alsi(update: Update, ctx: CallbackContext) -> int:
         ctx.user_data['telegram_sticker_id'] = alsi_args.id + \
             "_by_" + GlobalConfigs.BOT_NAME
         ctx.user_data['telegram_sticker_title'] = alsi_args.title
-        
+
         if alsi_args.emoji is None:
             initialise_manual_import(update, ctx)
             return MANUAL_EMOJI
@@ -528,7 +520,7 @@ def command_download_telegram_sticker(update: Update, ctx: CallbackContext):
 
 def print_ask_emoji(update):
     update.message.reply_text("Please enter emoji representing this sticker set\n"
-                              "請輸入用於表示整個貼圖包的emoji\n"
+                              "請傳送用於表示整個貼圖包的emoji\n"
                               "このスタンプセットにふさわしい絵文字を入力してください\n"
                               "eg. ☕ \n\n"
                               "If you want to manually assign different emoji for each sticker, send <code>manual</code>\n"
@@ -589,7 +581,6 @@ def main() -> None:
         states={
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
             EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji)],
-            # ID: [MessageHandler(Filters.text & ~Filters.command, parse_id)],
             TITLE: [MessageHandler(Filters.text & ~Filters.command, parse_title)],
             MANUAL_EMOJI: [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
         },
