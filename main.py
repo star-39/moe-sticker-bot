@@ -149,10 +149,10 @@ def prepare_sticker_files(ctx, want_animated):
             # Magic!
             # LINE's apng has fps of 9, however ffmpeg defaults to 25
             for f in glob.glob(os.path.join(dir_path, "*.png")):
-                subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "warning" "-i", f,
-                                "-lavfi", '"color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1"',
+                subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "warning", "-i", f,
+                                "-lavfi", 'color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1',
                                 "-c:v", "libx264", "-r", "9", "-crf", "26", "-y", f + ".mp4"])
-                return sorted([f for f in glob.glob(os.path.join(dir_path, "*.mp4"))])
+            return sorted([f for f in glob.glob(os.path.join(dir_path, "*.mp4"))])
 
     return sorted([f for f in glob.glob(os.path.join(dir_path, "*.webp"))])
 
@@ -352,6 +352,8 @@ def do_get_animated_line_sticker(update, ctx):
             chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')),
             lambda: False,
             ctx)
+    update.message.reply_text(
+        ctx.user_data['in_command'] + " done! 指令成功完成!")
 
 
 def command_import_line_sticker(update: Update, ctx: CallbackContext):
