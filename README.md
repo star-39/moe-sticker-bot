@@ -9,6 +9,15 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 
 
 ## Deployment
+### Deploy with pre-built containers
+A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
+
+Follow GitHub's guide on pulling the container, or you can just run with
+```
+podman run -dt --rm -e BOT_TOKEN=your_bot_token_here ghcr.io/star-39/moe-sticker-bot:latest
+```
+Of course, you can use docker as well.
+
 
 ### Python Dependencies
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
@@ -25,27 +34,12 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 * bsdtar (libarchive-tools)
 * curl
 
-Fill your Telegram Bot API in config.ini`, and it's ready to fly! Just run with:
-
-```
-python3 main.py
-```
-
-Or you can specify `BOT_TOKEN` environment variable and run:
+Specify `BOT_TOKEN` environment variable and run:
 ```
 BOT_TOKEN=your_token python3 main.py
 ```
 
 This software supports all platforms python supports, including Linux, Windows and Mac.
-
-### Deploy with pre-built containers
-A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
-
-Follow GitHub's guide on pulling the container, or you can just run with
-```
-podman run -dt --rm -e BOT_TOKEN=your_bot_token_here ghcr.io/star-39/moe-sticker-bot:latest
-```
-Of course, you can use docker as well.
 
 ### Step by step manual deployment
 #### Fedora / RHEL / CentOS
