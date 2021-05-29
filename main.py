@@ -10,7 +10,6 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationH
 from bs4 import BeautifulSoup
 import emoji
 import requests
-import configparser
 import re
 import os
 import subprocess
@@ -555,11 +554,7 @@ def print_warning(update: Update, ctx: CallbackContext):
 
 
 def main() -> None:
-    # Load configs
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    GlobalConfigs.BOT_TOKEN = os.getenv(
-        "BOT_TOKEN", config['TELEGRAM']['BOT_TOKEN'])
+    GlobalConfigs.BOT_TOKEN = os.getenv("BOT_TOKEN")
     GlobalConfigs.BOT_NAME = Bot(GlobalConfigs.BOT_TOKEN).get_me().username
     updater = Updater(GlobalConfigs.BOT_TOKEN)
 
