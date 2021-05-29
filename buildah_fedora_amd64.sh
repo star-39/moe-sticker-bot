@@ -4,7 +4,7 @@ GITHUB_TOKEN=$1
 
 echo "Building moe-sticker-bot for Github Container Registry!"
 
-c1=$(buildah from fedora:34)
+c1=$(buildah from fedora:34-x86_64)
 
 # prepare repos
 buildah run $c1 -- dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-34.noarch.rpm -y
@@ -13,7 +13,8 @@ buildah run $c1 -- dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusi
 ## use copr version of bsdtar which supports RAR
 buildah run $c1 -- dnf install 'dnf-command(copr)' -y
 buildah run $c1 -- dnf copr enable @libarchive/snapshots -y
-buildah run $c1 -- dnf install ffmpeg python3.9 python-pip bsdtar ImageMagick libwebp curl -y
+buildah run $c1 -- dnf install --disablerepo=fedora bsdtar
+buildah run $c1 -- dnf install ffmpeg python3.9 python-pip ImageMagick libwebp curl -y
 
 # commit a layer of dependencies
 buildah commit $c1 moe-sticker-bot
