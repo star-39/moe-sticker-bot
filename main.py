@@ -25,7 +25,7 @@ import glob
 class GlobalConfigs:
     BOT_NAME = ""
     BOT_TOKEN = ""
-    BOT_VERSION = "2.0 ALPHA-5"
+    BOT_VERSION = "2.0 BETA-1"
 
 
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
