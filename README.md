@@ -70,4 +70,4 @@ converting stickers to Telegram animated format is impossible.
 ## License
 The GPL V3 License
 
-![image](https://www.gnu.org/graphics/gplv3-127x51.png)
+![image](https://www.gnu.org/graphics/gplv3-with-text-136x68.png)
