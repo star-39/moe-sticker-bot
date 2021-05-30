@@ -14,11 +14,11 @@
 
 import json
 import time
-import logging
+# import logging
 from typing import Any
 from urllib.parse import urlparse
 import telegram.error
-from telegram import Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
+from telegram import Update, Bot, Update
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters
 from bs4 import BeautifulSoup
 import emoji
@@ -35,9 +35,9 @@ import shutil
 import glob
 
 
-BOT_NAME = ""
-BOT_TOKEN = ""
-BOT_VERSION = "2.0 RC-1"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_NAME = Bot(BOT_TOKEN).get_me().username
+BOT_VERSION = "2.0 RC-2"
 
 
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
@@ -51,6 +51,8 @@ def retry_do(func, is_fake_ra) -> Any:
             func()
         except telegram.error.RetryAfter as ra:
             time.sleep(int(ra.retry_after))
+            # Sometimes Telegram API Server returns Retry_After even the request was actually successful.
+            # Pass in a lambda func to have a check.
             if is_fake_ra():
                 break
             else:
@@ -564,7 +566,7 @@ def handle_text_message(update: Update, ctx: CallbackContext):
         print_suggest_import(update)
 
 
-def handel_sticker_message(update: Update, ctx: CallbackContext):
+def handle_sticker_message(update: Update, ctx: CallbackContext):
     print_use_start_command(update)
     print_suggest_download(update)
 
@@ -573,16 +575,16 @@ def command_help(update: Update, ctx: CallbackContext):
     print_help_message(update, BOT_NAME, BOT_VERSION)
 
 
+def command_faq(update: Update, ctx: CallbackContext):
+    print_faq_message(update)
+
+
 def command_start(update: Update, ctx: CallbackContext):
     print_start_message(update)
 
 
 def main() -> None:
-    global BOT_NAME
-    BOT_TOKEN = os.getenv("BOT_TOKEN")
-    BOT_NAME = Bot(BOT_TOKEN).get_me().username
     updater = Updater(BOT_TOKEN)
-
     dispatcher = updater.dispatcher
 
     conv_advanced_import = ConversationHandler(
@@ -667,7 +669,7 @@ def main() -> None:
     dispatcher.add_handler(MessageHandler(
         Filters.text & ~Filters.command, handle_text_message))
     dispatcher.add_handler(MessageHandler(
-        Filters.sticker, handel_sticker_message))
+        Filters.sticker, handle_sticker_message))
 
     updater.start_polling()
     updater.idle()
