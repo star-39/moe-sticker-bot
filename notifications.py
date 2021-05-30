@@ -17,11 +17,10 @@ import telegram.error
 from telegram import Update, Bot, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, replykeyboardremove
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters
 from telegram.replymarkup import ReplyMarkup
-from main import GlobalConfigs
 import main
 
 
-def start(update: Update, ctx: CallbackContext) -> None:
+def print_start_message(update: Update):
     update.message.reply_text(
         """
 Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
@@ -29,38 +28,38 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 こんにちは！　萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
 
 <b>/import_line_sticker</b><code>
-    從LINE STORE將貼圖包匯入至Telegram
-    LINE STOREからスタンプをTelegramにインポート
+  從LINE STORE將貼圖包匯入至Telegram
+  LINE STOREからスタンプをTelegramにインポート
 </code>
 <b>/download_line_sticker</b><code>
-    從LINE STORE下載貼圖包
-    LINE STOREからスタンプをダウンロード
+  從LINE STORE下載貼圖包
+  LINE STOREからスタンプをダウンロード
 </code>
 <b>/get_animated_line_sticker</b><code>
-    獲取GIF版LINE STORE動態貼圖
-    LINE STOREから動くスタンプをGIF形式で入手
+  獲取GIF版LINE STORE動態貼圖
+  LINE STOREから動くスタンプをGIF形式で入手
 </code>
 <b>/download_telegram_sticker</b><code>
-    下載Telegram的貼圖包.(webp png)
-    Telegramのステッカーセットをダウンロード(webp png)
+  下載Telegram的貼圖包.(webp png)
+  Telegramのステッカーセットをダウンロード(webp png)
 </code>
 <b>/create_sticker_set</b><code>
-    創建新的Telegram的貼圖包.
-    Telegramステッカーセット新規作成
+  創建新的Telegram的貼圖包.
+  Telegramステッカーセット新規作成
 </code>
 <b>/help  /faq</b><code>
-    幫助訊息 / 常見問題. ヘルプ / よくある質問
+  幫助訊息 / 常見問題. ヘルプ / よくある質問
 </code>
 <b>/cancel</b><code>
-    Cancel conversation. 中斷指令. キャンセル 
+  Cancel conversation. 中斷指令. キャンセル 
 </code>
 """, parse_mode="HTML")
 
 
-def command_help(update: Update, ctx: CallbackContext) -> None:
+def print_help_message(update: Update, BOT_NAME, BOT_VERSION):
     update.message.reply_text(
         f"""
-@{GlobalConfigs.BOT_NAME} by @plow283
+@{BOT_NAME} by @plow283
 https://github.com/star-39/moe-sticker-bot
 Thank you @StickerGroup for feedbacks and advices!
 <code>
@@ -82,7 +81,7 @@ Advanced mode commands:
 進階模式指令:<code>
 alsi</code>
 <code>
-BOT_VERSION: {GlobalConfigs.BOT_VERSION}
+BOT_VERSION: {BOT_VERSION}
 </code>
 """, parse_mode="HTML")
 
