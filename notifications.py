@@ -220,7 +220,8 @@ def print_ask_emoji(update):
                               "If you want to manually assign different emoji for each sticker, send <code>manual</code>\n"
                               "如果您想要為貼圖包內每個貼圖設定不同的emoji, 請傳送<code>manual</code>\n"
                               "一つずつ絵文字を付けたいなら、<code>manual</code>を送信してください。",
-                              reply_markup=main.reply_kb_for_manual_markup,
+                              reply_markup=ReplyKeyboardMarkup(
+                                  [['manual']], one_time_keyboard=True),
                               parse_mode="HTML")
 
 
@@ -231,7 +232,8 @@ def print_ask_title(update, title: str):
             "請設定貼圖包的標題, 也就是名字. 傳送<code>auto</code>可以自動設為LINE Store中原版的標題如下:\n"
             "スタンプのタイトルを入力してください。<code>auto</code>を入力すると、LINE STORE上に表記されているのタイトルが自動的以下の通りに設定されます。" + "\n\n" +
             "<code>" + title + "</code>",
-            reply_markup=main.reply_kb_for_auto_markup,
+            reply_markup=ReplyKeyboardMarkup(
+                [['auto']], one_time_keyboard=True),
             parse_mode="HTML")
     else:
         update.message.reply_text(
@@ -251,8 +253,8 @@ def print_ask_line_store_link(update):
 
 def print_not_animated_warning(update):
     update.message.reply_text("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
-                            "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
-                            "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
+                              "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
+                              "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
 
 
 def print_fatal_error(update, err_msg):
@@ -297,3 +299,9 @@ def print_in_conv_warning(update, ctx):
     update.message.reply_text("You are already in command : " + str(ctx.user_data['in_command']).removeprefix("/") + "\n\n"
                               "If you encountered a problem, please send /cancel and start over.\n"
                               "如果您遇到了問題, 請傳送 /cancel 來試試重新開始.")
+
+
+def print_ask_telegram_sticker(update):
+    update.message.reply_text("Please send a sticker.\n"
+                              "請傳送一張Telegram貼圖.\n"
+                              "ステッカーを一つ送信してください。")

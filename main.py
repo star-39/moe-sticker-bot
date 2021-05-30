@@ -12,8 +12,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-from genericpath import isfile
 import json
 import time
 import logging
@@ -45,12 +43,6 @@ BOT_VERSION = "2.0 RC-1"
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
 STICKER_ARCHIVE, EMOJI, TITLE, ID, MANUAL_EMOJI = range(5)
 GET_TG_STICKER = range(1)
-
-
-reply_kb_for_auto_markup = ReplyKeyboardMarkup(
-    [['auto']], one_time_keyboard=True)
-reply_kb_for_manual_markup = ReplyKeyboardMarkup(
-    [['manual']], one_time_keyboard=True)
 
 
 def retry_do(func, is_fake_ra) -> Any:
@@ -94,7 +86,6 @@ def do_auto_create_sticker_set(update, ctx):
         # Skip the first file.
         if index == 0:
             continue
-
         print_progress(message_progress, index + 1, len(img_files_path))
         err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
                                                           name=ctx.user_data['telegram_sticker_id'],
@@ -139,8 +130,8 @@ def prepare_sticker_files(ctx, want_animated):
                 subprocess.run(
                     ["curl", "-Lo", f"{dir_path}{image_id}.overlay.png", overlay_image])
                 subprocess.run(["convert", f"{dir_path}{image_id}.base.png", f"{dir_path}{image_id}.overlay.png",
-                               "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite", 
-                               "-define", "webp:lossless=true",
+                               "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
+                                "-define", "webp:lossless=true",
                                 f"{dir_path}{image_id}.webp"])
     elif str(ctx.user_data['in_command']).startswith("/create_sticker_set"):
         subprocess.run(['bsdtar', '-xf', archive_path, '-C', dir_path])
@@ -420,7 +411,7 @@ def command_alsi(update: Update, ctx: CallbackContext) -> int:
             '  ID must contain alphabet, number and underscore only.')
         alsi_parser.add_argument(
             '-emoji', help="Emoji to assign to whole sticker set, ignore this option to assign manually\n"
-                            "指定給整個貼圖包的Emoji, 忽略這個選項來手動指定貼圖的emoji", required=False)
+            "指定給整個貼圖包的Emoji, 忽略這個選項來手動指定貼圖的emoji", required=False)
         alsi_parser.add_argument(
             '-id', help="Telegram sticker name(ID), used for share link\nTelegram貼圖包ID, 用於分享連結", required=True)
         alsi_parser.add_argument(
@@ -533,9 +524,7 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
 
 def command_download_telegram_sticker(update: Update, ctx: CallbackContext):
     initialize_user_data(update, ctx)
-    update.message.reply_text("Please send a sticker.\n"
-                              "請傳送一張Telegram貼圖.\n"
-                              "ステッカーを一つ送信してください。")
+    print_ask_telegram_sticker(update)
     return GET_TG_STICKER
 
 
@@ -544,6 +533,7 @@ def parse_sticker_archive(update: Update, ctx: CallbackContext) -> int:
     archive_hash = secrets.token_hex(nbytes=4)
     archive_dir = os.path.join("tg_sticker", archive_hash)
     os.makedirs(archive_dir, exist_ok=True)
+    # libarchive is smart enough to recognize actual archive format.
     archive_file = os.path.join(archive_dir, archive_hash + ".archive")
     try:
         update.message.document.get_file().download(archive_file)
@@ -577,6 +567,7 @@ def handle_text_message(update: Update, ctx: CallbackContext):
 def handel_sticker_message(update: Update, ctx: CallbackContext):
     print_use_start_command(update)
     print_suggest_download(update)
+
 
 def command_help(update: Update, ctx: CallbackContext):
     print_help_message(update, BOT_NAME, BOT_VERSION)
