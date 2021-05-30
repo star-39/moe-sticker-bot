@@ -57,6 +57,20 @@ git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 BOT_TOKEN=your_bot_token python3 main.py
 ```
 
+#### Windows
+Using Windows Powershell:
+```
+# install scoop if you have not
+Set-ExecutionPolicy RemoteSigned -scope CurrentUser
+iwr -useb get.scoop.sh | iex
+scoop install git
+scoop install ffmpeg-nightly-shared imagemagick python sudo
+sudo New-Item -ItemType symboliclink -path C:\Windows\system32\bsdtar.exe -target C:\Windows\system32\tar.exe
+git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+$ENV:BOT_TOKEN=your_bot_token ; python main.py
+```
+
+
 ## Known issue
 ### No response?
 The bot might have encountered some unhandled exception, try sending `/cancel` or report to GitHub issues.
