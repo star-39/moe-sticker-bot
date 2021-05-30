@@ -258,9 +258,12 @@ def print_not_animated_warning(update):
 
 
 def print_fatal_error(update, err_msg):
-    update.message.reply_text("Fatal error! Please try again. /start\n"
-                              "發生致命錯誤! 請您從頭再試一次. /start\n\n" +
-                              err_msg)
+    update.message.reply_text("<b>"
+                              "Fatal error! Please try again. /start\n"
+                              "發生致命錯誤! 請您從頭再試一次. /start\n"
+                              "致命的なエラーが発生しました！もう一度やり直してください /start\n\n"
+                              "</b>"
+                              "<code>" + err_msg + "</code>", parse_mode="HTML")
 
 
 def print_use_start_command(update):

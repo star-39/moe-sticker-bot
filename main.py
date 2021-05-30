@@ -77,7 +77,7 @@ def do_auto_create_sticker_set(update, ctx):
                                        emojis=ctx.user_data['telegram_sticker_emoji'],
                                        png_sticker=open(img_files_path[0], 'rb'))
     except Exception as e:
-        print_fatal_error(update, str(e))
+        print_fatal_error(update, traceback.format_exc())
         return
 
     message_progress = print_progress(
@@ -94,7 +94,7 @@ def do_auto_create_sticker_set(update, ctx):
                        lambda: (
                            index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
         if err is not None:
-            print_fatal_error(update, str(err))
+            print_fatal_error(update, traceback.format_exc())
             return
 
     print_sticker_done(update, ctx)
@@ -207,7 +207,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                        lambda: (ctx.user_data['manual_emoji_index'] + 1 == ctx.bot.get_sticker_set(
                            name=ctx.user_data['telegram_sticker_id']).stickers))
         if err is not None:
-            print_fatal_error(update, str(err))
+            print_fatal_error(update, traceback.format_exc())
             return ConversationHandler.END
 
         if ctx.user_data['manual_emoji_index'] == len(ctx.user_data['img_files_path']) - 1:
@@ -482,7 +482,7 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
                                                                     emoji.demojize(sticker.emoji)[1:-1] +
                                                                     (".tgs" if sticker_set.is_animated else ".webp")))
         except Exception as e:
-            print_fatal_error(update, str(e))
+            print_fatal_error(update, traceback.format_exc())
             return ConversationHandler.END
     webp_zip = os.path.join(dir_path, sticker_set.name + "_webp.zip")
     tgs_zip = os.path.join(dir_path, sticker_set.name + "_tgs.zip")
@@ -512,7 +512,7 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
             ctx.bot.send_document(chat_id=update.effective_chat.id,
                                   document=open(png_zip, 'rb'))
     except Exception as e:
-        print_fatal_error(update, str(e))
+        print_fatal_error(update, traceback.format_exc())
 
     print_command_done(update, ctx)
     # clean up
@@ -538,7 +538,7 @@ def parse_sticker_archive(update: Update, ctx: CallbackContext) -> int:
     try:
         update.message.document.get_file().download(archive_file)
     except Exception as e:
-        print_fatal_error(update, str(e))
+        print_fatal_error(update, traceback.format_exc())
         return ConversationHandler.END
 
     ctx.user_data['tg_sticker_archive'] = archive_file
