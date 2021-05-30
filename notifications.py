@@ -249,6 +249,12 @@ def print_ask_line_store_link(update):
                               parse_mode="HTML")
 
 
+def print_not_animated_warning(update):
+    update.message.reply_text("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
+                            "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
+                            "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
+
+
 def print_fatal_error(update, err_msg):
     update.message.reply_text("Fatal error! Please try again. /start\n"
                               "發生致命錯誤! 請您從頭再試一次. /start\n\n" +

@@ -39,7 +39,7 @@ import glob
 
 BOT_NAME = ""
 BOT_TOKEN = ""
-BOT_VERSION = "2.0 BETA-1"
+BOT_VERSION = "2.0 RC-1"
 
 
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
@@ -176,19 +176,6 @@ def prepare_sticker_files(ctx, want_animated):
     return sorted([f for f in glob.glob(os.path.join(dir_path, "**", "*.webp"), recursive=True)])
 
 
-def do_download_line_sticker(update, ctx):
-    update.message.reply_text(ctx.user_data['line_sticker_download_url'])
-
-
-# def initialize_manual_emoji(update, ctx):
-#     print_import_starting(update, ctx)
-#     ctx.user_data['img_files_path'] = prepare_sticker_files(
-#         ctx, want_animated=False)
-#     # This is the FIRST sticker.
-#     ctx.user_data['manual_emoji_index'] = 0
-#     notify_next(update, ctx)
-
-
 def initialize_manual_emoji(update: Update, ctx: CallbackContext):
     print_import_starting(update, ctx)
     ctx.user_data['img_files_path'] = prepare_sticker_files(ctx, False)
@@ -255,8 +242,6 @@ def notify_next(update, ctx):
                                         f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
                                         photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb')),
              lambda: False)
-
-
 
 
 # ID
@@ -340,7 +325,7 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         print_ask_emoji(update)
         return EMOJI
     elif str(ctx.user_data['in_command']).startswith("/download_line_sticker"):
-        do_download_line_sticker(update, ctx)
+        update.message.reply_text(ctx.user_data['line_sticker_download_url'])
         return ConversationHandler.END
     elif str(ctx.user_data['in_command']).startswith("/get_animated_line_sticker"):
         do_get_animated_line_sticker(update, ctx)
@@ -382,9 +367,7 @@ def get_line_sticker_detail(webpage):
 
 def do_get_animated_line_sticker(update, ctx):
     if ctx.user_data['line_sticker_type'] != "sticker_animated":
-        update.message.reply_text("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
-                                  "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
-                                  "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
+        print_not_animated_warning(update)
         return ConversationHandler.END
     print_import_starting(update, ctx)
     for gif_file in prepare_sticker_files(ctx, want_animated=True):
@@ -651,7 +634,6 @@ def main() -> None:
             'download_line_sticker', command_download_line_sticker)],
         states={
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
-            EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji)],
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
