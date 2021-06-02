@@ -14,6 +14,7 @@
 
 
 from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
+from telegram.ext.callbackcontext import CallbackContext
 import main
 
 
@@ -173,14 +174,13 @@ def print_progress(message_progress, current, total, update=None):
         pass
 
 
-def print_sticker_done(update, ctx):
+def print_sticker_done(update: Update, ctx: CallbackContext):
 
     main.retry_do(lambda: update.message.reply_text("The sticker set has been successfully created!\n"
                                                     "貼圖包已經成功創建!\n"
                                                     "ステッカーセットの作成が成功しました！\n\n"
                                                     "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id']),
                   lambda: False)
-
     if ctx.user_data['line_sticker_type'] == "sticker_animated":
         update.message.reply_text("It seems the sticker set you imported also has a animated version\n"
                                   "You can use /get_animated_line_sticker to have their GIF version\n"
@@ -188,8 +188,9 @@ def print_sticker_done(update, ctx):
                                   "可以使用 /get_animated_line_sticker 獲取GIF版動態貼圖\n"
                                   "このスタンプの動くバージョンもございます。\n"
                                   "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
+    ctx.bot.send_sticker(update.message.chat_id, ctx.bot.get_sticker_set(ctx.user_data['telegram_sticker_id']).stickers[0])
     update.message.reply_text(
-        ctx.user_data['in_command'] + " done! 指令成功完成!")
+        ctx.user_data['in_command'] + " done! 指令成功完成! /start")
 
 
 def print_ask_id(update):
