@@ -27,6 +27,8 @@ jobs:
 
       - name: Build fedora OCI container amd64
         run: |
+          dos2unix buildah_fedora_amd64.sh
+          dos2unix run.sh
           chmod +x buildah_fedora_amd64.sh
           ./buildah_fedora_amd64.sh ${{ secrets.GITHUB_TOKEN }}
 
