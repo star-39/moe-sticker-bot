@@ -140,7 +140,7 @@ def prepare_sticker_files(ctx, want_animated):
         for f in [f for f in glob.glob(os.path.join(dir_path, "**"), recursive=True) if os.path.isfile(f)]:
             if os.path.isfile(f):
                 subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
-                                "-format", "webp", "-define", "webp:lossless=true", f])
+                                "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
     else:
         zip_file_path = os.path.join(
             "line_sticker", ctx.user_data['line_sticker_id'] + ".zip")
