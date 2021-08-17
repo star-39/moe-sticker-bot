@@ -7,6 +7,7 @@ echo "Building moe-sticker-bot for Github Container Registry!"
 c1=$(buildah from debian:sid)
 
 # install system dependencies
+buildah run $c1 -- apt update -y
 buildah run $c1 -- apt install ffmpeg python3 python3-pip imagemagick curl libarchive-tools -y
 
 # commit a layer of dependencies
