@@ -15,7 +15,7 @@ buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-
 buildah run $c1 -- bsdtar -xvf /moe-sticker-bot.zip -C /
 
 # install python dependencies
-buildah run $c1 -- pip3 install wheel
+buildah run $c1 -- pip3 install wheel setuptools
 buildah run $c1 -- pip3 install -r /moe-sticker-bot-master/requirements.txt
 
 # finish
