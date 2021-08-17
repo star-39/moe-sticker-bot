@@ -10,9 +10,6 @@ c1=$(buildah from debian:sid)
 buildah run $c1 -- apt update -y
 buildah run $c1 -- apt install ffmpeg python3 python3-pip imagemagick curl libarchive-tools -y
 
-# commit a layer of dependencies
-buildah commit $c1 moe-sticker-bot
-
 # grab sources
 buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-sticker-bot/archive/refs/heads/master.zip
 buildah run $c1 -- bsdtar -xvf /moe-sticker-bot.zip -C /
