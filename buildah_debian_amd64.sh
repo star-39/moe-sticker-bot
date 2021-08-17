@@ -4,23 +4,16 @@ GITHUB_TOKEN=$1
 
 echo "Building moe-sticker-bot for Github Container Registry!"
 
-c1=$(buildah from fedora:34-x86_64)
-
-# prepare repos
-buildah run $c1 -- dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-34.noarch.rpm -y
+c1=$(buildah from debian:sid)
 
 # install system dependencies
-## use copr version of bsdtar which supports RAR
-buildah run $c1 -- dnf install 'dnf-command(copr)' -y
-buildah run $c1 -- dnf copr enable @libarchive/snapshots -y
-buildah run $c1 -- dnf install --disablerepo=fedora bsdtar -y
-buildah run $c1 -- dnf install ffmpeg python3.9 python-pip ImageMagick libwebp curl -y
+buildah run $c1 -- apt install ffmpeg python3 python3-pip imagemagick curl libarchive-tools -y
 
 # commit a layer of dependencies
 buildah commit $c1 moe-sticker-bot
 
 # grab sources
-buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-sticker-bot/archive/refs/heads/master.zip 
+buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-sticker-bot/archive/refs/heads/master.zip
 buildah run $c1 -- bsdtar -xvf /moe-sticker-bot.zip -C /
 
 # install python dependencies
@@ -35,8 +28,8 @@ buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main
 buildah config --env COLUMNS=80 $c1
 
 # clean up
-buildah run $c1 -- dnf autoremove python3-pip -y
-buildah run $c1 -- dnf clean all
+buildah run $c1 -- apt autoremove python3-pip -y
+buildah run $c1 -- apt autoclean
 
 buildah commit $c1 moe-sticker-bot
 
