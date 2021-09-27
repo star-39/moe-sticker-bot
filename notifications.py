@@ -65,11 +65,9 @@ This free(as in freedom) software is released under the GPLv3 License.
 Comes with ABSOLUTELY NO WARRANTY! All rights reserved.
 PRIVACY NOTICE:
   This software does not collect or save any kind of your personal information.
-  Complies with Hong Kong Legislation Cap. 486 Personal Data (Privacy) Ordinance.
 本BOT為免費提供的自由軟體, 您可以自由使用/分發, 惟無任何保用服務(warranty)!
 本軟體授權於通用公共許可證(GPL)v3, 保留所有權利.
-私隱聲明:
-  本軟體不會採集或存儲任何用戶數據, 遵守香港法例第四百八十六章「私隱條例」.
+私隱聲明: 本軟體不會採集或存儲任何用戶數據.
 </code><b>
 Please send /start to start using!
 請傳送 /start 來開始!
