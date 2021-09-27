@@ -110,61 +110,72 @@ def prepare_sticker_files(ctx, want_animated):
     if str(ctx.user_data['in_command']).startswith("/create_sticker_set"):
         archive_path = ctx.user_data['tg_sticker_archive']
         dir_path = os.path.dirname(ctx.user_data['tg_sticker_archive'])
+        subprocess.run(['bsdtar', '-xf', archive_path, '-C', dir_path])
+        for f in [f for f in glob.glob(os.path.join(dir_path, "**"), recursive=True) if os.path.isfile(f)]:
+            if os.path.isfile(f):
+                subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
+                                "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
+        #clean up
+        if(os.path.exists(archive_path)):
+            os.remove(archive_path)
     # line stickers
     else:
         dir_path = os.path.join(
             "line_sticker", ctx.user_data['line_sticker_id'])
         shutil.rmtree(dir_path, ignore_errors=True)
         os.makedirs(dir_path, exist_ok=True)
-
-    if ctx.user_data['line_sticker_type'] == "sticker_message":
-        for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
-            json_text = element.get('data-preview')
-            if json_text is not None:
-                json_data = json.loads(json_text)
-                base_image = json_data['staticUrl'].split(';')[0]
-                overlay_image = json_data['customOverlayUrl'].split(';')[0]
-                base_image_link_split = base_image.split('/')
-                image_id = base_image_link_split[base_image_link_split.index(
-                    'sticker') + 1]
-                subprocess.run(
-                    ["curl", "-Lo", f"{dir_path}{image_id}.base.png", base_image])
-                subprocess.run(
-                    ["curl", "-Lo", f"{dir_path}{image_id}.overlay.png", overlay_image])
-                subprocess.run(["convert", f"{dir_path}{image_id}.base.png", f"{dir_path}{image_id}.overlay.png",
-                               "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
-                                "-define", "webp:lossless=true",
-                                f"{dir_path}{image_id}.webp"])
-    elif str(ctx.user_data['in_command']).startswith("/create_sticker_set"):
-        subprocess.run(['bsdtar', '-xf', archive_path, '-C', dir_path])
-        for f in [f for f in glob.glob(os.path.join(dir_path, "**"), recursive=True) if os.path.isfile(f)]:
-            if os.path.isfile(f):
-                subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
-                                "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
-    else:
-        zip_file_path = os.path.join(
-            "line_sticker", ctx.user_data['line_sticker_id'] + ".zip")
-        subprocess.run(["curl", "-Lo", zip_file_path,
-                        ctx.user_data['line_sticker_download_url']])
-        subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", dir_path])
-        if not want_animated:
-            # Remove garbage
-            for f in glob.glob(os.path.join(dir_path, "*key*")) + glob.glob(os.path.join(dir_path, "tab*")) + glob.glob(os.path.join(dir_path, "productInfo.meta")):
-                os.remove(f)
-            # Resize to fulfill telegram's requirement, AR is automatically retained
-            # Lanczos resizing produces much sharper image.
-            for f in glob.glob(os.path.join(dir_path, "*")):
-                subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
-                                "-format", "webp", "-define", "webp:lossless=true", f])
+        if ctx.user_data['line_sticker_type'] == "sticker_message":
+            for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
+                json_text = element.get('data-preview')
+                if json_text is not None:
+                    json_data = json.loads(json_text)
+                    base_image = json_data['staticUrl'].split(';')[0]
+                    overlay_image = json_data['customOverlayUrl'].split(';')[0]
+                    base_image_link_split = base_image.split('/')
+                    image_id = base_image_link_split[base_image_link_split.index(
+                        'sticker') + 1]
+                    subprocess.run(
+                        ["curl", "-Lo", f"{dir_path}{image_id}.base.png", base_image])
+                    subprocess.run(
+                        ["curl", "-Lo", f"{dir_path}{image_id}.overlay.png", overlay_image])
+                    subprocess.run(["convert", f"{dir_path}{image_id}.base.png", f"{dir_path}{image_id}.overlay.png",
+                                "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
+                                    "-define", "webp:lossless=true",
+                                    f"{dir_path}{image_id}.webp"])
+                    #clean up
+                    if(os.path.exists(f"{dir_path}{image_id}.base.png")):
+                        os.remove(f"{dir_path}{image_id}.base.png")
+                    if(os.path.exists(f"{dir_path}{image_id}.overlay.png")):
+                        os.remove(f"{dir_path}{image_id}.overlay.png")
+                    if(os.path.exists(f"{dir_path}{image_id}.webp")):
+                        os.remove(f"{dir_path}{image_id}.webp")
         else:
-            dir_path = os.path.join(dir_path, "animation@2x")
-            # Magic!
-            # LINE's apng has fps of 9, however ffmpeg defaults to 25
-            for f in glob.glob(os.path.join(dir_path, "*.png")):
-                subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "warning", "-i", f,
-                                "-lavfi", 'color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1',
-                                "-c:v", "libx264", "-r", "9", "-crf", "26", "-y", f + ".mp4"])
-            return sorted([f for f in glob.glob(os.path.join(dir_path, "*.mp4"))])
+            zip_file_path = os.path.join(
+                "line_sticker", ctx.user_data['line_sticker_id'] + ".zip")
+            subprocess.run(["curl", "-Lo", zip_file_path,
+                            ctx.user_data['line_sticker_download_url']])
+            subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", dir_path])
+            if not want_animated:
+                # Remove garbage
+                for f in glob.glob(os.path.join(dir_path, "*key*")) + glob.glob(os.path.join(dir_path, "tab*")) + glob.glob(os.path.join(dir_path, "productInfo.meta")):
+                    os.remove(f)
+                # Resize to fulfill telegram's requirement, AR is automatically retained
+                # Lanczos resizing produces much sharper image.
+                for f in glob.glob(os.path.join(dir_path, "*")):
+                    subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
+                                    "-format", "webp", "-define", "webp:lossless=true", f])
+            else:
+                dir_path = os.path.join(dir_path, "animation@2x")
+                # Magic!
+                # LINE's apng has fps of 9, however ffmpeg defaults to 25
+                for f in glob.glob(os.path.join(dir_path, "*.png")):
+                    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "warning", "-i", f,
+                                    "-lavfi", 'color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1',
+                                    "-c:v", "libx264", "-r", "9", "-crf", "26", "-y", f + ".mp4"])
+                return sorted([f for f in glob.glob(os.path.join(dir_path, "*.mp4"))])
+            # clean up 
+            if(os.path.exists(zip_file_path)):
+                os.remove(zip_file_path)
 
     return sorted([f for f in glob.glob(os.path.join(dir_path, "**", "*.webp"), recursive=True)])
 
