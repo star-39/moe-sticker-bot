@@ -37,7 +37,7 @@ import glob
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
-BOT_VERSION = "2.0 RC-3"
+BOT_VERSION = "2.0 RC-4"
 
 
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
