@@ -45,18 +45,20 @@ STICKER_ARCHIVE, EMOJI, TITLE, ID, MANUAL_EMOJI = range(5)
 GET_TG_STICKER = range(1)
 
 
-def retry_do(func, is_fake_ra) -> Any:
+#def retry_do(func, is_fake_ra) -> Any:
+def retry_do(func) -> Any:
     for index in range(3):
         try:
             func()
-        except telegram.error.RetryAfter as ra:
-            time.sleep(int(ra.retry_after))
-            # Sometimes Telegram API Server returns Retry_After even the request was actually successful.
-            # Pass in a lambda func to have a check.
-            if is_fake_ra():
-                break
-            else:
-                continue
+        # --- Telegram seems already fixed this problem, skipping this check. ---
+        # except telegram.error.RetryAfter as ra:
+        #     time.sleep(int(ra.retry_after))
+        #     # Sometimes Telegram API Server returns Retry_After even the request was actually successful.
+        #     # Pass in a lambda func to have a check.
+        #     if is_fake_ra():
+        #         break
+        #     else:
+        #         continue
         except Exception as e:
             # It could probably be a network problem, sleep for a while and try again.
             time.sleep(5)
@@ -92,9 +94,7 @@ def do_auto_create_sticker_set(update, ctx):
         err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
                                                           name=ctx.user_data['telegram_sticker_id'],
                                                           emojis=ctx.user_data['telegram_sticker_emoji'],
-                                                          png_sticker=open(img_file_path, 'rb')),
-                       lambda: (
-                           index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
+                                                          png_sticker=open(img_file_path, 'rb')))
         if err is not None:
             print_fatal_error(update, traceback.format_exc())
             return
@@ -216,9 +216,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                                                           emojis=em,
                                                           png_sticker=open(
                                                               ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
-                                                          )),
-                       lambda: (ctx.user_data['manual_emoji_index'] + 1 == ctx.bot.get_sticker_set(
-                           name=ctx.user_data['telegram_sticker_id']).stickers))
+                                                          )))
         if err is not None:
             print_fatal_error(update, traceback.format_exc())
             return ConversationHandler.END
@@ -244,8 +242,7 @@ def notify_next(update, ctx):
                                         "請傳送代表這個貼圖的emoji(可以多個)\n"
                                         "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
                                         f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
-                                        photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb')),
-             lambda: False)
+                                        photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb')))
 
 
 # ID
@@ -376,8 +373,7 @@ def do_get_animated_line_sticker(update, ctx):
     print_import_starting(update, ctx)
     for gif_file in prepare_sticker_files(ctx, want_animated=True):
         retry_do(lambda: ctx.bot.send_animation(
-            chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')),
-            lambda: False)
+            chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
     print_command_done(update, ctx)
 
 
