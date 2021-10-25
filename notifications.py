@@ -174,11 +174,10 @@ def print_progress(message_progress, current, total, update=None):
 
 def print_sticker_done(update: Update, ctx: CallbackContext):
 
-    main.retry_do(lambda: update.message.reply_text("The sticker set has been successfully created!\n"
-                                                    "貼圖包已經成功創建!\n"
-                                                    "ステッカーセットの作成が成功しました！\n\n"
-                                                    "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id']),
-                  lambda: False)
+    update.message.reply_text("The sticker set has been successfully created!\n"
+                              "貼圖包已經成功創建!\n"
+                              "ステッカーセットの作成が成功しました！\n\n"
+                              "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id'])
     if ctx.user_data['line_sticker_type'] == "sticker_animated":
         update.message.reply_text("It seems the sticker set you imported also has a animated version\n"
                                   "You can use /get_animated_line_sticker to have their GIF version\n"

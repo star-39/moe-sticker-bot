@@ -37,7 +37,7 @@ import glob
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
-BOT_VERSION = "2.0 RC-4"
+BOT_VERSION = "2.1 RC-1"
 
 
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
@@ -46,27 +46,27 @@ GET_TG_STICKER = range(1)
 
 
 #def retry_do(func, is_fake_ra) -> Any:
-def retry_do(func) -> Any:
-    for index in range(3):
-        try:
-            func()
-        # --- Telegram seems already fixed this problem, skipping this check. ---
-        # except telegram.error.RetryAfter as ra:
-        #     time.sleep(int(ra.retry_after))
-        #     # Sometimes Telegram API Server returns Retry_After even the request was actually successful.
-        #     # Pass in a lambda func to have a check.
-        #     if is_fake_ra():
-        #         break
-        #     else:
-        #         continue
-        except Exception as e:
-            # It could probably be a network problem, sleep for a while and try again.
-            time.sleep(5)
-            # Even if unknown exception occurred, keep retrying until threshold meet.
-            if index == 2:
-                return(str(e))
-        else:
-            break
+# def retry_do(func) -> Any:
+#     for index in range(3):
+#         try:
+#             func()
+#         # --- Telegram seems already fixed this problem, skipping this check. ---
+#         # except telegram.error.RetryAfter as ra:
+#         #     time.sleep(int(ra.retry_after))
+#         #     # Sometimes Telegram API Server returns Retry_After even the request was actually successful.
+#         #     # Pass in a lambda func to have a check.
+#         #     if is_fake_ra():
+#         #         break
+#         #     else:
+#         #         continue
+#         except Exception as e:
+#             # It could probably be a network problem, sleep for a while and try again.
+#             time.sleep(5)
+#             # Even if unknown exception occurred, keep retrying until threshold meet.
+#             if index == 2:
+#                 return(str(e))
+#         else:
+#             break
 
 
 def do_auto_create_sticker_set(update, ctx):
@@ -91,11 +91,12 @@ def do_auto_create_sticker_set(update, ctx):
         if index == 0:
             continue
         print_progress(message_progress, index + 1, len(img_files_path))
-        err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                                          name=ctx.user_data['telegram_sticker_id'],
-                                                          emojis=ctx.user_data['telegram_sticker_emoji'],
-                                                          png_sticker=open(img_file_path, 'rb')))
-        if err is not None:
+        try:
+            ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
+                                    name=ctx.user_data['telegram_sticker_id'],
+                                    emojis=ctx.user_data['telegram_sticker_emoji'],
+                                    png_sticker=open(img_file_path, 'rb'))
+        except:
             print_fatal_error(update, traceback.format_exc())
             return
 
@@ -210,14 +211,14 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                 "Error creating sticker set! Please try again!\n" + str(e))
             return ConversationHandler.END
     else:
-        # try:
-        err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                                          name=ctx.user_data['telegram_sticker_id'],
-                                                          emojis=em,
-                                                          png_sticker=open(
-                                                              ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
-                                                          )))
-        if err is not None:
+        try:
+            ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
+                                        name=ctx.user_data['telegram_sticker_id'],
+                                        emojis=em,
+                                        png_sticker=open(
+                                            ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
+                                        ))
+        except:
             print_fatal_error(update, traceback.format_exc())
             return ConversationHandler.END
 
@@ -237,12 +238,12 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
 
 
 def notify_next(update, ctx):
-    retry_do(lambda: ctx.bot.send_photo(chat_id=update.effective_chat.id,
-                                        caption="Please send emoji(s) representing this sticker\n"
-                                        "請傳送代表這個貼圖的emoji(可以多個)\n"
-                                        "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
-                                        f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
-                                        photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb')))
+    ctx.bot.send_photo(chat_id=update.effective_chat.id,
+                       caption="Please send emoji(s) representing this sticker\n"
+                       "請傳送代表這個貼圖的emoji(可以多個)\n"
+                       "このスタンプにふさわしい絵文字を入力してください(複数可)\n" +
+                       f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
+                       photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'))
 
 
 # ID
@@ -372,8 +373,7 @@ def do_get_animated_line_sticker(update, ctx):
         return ConversationHandler.END
     print_import_starting(update, ctx)
     for gif_file in prepare_sticker_files(ctx, want_animated=True):
-        retry_do(lambda: ctx.bot.send_animation(
-            chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
+        ctx.bot.send_animation(chat_id=update.effective_chat.id, animation=open(gif_file, 'rb'))
     print_command_done(update, ctx)
 
 
