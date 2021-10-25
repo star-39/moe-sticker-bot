@@ -104,7 +104,7 @@ def do_auto_create_sticker_set(update, ctx):
     # clean up
     directory_path = os.path.dirname(img_files_path[0])
     shutil.rmtree(directory_path, ignore_errors=True)
-    os.makedirs(directory_path, exist_ok=True)
+    # os.makedirs(directory_path, exist_ok=True)
 
 
 def prepare_sticker_files(ctx, want_animated):
@@ -228,7 +228,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
             directory_path = os.path.dirname(
                 ctx.user_data['img_files_path'][0])
             shutil.rmtree(directory_path, ignore_errors=True)
-            os.makedirs(directory_path, exist_ok=True)
+            # os.makedirs(directory_path, exist_ok=True)
 
             return ConversationHandler.END
 
@@ -526,7 +526,7 @@ def parse_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     print_command_done(update, ctx)
     # clean up
     shutil.rmtree(dir_path, ignore_errors=True)
-    os.makedirs(dir_path, exist_ok=True)
+    # os.makedirs(dir_path, exist_ok=True)
 
     return ConversationHandler.END
 
@@ -548,6 +548,9 @@ def parse_sticker_archive(update: Update, ctx: CallbackContext) -> int:
         update.message.document.get_file().download(archive_file)
     except Exception as e:
         print_fatal_error(update, traceback.format_exc())
+        #clean up
+        if os.path.exists(archive_file):
+            os.remove(archive_file)
         return ConversationHandler.END
 
     ctx.user_data['tg_sticker_archive'] = archive_file
