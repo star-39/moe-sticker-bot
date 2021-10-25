@@ -4,11 +4,16 @@ GITHUB_TOKEN=$1
 
 echo "Building moe-sticker-bot for Github Container Registry!"
 
-c1=$(buildah from debian:sid)
+c1=$(buildah from debian:11)
 
 # install system dependencies
 buildah run $c1 -- apt update -y
-buildah run $c1 -- apt install ffmpeg python3 python3-pip imagemagick curl libarchive-tools -y
+buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-tools -y
+
+buildah run $c1 -- curl -Lo /ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
+buildah run $c1 -- tar --strip-components=1 --wildcards -xvf /ffmpeg.tar.xz '*/ffmpeg'
+buildah run $c1 -- mv /ffmpeg /usr/bin/ffmpeg
+buildah run $c1 -- rm /ffmpeg.tar.xz
 
 # grab sources
 buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-sticker-bot/archive/refs/heads/master.zip
@@ -26,7 +31,7 @@ buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main
 buildah config --env COLUMNS=80 $c1
 
 # clean up
-#buildah run $c1 -- apt autoremove python3-pip -y
+buildah run $c1 -- apt autoremove python3-pip -y
 buildah run $c1 -- apt autoclean
 
 buildah commit $c1 moe-sticker-bot
