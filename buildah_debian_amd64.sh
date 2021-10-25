@@ -32,6 +32,7 @@ buildah config --env COLUMNS=80 $c1
 
 # clean up
 buildah run $c1 -- apt autoremove python3-pip -y
+buildah run $c1 -- apt install python3-setuptools -y
 buildah run $c1 -- apt autoclean
 
 buildah commit $c1 moe-sticker-bot
