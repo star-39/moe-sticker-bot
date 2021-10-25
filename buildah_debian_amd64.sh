@@ -10,10 +10,8 @@ c1=$(buildah from debian:11)
 buildah run $c1 -- apt update -y
 buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-tools -y
 
-buildah run $c1 -- curl -Lo /ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
-buildah run $c1 -- tar --strip-components=1 --wildcards -xvf /ffmpeg.tar.xz '*/ffmpeg'
-buildah run $c1 -- mv /ffmpeg /usr/bin/ffmpeg
-buildah run $c1 -- rm /ffmpeg.tar.xz
+buildah run $c1 -- curl -Lo /usr/bin/ffmpeg https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4/linux-x64
+buildah run $c1 -- chmod +x /usr/bin/ffmpeg
 
 # grab sources
 buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-sticker-bot/archive/refs/heads/master.zip
