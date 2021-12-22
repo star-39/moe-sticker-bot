@@ -303,3 +303,11 @@ def print_ask_telegram_sticker(update):
     update.message.reply_text("Please send a sticker.\n"
                               "請傳送一張Telegram貼圖.\n"
                               "ステッカーを一つ送信してください。")
+
+
+def print_timeout_message(update):
+    update.message.reply_text("Timeout has been reached due to long time inactivity. Please start over.\n"
+                              "指令因為長時無操作而超時, 請重新開始.\n"
+                              "長い間操作がないためタイムアウトしました、もう一度やり直してください。\n\n"
+                              "/start",
+                              disable_notification=True)

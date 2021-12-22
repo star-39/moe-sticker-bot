@@ -30,14 +30,16 @@ import secrets
 import traceback
 import argparse
 import shlex
+
+from telegram.ext.utils.types import ConversationDict
 from notifications import *
 import shutil
 import glob
 
-
+BOT_VERSION = "2.1 RC-1"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
-BOT_VERSION = "2.1 RC-1"
+DATA_DIR = BOT_NAME + "_data"
 
 
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
@@ -45,28 +47,21 @@ STICKER_ARCHIVE, EMOJI, TITLE, ID, MANUAL_EMOJI = range(5)
 GET_TG_STICKER = range(1)
 
 
-#def retry_do(func, is_fake_ra) -> Any:
-# def retry_do(func) -> Any:
-#     for index in range(3):
-#         try:
-#             func()
-#         # --- Telegram seems already fixed this problem, skipping this check. ---
-#         # except telegram.error.RetryAfter as ra:
-#         #     time.sleep(int(ra.retry_after))
-#         #     # Sometimes Telegram API Server returns Retry_After even the request was actually successful.
-#         #     # Pass in a lambda func to have a check.
-#         #     if is_fake_ra():
-#         #         break
-#         #     else:
-#         #         continue
-#         except Exception as e:
-#             # It could probably be a network problem, sleep for a while and try again.
-#             time.sleep(5)
-#             # Even if unknown exception occurred, keep retrying until threshold meet.
-#             if index == 2:
-#                 return(str(e))
-#         else:
-#             break
+# def retry_do(func, is_fake_ra) -> Any:
+def retry_do(func) -> Any:
+    for index in range(3):
+        try:
+            func()
+        except telegram.error.RetryAfter as ra:
+            time.sleep(int(ra.retry_after))
+        except Exception as e:
+            # It could probably be a network problem, sleep for a while and try again.
+            time.sleep(5)
+            # Even if unknown exception occurred, keep retrying until threshold meet.
+            if index == 2:
+                return(str(e))
+        else:
+            break
 
 
 def do_auto_create_sticker_set(update, ctx):
@@ -338,7 +333,7 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
 
 def get_line_sticker_detail(webpage):
     if not webpage.url.startswith("https://store.line.me"):
-        raise Exception("Not a LINE Store link! 不是LINE商店之連結!")
+        raise Exception("Not a LINE Store link! 不是LINE商店連結!")
     json_details = json.loads(BeautifulSoup(
         webpage.text, "html.parser").find_all('script')[0].contents[0])
     i = json_details['sku']
@@ -593,6 +588,10 @@ def command_start(update: Update, ctx: CallbackContext):
     print_start_message(update)
 
 
+def handle_timeout(update: Update, ctx: CallbackContext):
+    print_timeout_message(update)
+
+
 def main() -> None:
     updater = Updater(BOT_TOKEN)
     dispatcher = updater.dispatcher
@@ -602,9 +601,11 @@ def main() -> None:
             '^alsi*') & ~Filters.command, command_alsi)],
         states={
             MANUAL_EMOJI: [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
+            ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
+        conversation_timeout=86400,
         run_async=True
     )
 
@@ -617,40 +618,48 @@ def main() -> None:
             EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji)],
             TITLE: [MessageHandler(Filters.text & ~Filters.command, parse_title)],
             MANUAL_EMOJI: [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
+            ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)],
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        run_async=True
+        run_async=True,
+        conversation_timeout=86400
     )
     conv_get_animated_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
             'get_animated_line_sticker', command_get_animated_line_sticker)],
         states={
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
+            ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        run_async=True
+        run_async=True,
+        conversation_timeout=86400
     )
     conv_download_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
             'download_line_sticker', command_download_line_sticker)],
         states={
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
+            ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        run_async=True
+        run_async=True,
+        conversation_timeout=86400
     )
     conv_download_telegram_sticker = ConversationHandler(
         entry_points=[CommandHandler(
             'download_telegram_sticker', command_download_telegram_sticker)],
         states={
             GET_TG_STICKER: [MessageHandler(Filters.sticker, parse_tg_sticker)],
+            ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        run_async=True
+        run_async=True,
+        conversation_timeout=86400
     )
     conv_create_sticker_set = ConversationHandler(
         entry_points=[CommandHandler(
@@ -661,10 +670,12 @@ def main() -> None:
             TITLE: [MessageHandler(Filters.text & ~Filters.command, parse_title)],
             ID: [MessageHandler(Filters.text & ~Filters.command, parse_id)],
             MANUAL_EMOJI: [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
+            ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        run_async=True
+        run_async=True,
+        conversation_timeout=86400
     )
     # 派遣します！
     dispatcher.add_handler(conv_import_line_sticker)
