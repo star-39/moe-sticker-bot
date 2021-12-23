@@ -158,8 +158,7 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                                     f"{sticker_dir}{image_id}.webp"])
         # normal line stickers
         else:
-            zip_file_path = os.path.join(
-                "line_sticker", ctx.user_data['line_sticker_id'] + ".zip")
+            zip_file_path = os.path.join(sticker_dir, ctx.user_data['line_sticker_id'] + ".zip")
             subprocess.run(["curl", "-Lo", zip_file_path,
                             ctx.user_data['line_sticker_download_url']])
             subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", sticker_dir])
