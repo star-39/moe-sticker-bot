@@ -36,7 +36,7 @@ from notifications import *
 import shutil
 import glob
 
-BOT_VERSION = "2.1 RC-1"
+BOT_VERSION = "2.2 RC-1"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = BOT_NAME + "_data"
@@ -69,11 +69,12 @@ def retry_do(func) -> Any:
 
 # Clean temparary user data after each conversasion.
 # ESSENTIAL if using ram disk for DATA_DIR.
+
+
 def clean_userdata(update: Update):
     userdata_dir = os.path.join(DATA_DIR, update.effective_user.id)
     if os.path.exists(userdata_dir):
         shutil.rmtree(userdata_dir, ignore_errors=True)
-
 
 
 def do_auto_create_sticker_set(update, ctx):
@@ -83,10 +84,10 @@ def do_auto_create_sticker_set(update, ctx):
     # Create a new sticker set using the first image.
     try:
         retry_do(ctx.bot.create_new_sticker_set(user_id=update.message.from_user.id,
-                                       name=ctx.user_data['telegram_sticker_id'],
-                                       title=ctx.user_data['telegram_sticker_title'],
-                                       emojis=ctx.user_data['telegram_sticker_emoji'],
-                                       png_sticker=open(img_files_path[0], 'rb')))
+                                                name=ctx.user_data['telegram_sticker_id'],
+                                                title=ctx.user_data['telegram_sticker_title'],
+                                                emojis=ctx.user_data['telegram_sticker_emoji'],
+                                                png_sticker=open(img_files_path[0], 'rb')))
     except Exception as e:
         print_fatal_error(update, traceback.format_exc())
         return
@@ -100,9 +101,9 @@ def do_auto_create_sticker_set(update, ctx):
         print_progress(message_progress, index + 1, len(img_files_path))
         try:
             retry_do(ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                    name=ctx.user_data['telegram_sticker_id'],
-                                    emojis=ctx.user_data['telegram_sticker_emoji'],
-                                    png_sticker=open(img_file_path, 'rb')))
+                                                name=ctx.user_data['telegram_sticker_id'],
+                                                emojis=ctx.user_data['telegram_sticker_emoji'],
+                                                png_sticker=open(img_file_path, 'rb')))
         except:
             print_fatal_error(update, traceback.format_exc())
             return
@@ -117,7 +118,8 @@ def do_get_animated_line_sticker(update, ctx):
     print_import_starting(update, ctx)
     for gif_file in prepare_sticker_files(update, ctx, want_animated=True):
         try:
-            retry_do(ctx.bot.send_animation(chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
+            retry_do(ctx.bot.send_animation(
+                chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
         except:
             print_fatal_error(update, traceback.format_exc())
     print_command_done(update, ctx)
@@ -135,7 +137,8 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                                 "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
     # line stickers
     else:
-        sticker_dir = os.path.join(DATA_DIR, update.effective_user.id, ctx.user_data['line_sticker_id'])
+        sticker_dir = os.path.join(
+            DATA_DIR, update.effective_user.id, ctx.user_data['line_sticker_id'])
         os.makedirs(sticker_dir, exist_ok=True)
         # Special line "message" stickers
         if ctx.user_data['line_sticker_type'] == "sticker_message":
@@ -153,7 +156,7 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                     subprocess.run(
                         ["curl", "-Lo", f"{sticker_dir}{image_id}.overlay.png", overlay_image])
                     subprocess.run(["convert", f"{sticker_dir}{image_id}.base.png", f"{sticker_dir}{image_id}.overlay.png",
-                                "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
+                                    "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
                                     "-define", "webp:lossless=true",
                                     f"{sticker_dir}{image_id}.webp"])
         # normal line stickers
@@ -205,10 +208,10 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
     if ctx.user_data['manual_emoji_index'] == 0:
         try:
             retry_do(ctx.bot.create_new_sticker_set(user_id=update.message.from_user.id,
-                                           name=ctx.user_data['telegram_sticker_id'],
-                                           title=ctx.user_data['telegram_sticker_title'],
-                                           emojis=em,
-                                           png_sticker=open(ctx.user_data['img_files_path'][0], 'rb')))
+                                                    name=ctx.user_data['telegram_sticker_id'],
+                                                    title=ctx.user_data['telegram_sticker_title'],
+                                                    emojis=em,
+                                                    png_sticker=open(ctx.user_data['img_files_path'][0], 'rb')))
         except Exception as e:
             clean_userdata(update)
             print_sticker_done(update, ctx)
@@ -216,11 +219,11 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
     else:
         try:
             retry_do(ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                        name=ctx.user_data['telegram_sticker_id'],
-                                        emojis=em,
-                                        png_sticker=open(
-                                            ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
-                                        )))
+                                                name=ctx.user_data['telegram_sticker_id'],
+                                                emojis=em,
+                                                png_sticker=open(
+                                                    ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
+                                                )))
         except:
             clean_userdata(update)
             print_sticker_done(update, ctx)
@@ -462,8 +465,10 @@ def command_alsi(update: Update, ctx: CallbackContext) -> int:
 # GET_TG_STICKER
 def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     sticker_set = ctx.bot.get_sticker_set(name=update.message.sticker.set_name)
-    print_preparing_tg_sticker(update, sticker_set.title, sticker_set.name, str(len(sticker_set.stickers)))
-    sticker_dir = os.path.join(DATA_DIR, update.effective_user.id, sticker_set.name)
+    print_preparing_tg_sticker(
+        update, sticker_set.title, sticker_set.name, str(len(sticker_set.stickers)))
+    sticker_dir = os.path.join(
+        DATA_DIR, update.effective_user.id, sticker_set.name)
     os.makedirs(sticker_dir, exist_ok=True)
     for index, sticker in enumerate(sticker_set.stickers):
         try:
@@ -515,7 +520,8 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
 # STICKER_ARCHIVE
 def parse_sticker_archive(update: Update, ctx: CallbackContext) -> int:
     archive_hash = secrets.token_hex(nbytes=4)
-    archive_dir = os.path.join(DATA_DIR, update.effective_user.id, archive_hash)
+    archive_dir = os.path.join(
+        DATA_DIR, update.effective_user.id, archive_hash)
     os.makedirs(archive_dir, exist_ok=True)
     # libarchive is smart enough to recognize actual archive format.
     archive_file_path = os.path.join(archive_dir, archive_hash + ".archive")
@@ -529,6 +535,7 @@ def parse_sticker_archive(update: Update, ctx: CallbackContext) -> int:
     ctx.user_data['tg_sticker_archive'] = archive_file_path
     print_ask_emoji(update)
     return EMOJI
+
 
 def command_download_telegram_sticker(update: Update, ctx: CallbackContext):
     initialize_user_data(update, ctx)
