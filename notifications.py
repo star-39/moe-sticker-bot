@@ -45,7 +45,7 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
   創建新的Telegram的貼圖包.
   Telegramステッカーセット新規作成
 </code>
-<b>//faq  /about</b><code>
+<b>/faq  /about</b><code>
    常見問題/關於. よくある質問/について
 </code>
 <b>/cancel</b><code>

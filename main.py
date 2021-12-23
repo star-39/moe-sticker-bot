@@ -69,7 +69,7 @@ def retry_do(func) -> Any:
 
 # Clean temparary user data after each conversasion.
 def clean_userdata(update: Update):
-    userdata_dir = os.path.join(DATA_DIR, update.effective_user.id)
+    userdata_dir = os.path.join(DATA_DIR, str(update.effective_user.id))
     if os.path.exists(userdata_dir):
         shutil.rmtree(userdata_dir, ignore_errors=True)
 
@@ -133,9 +133,9 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                 subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                 "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
     # line stickers
-    else:
+    else: 
         sticker_dir = os.path.join(
-            DATA_DIR, update.effective_user.id, ctx.user_data['line_sticker_id'])
+            DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
         os.makedirs(sticker_dir, exist_ok=True)
         # Special line "message" stickers
         if ctx.user_data['line_sticker_type'] == "sticker_message":
@@ -465,7 +465,7 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     print_preparing_tg_sticker(
         update, sticker_set.title, sticker_set.name, str(len(sticker_set.stickers)))
     sticker_dir = os.path.join(
-        DATA_DIR, update.effective_user.id, sticker_set.name)
+        DATA_DIR, str(update.effective_user.id), sticker_set.name)
     os.makedirs(sticker_dir, exist_ok=True)
     for index, sticker in enumerate(sticker_set.stickers):
         try:
@@ -518,7 +518,7 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
 def parse_sticker_archive(update: Update, ctx: CallbackContext) -> int:
     archive_hash = secrets.token_hex(nbytes=4)
     archive_dir = os.path.join(
-        DATA_DIR, update.effective_user.id, archive_hash)
+        DATA_DIR, str(update.effective_user.id), archive_hash)
     os.makedirs(archive_dir, exist_ok=True)
     # libarchive is smart enough to recognize actual archive format.
     archive_file_path = os.path.join(archive_dir, archive_hash + ".archive")
