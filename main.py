@@ -68,9 +68,6 @@ def retry_do(func) -> Any:
             break
 
 # Clean temparary user data after each conversasion.
-# ESSENTIAL if using ram disk for DATA_DIR.
-
-
 def clean_userdata(update: Update):
     userdata_dir = os.path.join(DATA_DIR, update.effective_user.id)
     if os.path.exists(userdata_dir):
