@@ -311,3 +311,28 @@ def print_timeout_message(update):
                               "長い間操作がないためタイムアウトしました、もう一度やり直してください。\n\n"
                               "/start",
                               disable_notification=True)
+
+
+def print_preparing_tg_sticker(update, title, name, amount):
+    update.message.reply_text("This might take some time, please wait...\n"
+                            "此項作業可能需時較長, 請稍等...\n"""
+                            "少々お待ちください...\n"
+                            "<code>\n"
+                            f"Title: {title}\n"
+                            f"ID: {name}\n"
+                            f"Amount: {amount}\n"
+                            "</code>",
+                            parse_mode="HTML")
+
+
+def print_wrong_LINE_STORE_URL(update, err_msg):
+    update.message.reply_text('Make sure you sent a correct LINE Store link and again please.\n'
+                            '請確認傳送的是正確的LINE商店URL連結後再試一次.\n'
+                            '正しいLINEスタンプストアのリンクを送信してください\n\n' + err_msg)
+
+
+def print_command_canceled(update):
+    update.message.reply_text("Command terminated.\n"
+                              "已中斷指令.\n"
+                              "コマンドは中止されました")
+
