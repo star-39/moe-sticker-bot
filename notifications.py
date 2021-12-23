@@ -23,7 +23,7 @@ def print_start_message(update: Update):
         """
 Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 你好! 歡迎使用萌萌貼圖BOT, 請從下方選擇指令:
-こんにちは！　萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
+こんにちは！萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
 
 <b>/import_line_sticker</b><code>
   從LINE STORE將貼圖包匯入至Telegram
@@ -45,8 +45,8 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
   創建新的Telegram的貼圖包.
   Telegramステッカーセット新規作成
 </code>
-<b>/help  /faq</b><code>
-   幫助訊息／常見問題. ヘルプ／よくある質問
+<b>//faq  /about</b><code>
+   常見問題/關於. よくある質問/について
 </code>
 <b>/cancel</b><code>
   Cancel conversation. 中斷指令. キャンセル 
@@ -54,7 +54,7 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 """, parse_mode="HTML")
 
 
-def print_help_message(update: Update, BOT_NAME, BOT_VERSION):
+def print_about_message(update: Update, BOT_NAME, BOT_VERSION):
     update.message.reply_text(
         f"""
 @{BOT_NAME} by @plow283
@@ -69,9 +69,9 @@ PRIVACY NOTICE:
 本軟體授權於通用公共許可證(GPL)v3, 保留所有權利.
 私隱聲明: 本軟體不會採集或存儲任何用戶數據.
 </code><b>
-Please send /start to start using!
-請傳送 /start 來開始!
-始めるには　/start　を入力してください！
+Please send /start to start using
+請傳送 /start 來開始
+始めるには /start を入力してください
 </b>
 Advanced commands:
 進階指令:<code>
@@ -86,24 +86,35 @@ def print_faq_message(update: Update):
     update.message.reply_text(
         f"""
 <b>FAQ:</b>
-<b>=>Q: The generated sticker set ID has the bot's name as suffix! 
-     創建的貼圖包ID末尾有這個bot的名字!
-     出来立てのステッカーセットのIDの最後にBOTの名前がはいてる！</b>
-=>A: This is compulsory by Telegram, ID of sticker set created by a bot must has it's name as suffix.
-     這是Telegram的強制要求, BOT創建的貼圖包ID末尾必須要有BOT的名字.
-     これはTelegramからのおきてです。BOTで生成されたステッカーセットのIDの最後に必ずBOTの名前が入っています。
-   
-<b>=>Q: The sticker set title is in English when <code>auto</code> is used during setting title.
-     當設定標題時使用了<code>auto</code>, 結果貼圖包的標題是英文的
-     タイトルを入力している時に<code>auto</code>を入力すると、タイトルは英語になっちゃうん</b>
-=>A: Line sometimes has sticker set in multiple languages, you should paste LINE store link with language suffix.
-     有的LINE貼圖包有多種語言, 請確認輸入LINE商店連結的時候末尾有指定語言.
-     LINEのスタンプは時々多言語対応です、リンクを入力するとき、最後に言語コードがあるかどうかを確認してください。
+<b>
+Q:  I not that sure how to use this bot...
+    我不太會用...
+</b>
+A:  Your interaction with this bot is done with "conversation",
+    when you send a command, a "conversation" starts, follow 
+    what the bot says and you will get there.
+    使用此bot的基本概念是"會話", 當您傳送一個指令後, 即進入了"會話",
+    跟隨bot向您傳送的提示消息一步一步操作, 就可以了.
 
-<b>=>Q: No response? 沒有反應? 応答なし？</b>
-=>A: The bot might encountered an error, please try sending /cancel
-     BOT可能遇到了問題, 請嘗試傳送 /cancel
-     問題が発生したかもしれません、 /cancel を送信してください
+<b>
+Q:  The generated sticker set ID has the bot's name as suffix.
+    創建的貼圖包ID末尾有這個bot的名字..
+</b>
+A:  This is forced by Telegram, ID of sticker set created by bot must has it's name as suffix.
+    這是Telegram的強制要求, BOT創建的貼圖包ID末尾必須要有BOT的名字.
+   
+<b>
+Q:  The sticker set title is in English when <code>auto</code> is used during setting title.
+    當設定標題時使用了<code>auto</code>, 結果貼圖包的標題是英文的
+</b>
+A:  The sticker set is multilingual, you should paste LINE store link with language suffix.
+    有的LINE貼圖包有多種語言, 請確認LINE商店連結的末尾有指定語言.
+
+<b>
+Q: No response? 沒有反應?
+</b>
+A:  The bot might encountered an error, please try sending /cancel
+    BOT可能遇到了問題, 請嘗試傳送 /cancel
 """, parse_mode="HTML")
 
 

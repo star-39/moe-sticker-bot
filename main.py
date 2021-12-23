@@ -567,8 +567,8 @@ def handle_sticker_message(update: Update, ctx: CallbackContext):
     print_suggest_download(update)
 
 
-def command_help(update: Update, ctx: CallbackContext):
-    print_help_message(update, BOT_NAME, BOT_VERSION)
+def command_about(update: Update, ctx: CallbackContext):
+    print_about_message(update, BOT_NAME, BOT_VERSION)
 
 
 def command_faq(update: Update, ctx: CallbackContext):
@@ -678,7 +678,8 @@ def main() -> None:
     dispatcher.add_handler(conv_advanced_import)
     dispatcher.add_handler(conv_create_sticker_set)
     dispatcher.add_handler(CommandHandler('start', command_start))
-    dispatcher.add_handler(CommandHandler('help', command_help))
+    dispatcher.add_handler(CommandHandler('help', command_start))
+    dispatcher.add_handler(CommandHandler('about', command_about))
     dispatcher.add_handler(CommandHandler('faq', command_faq))
     dispatcher.add_handler(MessageHandler(
         Filters.text & ~Filters.command, handle_text_message))
