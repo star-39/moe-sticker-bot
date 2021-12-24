@@ -266,18 +266,22 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
         ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
         print_ask_id(update)
         return ID
+        
+    # Auto ID generation.
+    ctx.user_data['telegram_sticker_id'] = f"line_{ctx.user_data['line_sticker_type']}_" \
+        f"{ctx.user_data['line_sticker_id']}_" \
+        f"{secrets.token_hex(nbytes=3)}_by_{BOT_NAME}"
 
     if update.callback_query is None:
         ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
     elif update.callback_query.data == "auto":
-        # Auto ID generation if NOT creating sticker set.
-        ctx.user_data['telegram_sticker_id'] = f"line_{ctx.user_data['line_sticker_type']}_" \
-            f"{ctx.user_data['line_sticker_id']}_" \
-            f"{secrets.token_hex(nbytes=3)}_by_{BOT_NAME}"
-        update.callback_query.answer()
-        edit_inline_kb_auto_selected(update.callback_query)
+        # Auto title has already been set at previous step, do not touch here.
+        pass
     else:
         return TITLE
+
+    update.callback_query.answer()
+    edit_inline_kb_auto_selected(update.callback_query)
 
     if ctx.user_data['manual_emoji'] is True:
         initialize_manual_emoji(update, ctx)
