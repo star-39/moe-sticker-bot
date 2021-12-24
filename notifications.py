@@ -316,7 +316,7 @@ def print_ask_sticker_archive(update):
 
 
 def print_command_done(update, ctx):
-    update.effective_chat.send_message(ctx.user_data['in_command'] + " done! 指令成功完成!")
+    update.effective_chat.send_message(ctx.user_data['in_command'] + "\nCommand complete.\n該指令會話已完成\n\n/start.")
 
 
 def print_in_conv_warning(update, ctx):
