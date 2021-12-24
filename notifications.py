@@ -13,13 +13,21 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.callbackquery import CallbackQuery
 from telegram.ext.callbackcontext import CallbackContext
 import main
 
+inline_kb_ASK_EMOJI=InlineKeyboardMarkup([[InlineKeyboardButton("⭐️Random/隨機", callback_data="random"), InlineKeyboardButton("Manual/手動", callback_data="manual")]])
+inline_kb_AUTO=InlineKeyboardMarkup([[InlineKeyboardButton("Auto/自動", callback_data="auto")]])
+inline_kb_AUTO_SELECTED=InlineKeyboardMarkup([[InlineKeyboardButton("Auto selected/已選自動", callback_data="none")]])
+inline_kb_MANUAL=InlineKeyboardMarkup([[InlineKeyboardButton("Manual/手動", callback_data="manual")]])
+inline_kb_MANUAL_SELECTED=InlineKeyboardMarkup([[InlineKeyboardButton("Manual selected/已選手動", callback_data="none")]])
+inline_kb_RANDOM_SELECTED=InlineKeyboardMarkup([[InlineKeyboardButton("Random selected/已選隨機", callback_data="none")]])
+
 
 def print_start_message(update: Update):
-    update.message.reply_text(
+    update.effective_chat.send_message(
         """
 Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 你好! 歡迎使用萌萌貼圖BOT, 請從下方選擇指令:
@@ -55,7 +63,7 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 
 
 def print_about_message(update: Update, BOT_NAME, BOT_VERSION):
-    update.message.reply_text(
+    update.effective_chat.send_message(
         f"""
 @{BOT_NAME} by @plow283
 https://github.com/star-39/moe-sticker-bot
@@ -83,7 +91,7 @@ BOT_VERSION: {BOT_VERSION}
 
 
 def print_faq_message(update: Update):
-    update.message.reply_text(
+    update.effective_chat.send_message(
         f"""
 <b>FAQ:</b>
 <b>
@@ -120,7 +128,7 @@ A:  The bot might encountered an error, please try sending /cancel
 
 def print_import_starting(update, ctx):
     try:
-        update.message.reply_text("Now starting, please wait...\n"
+        update.effective_chat.send_message("Now starting, please wait...\n"
                                   "正在開始, 請稍後...\n"
                                   "作業がまもなく開始します、少々お時間を...\n\n"
                                   "<code>"
@@ -131,7 +139,7 @@ def print_import_starting(update, ctx):
                                   "</code>",
                                   parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
         if ctx.user_data['line_sticker_type'] == "sticker_message":
-            update.message.reply_text("You are importing LINE Message Stickers which needs more time to complete.\n"
+            update.effective_chat.send_message("You are importing LINE Message Stickers which needs more time to complete.\n"
                                       "您正在匯入LINE訊息貼圖, 這需要更長的等候時間.")
     except:
         pass
@@ -145,7 +153,7 @@ def print_progress(message_progress, current, total, update=None):
     progress_100 = '[====================]'
     try:
         if update is not None:
-            return update.message.reply_text("<b>Current Status 當前進度</b>\n"
+            return update.effective_chat.send_message("<b>Current Status 當前進度</b>\n"
                                              "<code>" + progress_1 + "</code>\n"
                                              "<code>       " +
                                              str(current) + " of " +
@@ -185,24 +193,24 @@ def print_progress(message_progress, current, total, update=None):
 
 def print_sticker_done(update: Update, ctx: CallbackContext):
 
-    update.message.reply_text("The sticker set has been successfully created!\n"
+    update.effective_chat.send_message("The sticker set has been successfully created!\n"
                               "貼圖包已經成功創建!\n"
                               "ステッカーセットの作成が成功しました！\n\n"
                               "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id'])
     if ctx.user_data['line_sticker_type'] == "sticker_animated":
-        update.message.reply_text("It seems the sticker set you imported also has a animated version\n"
+        update.effective_chat.send_message("It seems the sticker set you imported also has a animated version\n"
                                   "You can use /get_animated_line_sticker to have their GIF version\n"
                                   "您匯入的貼圖包還有動態貼圖版本\n"
                                   "可以使用 /get_animated_line_sticker 獲取GIF版動態貼圖\n"
                                   "このスタンプの動くバージョンもございます。\n"
                                   "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
-    ctx.bot.send_sticker(update.message.chat_id, ctx.bot.get_sticker_set(ctx.user_data['telegram_sticker_id']).stickers[0])
-    update.message.reply_text(
+    ctx.bot.send_sticker(update.effective_chat.id, ctx.bot.get_sticker_set(ctx.user_data['telegram_sticker_id']).stickers[0])
+    update.effective_chat.send_message(
         ctx.user_data['in_command'] + " done! 指令成功完成! /start")
 
 
 def print_ask_id(update):
-    update.message.reply_text(
+    update.effective_chat.send_message(
         "Please enter an ID for this sticker set, used for share link.\n"
         "Can contain only english letters, digits and underscores.\n"
         "Must begin with a letter, can't contain consecutive underscores.\n\n"
@@ -211,7 +219,7 @@ def print_ask_id(update):
 
 
 def print_wrong_id_syntax(update):
-    update.message.reply_text(
+    update.effective_chat.send_message(
         "Wrong ID syntax!! Try again. ID格式錯誤!! 請再試一次.\n\n"
         "Can contain only english letters, digits and underscores.\n"
         "Must begin with a letter, can't contain consecutive underscores.\n"
@@ -219,38 +227,45 @@ def print_wrong_id_syntax(update):
 
 
 def print_ask_emoji(update):
-    update.message.reply_text("Please enter emoji representing this sticker set\n"
+    update.effective_chat.send_message("Please send emoji representing this sticker set\n"
                               "請傳送用於表示整個貼圖包的emoji\n"
                               "このスタンプセットにふさわしい絵文字を入力してください\n"
                               "eg. ☕ \n\n"
-                              "If you want to manually assign different emoji for each sticker, send <code>manual</code>\n"
-                              "如果您想要為貼圖包內每個貼圖設定不同的emoji, 請傳送<code>manual</code>\n"
-                              "一つずつ絵文字を付けたいなら、<code>manual</code>を送信してください。",
-                              reply_markup=ReplyKeyboardMarkup(
-                                  [['manual']], one_time_keyboard=True),
-                              parse_mode="HTML")
+                              "To manually assign different emoji for each sticker, press Manual button\n"
+                              "如果想要為每個貼圖分別設定不同的emoji, 請按下Manual按鈕\n"
+                              "一つずつ絵文字を付けたいなら、Manualボタンを押してください",
+                              reply_markup=inline_kb_ASK_EMOJI)
 
 
-def print_ask_title(update, title: str):
+def print_ask_title(update: Update, title: str):
     if title != "":
-        update.message.reply_text(
-            "Please set a title for this sticker set. Send <code>auto</code> to automatically set original title from LINE Store as shown below:\n"
-            "請設定貼圖包的標題, 也就是名字. 傳送<code>auto</code>可以自動設為LINE Store中原版的標題如下:\n"
-            "スタンプのタイトルを入力してください。<code>auto</code>を入力すると、LINE STORE上に表記されているのタイトルが自動的以下の通りに設定されます。" + "\n\n" +
+        update.effective_chat.send_message(
+            "Please set a title for this sticker set. Press Auto button to set original title from LINE Store as shown below:\n"
+            "請設定貼圖包的標題, 也就是名字.按下Auto按鈕可以自動設為LINE Store中原版的標題如下:\n"
+            "スタンプのタイトルを入力してください。Autoボタンを押すと、LINE STORE上に表記されているのタイトルが自動的以下の通りに設定されます。" + "\n\n" +
             "<code>" + title + "</code>",
-            reply_markup=ReplyKeyboardMarkup(
-                [['auto']], one_time_keyboard=True),
+            reply_markup=inline_kb_AUTO,
             parse_mode="HTML")
     else:
-        update.message.reply_text(
+        update.effective_chat.send_message(
             "Please set a title for this sticker set.\n"
             "請設定貼圖包的標題, 也就是名字.\n"
-            "スタンプのタイトルを入力してください。",
-            reply_markup=ReplyKeyboardRemove())
+            "スタンプのタイトルを入力してください。")
+
+def edit_inline_kb_auto_selected(query: CallbackQuery):
+    query.edit_message_reply_markup(inline_kb_AUTO_SELECTED)
+    
+
+def edit_inline_kb_manual_selected(query: CallbackQuery):
+    query.edit_message_reply_markup(inline_kb_MANUAL_SELECTED)
+
+
+def edit_inline_kb_random_selected(query: CallbackQuery):
+    query.edit_message_reply_markup(inline_kb_RANDOM_SELECTED)
 
 
 def print_ask_line_store_link(update):
-    update.message.reply_text("Please enter LINE store URL of the sticker set\n"
+    update.effective_chat.send_message("Please enter LINE store URL of the sticker set\n"
                               "請輸入貼圖包的LINE STORE連結\n"
                               "スタンプのLINE STOREリンクを入力してください\n\n"
                               "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
@@ -258,13 +273,13 @@ def print_ask_line_store_link(update):
 
 
 def print_not_animated_warning(update):
-    update.message.reply_text("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
+    update.effective_chat.send_message("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
                               "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
                               "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
 
 
 def print_fatal_error(update, err_msg):
-    update.message.reply_text("<b>"
+    update.effective_chat.send_message("<b>"
                               "Fatal error! Please try again. /start\n"
                               "發生致命錯誤! 請您從頭再試一次. /start\n"
                               "致命的なエラーが発生しました！もう一度やり直してください /start\n\n"
@@ -273,25 +288,25 @@ def print_fatal_error(update, err_msg):
 
 
 def print_use_start_command(update):
-    update.message.reply_text("Please use /start to see available commands!\n"
+    update.effective_chat.send_message("Please use /start to see available commands!\n"
                               "請先傳送 /start 來看看可用的指令\n"
                               "/start を送信してコマンドで始めましょう")
 
 
 def print_suggest_import(update):
-    update.message.reply_text("You have sent a LINE Store link, guess you want to import LINE sticker to Telegram? Please send /import_line_sticker\n"
+    update.effective_chat.send_message("You have sent a LINE Store link, guess you want to import LINE sticker to Telegram? Please send /import_line_sticker\n"
                               "您傳送了一個LINE商店連結, 是想要把LINE貼圖包匯入至Telegram嗎? 請使用 /import_line_sticker\n"
                               "LINEスタンプをインポートしたいんですか？ /import_line_sticker で始めてください")
 
 
 def print_suggest_download(update):
-    update.message.reply_text("You have sent a sticker, guess you want to download this sticker set? Please send /download_telegram_sticker\n"
+    update.effective_chat.send_message("You have sent a sticker, guess you want to download this sticker set? Please send /download_telegram_sticker\n"
                               "您傳送了一個貼圖, 是想要下載這個Telegram貼圖包嗎? 請使用 /download_telegram_sticker\n"
                               "このステッカーセットを丸ごとダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
 
 
 def print_ask_sticker_archive(update):
-    update.message.reply_text("Please send an archive file containing image files.\n"
+    update.effective_chat.send_message("Please send an archive file containing image files.\n"
                               "The archive could be any archive format, eg. <code>ZIP RAR 7z</code>\n"
                               "Image could be any image format, eg. <code>PNG JPG WEBP HEIC</code>\n\n"
                               "請傳送一個內含貼圖圖片的歸檔檔案\n"
@@ -301,23 +316,23 @@ def print_ask_sticker_archive(update):
 
 
 def print_command_done(update, ctx):
-    update.message.reply_text(ctx.user_data['in_command'] + " done! 指令成功完成!")
+    update.effective_chat.send_message(ctx.user_data['in_command'] + " done! 指令成功完成!")
 
 
 def print_in_conv_warning(update, ctx):
-    update.message.reply_text("You are already in command : " + str(ctx.user_data['in_command']).removeprefix("/") + "\n\n"
+    update.effective_chat.send_message("You are already in command : " + str(ctx.user_data['in_command']).removeprefix("/") + "\n\n"
                               "If you encountered a problem, please send /cancel and start over.\n"
                               "如果您遇到了問題, 請傳送 /cancel 來試試重新開始.")
 
 
 def print_ask_telegram_sticker(update):
-    update.message.reply_text("Please send a sticker.\n"
+    update.effective_chat.send_message("Please send a sticker.\n"
                               "請傳送一張Telegram貼圖.\n"
                               "ステッカーを一つ送信してください。")
 
 
 def print_timeout_message(update):
-    update.message.reply_text("Timeout has been reached due to long time inactivity. Please start over.\n"
+    update.effective_chat.send_message("Timeout has been reached due to long time inactivity. Please start over.\n"
                               "指令因為長時無操作而超時, 請重新開始.\n"
                               "長い間操作がないためタイムアウトしました、もう一度やり直してください。\n\n"
                               "/start",
@@ -325,7 +340,7 @@ def print_timeout_message(update):
 
 
 def print_preparing_tg_sticker(update, title, name, amount):
-    update.message.reply_text("This might take some time, please wait...\n"
+    update.effective_chat.send_message("This might take some time, please wait...\n"
                             "此項作業可能需時較長, 請稍等...\n"""
                             "少々お待ちください...\n"
                             "<code>\n"
@@ -337,13 +352,13 @@ def print_preparing_tg_sticker(update, title, name, amount):
 
 
 def print_wrong_LINE_STORE_URL(update, err_msg):
-    update.message.reply_text('Make sure you sent a correct LINE Store link and again please.\n'
+    update.effective_chat.send_message('Make sure you sent a correct LINE Store link and again please.\n'
                             '請確認傳送的是正確的LINE商店URL連結後再試一次.\n'
                             '正しいLINEスタンプストアのリンクを送信してください\n\n' + err_msg)
 
 
 def print_command_canceled(update):
-    update.message.reply_text("Command terminated.\n"
+    update.effective_chat.send_message("Command terminated.\n"
                               "已中斷指令.\n"
                               "コマンドは中止されました")
 

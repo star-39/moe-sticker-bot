@@ -17,9 +17,10 @@ import time
 # import logging
 from typing import Any
 from urllib.parse import urlparse
+# from telegram.callbackquery import CallbackQuery
 import telegram.error
-from telegram import Update, Bot, Update
-from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters
+from telegram import Update, Bot, Update, message
+from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
 from bs4 import BeautifulSoup
 import emoji
 import requests
@@ -74,17 +75,17 @@ def clean_userdata(update: Update):
         shutil.rmtree(userdata_dir, ignore_errors=True)
 
 
-def do_auto_create_sticker_set(update, ctx):
+def do_auto_create_sticker_set(update: Update, ctx):
     print_import_starting(update, ctx)
 
     img_files_path = prepare_sticker_files(update, ctx, False)
     # Create a new sticker set using the first image.
     try:
-        retry_do(ctx.bot.create_new_sticker_set(user_id=update.message.from_user.id,
-                                                name=ctx.user_data['telegram_sticker_id'],
-                                                title=ctx.user_data['telegram_sticker_title'],
-                                                emojis=ctx.user_data['telegram_sticker_emoji'],
-                                                png_sticker=open(img_files_path[0], 'rb')))
+        retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+                                                        name=ctx.user_data['telegram_sticker_id'],
+                                                        title=ctx.user_data['telegram_sticker_title'],
+                                                        emojis=ctx.user_data['telegram_sticker_emoji'],
+                                                        png_sticker=open(img_files_path[0], 'rb')))
     except Exception as e:
         print_fatal_error(update, traceback.format_exc())
         return
@@ -97,10 +98,10 @@ def do_auto_create_sticker_set(update, ctx):
             continue
         print_progress(message_progress, index + 1, len(img_files_path))
         try:
-            retry_do(ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                                name=ctx.user_data['telegram_sticker_id'],
-                                                emojis=ctx.user_data['telegram_sticker_emoji'],
-                                                png_sticker=open(img_file_path, 'rb')))
+            retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+                                                        name=ctx.user_data['telegram_sticker_id'],
+                                                        emojis=ctx.user_data['telegram_sticker_emoji'],
+                                                        png_sticker=open(img_file_path, 'rb')))
         except:
             print_fatal_error(update, traceback.format_exc())
             return
@@ -115,7 +116,7 @@ def do_get_animated_line_sticker(update, ctx):
     print_import_starting(update, ctx)
     for gif_file in prepare_sticker_files(update, ctx, want_animated=True):
         try:
-            retry_do(ctx.bot.send_animation(
+            retry_do(lambda: ctx.bot.send_animation(
                 chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
         except:
             print_fatal_error(update, traceback.format_exc())
@@ -133,7 +134,7 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                 subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                 "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
     # line stickers
-    else: 
+    else:
         sticker_dir = os.path.join(
             DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
         os.makedirs(sticker_dir, exist_ok=True)
@@ -158,7 +159,8 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                                     f"{sticker_dir}{image_id}.webp"])
         # normal line stickers
         else:
-            zip_file_path = os.path.join(sticker_dir, ctx.user_data['line_sticker_id'] + ".zip")
+            zip_file_path = os.path.join(
+                sticker_dir, ctx.user_data['line_sticker_id'] + ".zip")
             subprocess.run(["curl", "-Lo", zip_file_path,
                             ctx.user_data['line_sticker_download_url']])
             subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", sticker_dir])
@@ -203,23 +205,23 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
     # First sticker to create new set.
     if ctx.user_data['manual_emoji_index'] == 0:
         try:
-            retry_do(ctx.bot.create_new_sticker_set(user_id=update.message.from_user.id,
-                                                    name=ctx.user_data['telegram_sticker_id'],
-                                                    title=ctx.user_data['telegram_sticker_title'],
-                                                    emojis=em,
-                                                    png_sticker=open(ctx.user_data['img_files_path'][0], 'rb')))
+            retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+                                                            name=ctx.user_data['telegram_sticker_id'],
+                                                            title=ctx.user_data['telegram_sticker_title'],
+                                                            emojis=em,
+                                                            png_sticker=open(ctx.user_data['img_files_path'][0], 'rb')))
         except Exception as e:
             clean_userdata(update)
             print_sticker_done(update, ctx)
             return ConversationHandler.END
     else:
         try:
-            retry_do(ctx.bot.add_sticker_to_set(user_id=update.message.from_user.id,
-                                                name=ctx.user_data['telegram_sticker_id'],
-                                                emojis=em,
-                                                png_sticker=open(
-                                                    ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
-                                                )))
+            retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+                                                        name=ctx.user_data['telegram_sticker_id'],
+                                                        emojis=em,
+                                                        png_sticker=open(
+                                                            ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
+                                                        )))
         except:
             clean_userdata(update)
             print_sticker_done(update, ctx)
@@ -265,17 +267,22 @@ def parse_id(update: Update, ctx: CallbackContext) -> int:
 # This is the final conversaion step, if user wants to assign each sticker a different emoji, return to MANUAL_EMOJI,
 # otherwise, do auto import then END conversation.
 def parse_title(update: Update, ctx: CallbackContext) -> int:
-    if update.message.text.strip().lower() != "auto":
-        ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
-
     if str(ctx.user_data['in_command']).startswith("/create_sticker_set"):
+        ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
         print_ask_id(update)
         return ID
-    else:
+
+    if update.callback_query is None:
+        ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
+    elif update.callback_query.data == "auto":
         # Auto ID generation if NOT creating sticker set.
         ctx.user_data['telegram_sticker_id'] = f"line_{ctx.user_data['line_sticker_type']}_" \
             f"{ctx.user_data['line_sticker_id']}_" \
             f"{secrets.token_hex(nbytes=3)}_by_{BOT_NAME}"
+        update.callback_query.answer()
+        edit_inline_kb_auto_selected(update.callback_query)
+    else:
+        return TITLE
 
     if ctx.user_data['manual_emoji'] is True:
         initialize_manual_emoji(update, ctx)
@@ -288,21 +295,29 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
 
 # EMOJI
 def parse_emoji(update: Update, ctx: CallbackContext) -> int:
-    if update.message.text.strip().lower() == "manual":
-        ctx.user_data['manual_emoji'] = True
-    else:
+    if update.callback_query is None:
         emojis = ''.join(e for e in re.findall(
             emoji.get_emoji_regexp(), update.message.text))
         if emojis == '':
             update.message.reply_text("Please send emoji! Try again")
             return EMOJI
         ctx.user_data['telegram_sticker_emoji'] = emojis
+    elif update.callback_query.data == "manual":
+        ctx.user_data['manual_emoji'] = True
+        update.callback_query.answer()
+        edit_inline_kb_manual_selected(update.callback_query)
+    elif update.callback_query.data == "random":
+        ctx.user_data['telegram_sticker_emoji'] = "⭐️"
+        update.callback_query.answer()
+        edit_inline_kb_random_selected(update.callback_query)
+    else: 
+        return EMOJI
+
     # Generate auto title if NOT creating sticker set.
     if not str(ctx.user_data['in_command']).startswith("/create_sticker_set"):
         ctx.user_data['telegram_sticker_title'] = BeautifulSoup(ctx.user_data['line_store_webpage'].text, 'html.parser')\
             .find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
             f" @{BOT_NAME}"
-
     print_ask_title(update, ctx.user_data['telegram_sticker_title'])
     return TITLE
 
@@ -310,16 +325,9 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
 # LINE_STICKER_INFO
 def parse_line_url(update: Update, ctx: CallbackContext) -> int:
     try:
-        message_url = re.findall(r'\b(?:https?):[\w/#~:.?+=&%@!\-.:?\\-]+?(?=[.:?\-]*(?:[^\w/#~:.?+=&%@!\-.:?\-]|$))',
-                                 update.message.text)[0]
-        ctx.user_data['line_store_webpage'] = requests.get(message_url)
-        ctx.user_data['line_sticker_url'], \
-            ctx.user_data['line_sticker_type'], \
-            ctx.user_data['line_sticker_id'], \
-            ctx.user_data['line_sticker_download_url'] = get_line_sticker_detail(
-                ctx.user_data['line_store_webpage'])
+        get_line_sticker_detail(update.message.text, ctx)
     except Exception as e:
-        print_wrong_LINE_STORE_URL(update, str(e))
+        print_wrong_LINE_STORE_URL(update, str(e))  
         return LINE_STICKER_INFO
     if str(ctx.user_data['in_command']).startswith("/import_line_sticker"):
         print_ask_emoji(update)
@@ -335,7 +343,11 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         pass
 
 
-def get_line_sticker_detail(webpage):
+def get_line_sticker_detail(message, ctx: CallbackContext):
+    message_url = re.findall(r'\b(?:https?):[\w/#~:.?+=&%@!\-.:?\\-]+?(?=[.:?\-]*(?:[^\w/#~:.?+=&%@!\-.:?\-]|$))',
+                                 message)[0]
+    webpage = requests.get(message_url)
+    ctx.user_data['line_store_webpage'] = webpage
     if not webpage.url.startswith("https://store.line.me"):
         raise Exception("Not a LINE Store link! 不是LINE商店連結!")
     json_details = json.loads(BeautifulSoup(
@@ -363,11 +375,26 @@ def get_line_sticker_detail(webpage):
     else:
         raise Exception("Not a supported sticker type!\nLink is: " + url)
 
-    return url, t, i, u
+    ctx.user_data['line_sticker_url'] = url
+    ctx.user_data['line_sticker_type'] = t
+    ctx.user_data['line_sticker_id'] = i
+    ctx.user_data['line_sticker_download_url'] = u
 
 
 def command_import_line_sticker(update: Update, ctx: CallbackContext):
     initialize_user_data(update, ctx)
+    if 'last_user_message_timestamp' in ctx.user_data and int(time.time()) - ctx.user_data['last_user_message_timestamp'] < 60:
+        if ctx.user_data['user_sent_line_link'] is True:
+            last_user_message = ctx.user_data['last_user_message']
+            ctx.user_data['user_sent_line_link'] = False
+            ctx.user_data['last_user_message'] = ''
+            try:
+                get_line_sticker_detail(last_user_message, ctx)
+            except Exception as e:
+                print_wrong_LINE_STORE_URL(update, str(e))  
+                return LINE_STICKER_INFO
+            print_ask_emoji(update)
+            return EMOJI
     print_ask_line_store_link(update)
     return LINE_STICKER_INFO
 
@@ -399,62 +426,53 @@ def initialize_user_data(update: Update, ctx):
 
 
 def command_alsi(update: Update, ctx: CallbackContext) -> int:
-    if update.message.text.startswith("alsi"):
-        alsi_parser = argparse.ArgumentParser(
-            prog="alsi", exit_on_error=False, add_help=False,
-            formatter_class=argparse.RawTextHelpFormatter,
-            description="Advanced Line Sticker Import - command line tool to import LINE sticker.\n進階LINE貼圖匯入程式",
-            epilog='Example usage:\n'
-            '  alsi -id=example_id_1 -title="Example Title" -link=https://store.line.me/stickershop/product/8898\n\n'
-            'Note:\n  Argument containing white space must be closed by quotes.\n'
-            '  ID must contain alphabet, number and underscore only.')
-        alsi_parser.add_argument(
-            '-emoji', help="Emoji to assign to whole sticker set, ignore this option to assign manually\n"
-            "指定給整個貼圖包的Emoji, 忽略這個選項來手動指定貼圖的emoji", required=False)
-        alsi_parser.add_argument(
-            '-id', help="Telegram sticker name(ID), used for share link\nTelegram貼圖包ID, 用於分享連結", required=True)
-        alsi_parser.add_argument(
-            '-title', help="Telegram sticker set title\nTelegram貼圖包的標題", required=True)
-        alsi_parser.add_argument(
-            '-link', help="LINE Store link of LINE sticker pack\nLINE商店貼圖包連結", required=True)
-        try:
-            alsi_args = alsi_parser.parse_args(
-                shlex.split(update.message.text)[1:])
-        except:
-            update.message.reply_text(
-                "Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + "</code>", parse_mode="HTML")
-            return ConversationHandler.END
-        # initialise
-        initialize_user_data(update, ctx)
-        # parse link
-        try:
-            ctx.user_data['line_store_webpage'] = requests.get(alsi_args.link)
-            ctx.user_data['line_sticker_url'], \
-                ctx.user_data['line_sticker_type'], \
-                ctx.user_data['line_sticker_id'], \
-                ctx.user_data['line_sticker_download_url'] = get_line_sticker_detail(
-                    ctx.user_data['line_store_webpage'])
-        except:
-            update.message.reply_text("Wrong link!!")
-            return ConversationHandler.END
-        # add id and title
-        if not re.match('^\w+$', alsi_args.id):
-            update.message.reply_text("Wrong ID!!")
-            return ConversationHandler.END
-        ctx.user_data['telegram_sticker_id'] = alsi_args.id + \
-            "_by_" + BOT_NAME
-        ctx.user_data['telegram_sticker_title'] = alsi_args.title
+    # if update.message.text.startswith("alsi"):
+    alsi_parser = argparse.ArgumentParser(
+        prog="alsi", exit_on_error=False, add_help=False,
+        formatter_class=argparse.RawTextHelpFormatter,
+        description="Advanced Line Sticker Import - command line tool to import LINE sticker.\n進階LINE貼圖匯入程式",
+        epilog='Example usage:\n'
+        '  alsi -id=example_id_1 -title="Example Title" -link=https://store.line.me/stickershop/product/8898\n\n'
+        'Note:\n  Argument containing white space must be closed by quotes.\n'
+        '  ID must contain alphabet, number and underscore only.')
+    alsi_parser.add_argument(
+        '-emoji', help="Emoji to assign to whole sticker set, ignore this option to assign manually\n"
+        "指定給整個貼圖包的Emoji, 忽略這個選項來手動指定貼圖的emoji", required=False)
+    alsi_parser.add_argument(
+        '-id', help="Telegram sticker name(ID), used for share link\nTelegram貼圖包ID, 用於分享連結", required=True)
+    alsi_parser.add_argument(
+        '-title', help="Telegram sticker set title\nTelegram貼圖包的標題", required=True)
+    alsi_parser.add_argument(
+        '-link', help="LINE Store link of LINE sticker pack\nLINE商店貼圖包連結", required=True)
+    try:
+        alsi_args = alsi_parser.parse_args(
+            shlex.split(update.message.text)[1:])
+    except:
+        update.message.reply_text(
+            "Wrong syntax!!\n" + "<code>" + alsi_parser.format_help() + "</code>", parse_mode="HTML")
+        return ConversationHandler.END
+    # initialise
+    initialize_user_data(update, ctx)
+    # parse link
+    try:
+        get_line_sticker_detail(update.message.text, ctx)
+    except:
+        update.message.reply_text("Wrong link!!")
+        return ConversationHandler.END
+    # add id and title
+    if not re.match('^\w+$', alsi_args.id):
+        update.message.reply_text("Wrong ID!!")
+        return ConversationHandler.END
+    ctx.user_data['telegram_sticker_id'] = alsi_args.id + \
+        "_by_" + BOT_NAME
+    ctx.user_data['telegram_sticker_title'] = alsi_args.title
 
-        if alsi_args.emoji is None:
-            initialize_manual_emoji(update, ctx)
-            return MANUAL_EMOJI
-        else:
-            ctx.user_data['telegram_sticker_emoji'] = alsi_args.emoji
-            do_auto_create_sticker_set(update, ctx)
-            return ConversationHandler.END
-
+    if alsi_args.emoji is None:
+        initialize_manual_emoji(update, ctx)
+        return MANUAL_EMOJI
     else:
-        update.message.reply_text("command not found.")
+        ctx.user_data['telegram_sticker_emoji'] = alsi_args.emoji
+        do_auto_create_sticker_set(update, ctx)
         return ConversationHandler.END
 
 
@@ -485,14 +503,14 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
         fs = glob.glob(os.path.join(sticker_dir, "*.tgs"))
         for f in fs:
             subprocess.run(["lottie_convert.py", f, f + ".webp"])
-        subprocess.run(["bsdtar", "-acvf", tgs_zip] + fs)
+        subprocess.run(["bsdtar", "--strip-components", "2", "-acvf", tgs_zip] + fs)
     else:
         subprocess.run(["mogrify", "-format", "png"] +
                        glob.glob(os.path.join(sticker_dir, "*.webp")))
-        subprocess.run(["bsdtar", "-acvf", png_zip] +
+        subprocess.run(["bsdtar", "--strip-components", "2", "-acvf", png_zip] +
                        glob.glob(os.path.join(sticker_dir, "*.png")))
 
-    subprocess.run(["bsdtar", "-acvf", webp_zip] +
+    subprocess.run(["bsdtar", "--strip-components", "2", "-acvf", webp_zip] +
                    glob.glob(os.path.join(sticker_dir, "*.webp")))
 
     try:
@@ -554,7 +572,10 @@ def command_cancel(update: Update, ctx: CallbackContext) -> int:
 
 def handle_text_message(update: Update, ctx: CallbackContext):
     print_use_start_command(update)
+    ctx.user_data['last_user_message'] = update.message.text
+    ctx.user_data['last_user_message_timestamp'] = int(time.time())
     if update.message.text.startswith("https://store.line.me") or update.message.text.startswith("https://line.me"):
+        ctx.user_data['user_sent_line_link'] = True
         print_suggest_import(update)
 
 
@@ -589,7 +610,7 @@ def main() -> None:
 
     conv_advanced_import = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex(
-            '^alsi*') & ~Filters.command, command_alsi)],
+            '^alsi*') & ~Filters.command, command_alsi), CommandHandler("alsi",command_alsi)],
         states={
             MANUAL_EMOJI: [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
             ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
@@ -604,8 +625,8 @@ def main() -> None:
             'import_line_sticker', command_import_line_sticker)],
         states={
             LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
-            EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji)],
-            TITLE: [MessageHandler(Filters.text & ~Filters.command, parse_title)],
+            EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji),CallbackQueryHandler(parse_emoji)],
+            TITLE: [MessageHandler(Filters.text & ~Filters.command, parse_title),CallbackQueryHandler(parse_title)],
             MANUAL_EMOJI: [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
             ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)],
         },
@@ -655,7 +676,7 @@ def main() -> None:
             'create_sticker_set', command_create_sticker_set)],
         states={
             STICKER_ARCHIVE: [MessageHandler(Filters.document, parse_sticker_archive)],
-            EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji)],
+            EMOJI: [MessageHandler(Filters.text & ~Filters.command, parse_emoji),CallbackQueryHandler(parse_emoji)],
             TITLE: [MessageHandler(Filters.text & ~Filters.command, parse_title)],
             ID: [MessageHandler(Filters.text & ~Filters.command, parse_id)],
             MANUAL_EMOJI: [MessageHandler(Filters.text & ~Filters.command, manual_add_emoji)],
