@@ -57,12 +57,12 @@ def retry_do(func) -> Any:
             func()
         except telegram.error.RetryAfter as ra:
             if index == 2:
-                raise e
+                return ra
             time.sleep(int(ra.retry_after))
 
         except Exception as e:
             if index == 2:
-                raise e
+                return e
             # It could probably be a network problem, sleep for a while and try again.
             time.sleep(5)
         else:
@@ -80,14 +80,13 @@ def do_auto_create_sticker_set(update: Update, ctx):
 
     img_files_path = prepare_sticker_files(update, ctx, False)
     # Create a new sticker set using the first image.
-    try:
-        retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+    err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                         name=ctx.user_data['telegram_sticker_id'],
                                                         title=ctx.user_data['telegram_sticker_title'],
                                                         emojis=ctx.user_data['telegram_sticker_emoji'],
                                                         png_sticker=open(img_files_path[0], 'rb')))
-    except Exception as e:
-        print_fatal_error(update, traceback.format_exc())
+    if err is not None:
+        print_fatal_error(update, str(err))
         return
 
     message_progress = print_progress(
@@ -97,13 +96,12 @@ def do_auto_create_sticker_set(update: Update, ctx):
         if index == 0:
             continue
         print_progress(message_progress, index + 1, len(img_files_path))
-        try:
-            retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+        err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                         name=ctx.user_data['telegram_sticker_id'],
                                                         emojis=ctx.user_data['telegram_sticker_emoji'],
                                                         png_sticker=open(img_file_path, 'rb')))
-        except:
-            print_fatal_error(update, traceback.format_exc())
+        if err is not None:
+            print_fatal_error(update, str(err))
             return
 
     print_sticker_done(update, ctx)
@@ -115,11 +113,10 @@ def do_get_animated_line_sticker(update, ctx):
         return ConversationHandler.END
     print_import_starting(update, ctx)
     for gif_file in prepare_sticker_files(update, ctx, want_animated=True):
-        try:
-            retry_do(lambda: ctx.bot.send_animation(
+        err = retry_do(lambda: ctx.bot.send_animation(
                 chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
-        except:
-            print_fatal_error(update, traceback.format_exc())
+        if err is not None:
+            print_fatal_error(update, str(err))
     print_command_done(update, ctx)
 
 
@@ -204,27 +201,25 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
 
     # First sticker to create new set.
     if ctx.user_data['manual_emoji_index'] == 0:
-        try:
-            retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
-                                                            name=ctx.user_data['telegram_sticker_id'],
-                                                            title=ctx.user_data['telegram_sticker_title'],
-                                                            emojis=em,
-                                                            png_sticker=open(ctx.user_data['img_files_path'][0], 'rb')))
-        except Exception as e:
+        err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+                                                        name=ctx.user_data['telegram_sticker_id'],
+                                                        title=ctx.user_data['telegram_sticker_title'],
+                                                        emojis=em,
+                                                        png_sticker=open(ctx.user_data['img_files_path'][0], 'rb')))
+        if err is not None:
             clean_userdata(update)
-            print_sticker_done(update, ctx)
+            print_fatal_error(update, str(err))
             return ConversationHandler.END
     else:
-        try:
-            retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+        err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                         name=ctx.user_data['telegram_sticker_id'],
                                                         emojis=em,
                                                         png_sticker=open(
                                                             ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'
                                                         )))
-        except:
+        if err is not None:
             clean_userdata(update)
-            print_sticker_done(update, ctx)
+            print_fatal_error(update, str(err))
             return ConversationHandler.END
 
         if ctx.user_data['manual_emoji_index'] == len(ctx.user_data['img_files_path']) - 1:
