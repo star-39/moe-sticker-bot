@@ -12,6 +12,7 @@ buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-t
 
 buildah run $c1 -- pip3 install wheel setuptools
 buildah run $c1 -- pip3 install python-telegram-bot emoji requests beautifulsoup4
+buildah run $c1 -- pip3 cache purge
 
 buildah run $c1 -- apt autoremove python3-pip -y
 buildah run $c1 -- apt install python3-setuptools -y
