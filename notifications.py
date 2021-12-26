@@ -25,6 +25,8 @@ inline_kb_MANUAL=InlineKeyboardMarkup([[InlineKeyboardButton("Manual/手動", ca
 inline_kb_MANUAL_SELECTED=InlineKeyboardMarkup([[InlineKeyboardButton("Manual selected/已選手動", callback_data="none")]])
 inline_kb_RANDOM_SELECTED=InlineKeyboardMarkup([[InlineKeyboardButton("Random selected/已選隨機", callback_data="none")]])
 
+reply_kb_DONE=ReplyKeyboardMarkup([['done']], one_time_keyboard=True)
+
 
 def print_start_message(update: Update):
     update.effective_chat.send_message(
@@ -43,15 +45,15 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 </code>
 <b>/get_animated_line_sticker</b><code>
   獲取GIF版LINE STORE動態貼圖
-  LINE STOREから動くスタンプをGIF形式で入手
+  LINE STOREから動くスタンプのGIFを入手
 </code>
 <b>/download_telegram_sticker</b><code>
   下載Telegram的貼圖包.(webp png)
-  Telegramのステッカーセットをダウンロード(webp png)
+  Telegramステッカーセットをダウンロード(webp png)
 </code>
-<b>/create_sticker_set</b><code>
-  創建新的Telegram的貼圖包.
-  Telegramステッカーセット新規作成
+<b>/create_sticker_set  /add_sticker_to_set</b><code>
+  創建新的Telegram的貼圖包或新增貼圖.
+  Telegramステッカーセット新規作成または追加
 </code>
 <b>/faq  /about</b><code>
    常見問題/關於. よくある質問/について
@@ -95,7 +97,7 @@ def print_faq_message(update: Update):
         f"""
 <b>FAQ:</b>
 <b>
-Q:  I not that sure how to use this bot...
+Q:  I'm not that sure how to use this bot...
     我不太會用...
 </b>
 A:  Your interaction with this bot is done with "conversation",
@@ -192,7 +194,6 @@ def print_progress(message_progress, current, total, update=None):
 
 
 def print_sticker_done(update: Update, ctx: CallbackContext):
-
     update.effective_chat.send_message("The sticker set has been successfully created!\n"
                               "貼圖包已經成功創建!\n"
                               "ステッカーセットの作成が成功しました！\n\n"
@@ -205,8 +206,6 @@ def print_sticker_done(update: Update, ctx: CallbackContext):
                                   "このスタンプの動くバージョンもございます。\n"
                                   "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
     ctx.bot.send_sticker(update.effective_chat.id, ctx.bot.get_sticker_set(ctx.user_data['telegram_sticker_id']).stickers[0])
-    update.effective_chat.send_message(
-        ctx.user_data['in_command'] + " done! 指令成功完成! /start")
 
 
 def print_ask_id(update):
@@ -217,6 +216,13 @@ def print_ask_id(update):
         "請給此貼圖包設定一個ID, 用於分享連結.\n"
         "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
 
+def print_ask_sticker_set(update):
+    update.effective_chat.send_message(
+        "Please send the ID of the sticker set that you want to add to.\n"
+        "Or just send a sticker from that set.\n\n"
+        "請傳送您要增添貼圖的貼圖包的ID,\n"
+        "或者傳送貼圖包內任意一張貼圖.")
+
 
 def print_wrong_id_syntax(update):
     update.effective_chat.send_message(
@@ -226,7 +232,7 @@ def print_wrong_id_syntax(update):
         "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
 
 
-def print_ask_emoji(update):
+def print_ask_emoji(update: Update):
     update.effective_chat.send_message("Please send emoji representing this sticker set\n"
                               "請傳送用於表示整個貼圖包的emoji\n"
                               "このスタンプセットにふさわしい絵文字を入力してください\n"
@@ -241,15 +247,15 @@ def print_ask_title(update: Update, title: str):
     if title != "":
         update.effective_chat.send_message(
             "Please set a title for this sticker set. Press Auto button to set original title from LINE Store as shown below:\n"
-            "請設定貼圖包的標題, 也就是名字.按下Auto按鈕可以自動設為LINE Store中原版的標題如下:\n"
-            "スタンプのタイトルを入力してください。Autoボタンを押すと、LINE STORE上に表記されているのタイトルが自動的以下の通りに設定されます。" + "\n\n" +
+            "請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中原版的標題如下:\n"
+            "スタンプのタイトルを入力してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。" + "\n\n" +
             "<code>" + title + "</code>",
             reply_markup=inline_kb_AUTO,
             parse_mode="HTML")
     else:
         update.effective_chat.send_message(
             "Please set a title for this sticker set.\n"
-            "請設定貼圖包的標題, 也就是名字.\n"
+            "請設定貼圖包的標題.\n"
             "スタンプのタイトルを入力してください。")
 
 def edit_inline_kb_auto_selected(query: CallbackQuery):
@@ -305,14 +311,15 @@ def print_suggest_download(update):
                               "このステッカーセットを丸ごとダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
 
 
-def print_ask_sticker_archive(update):
-    update.effective_chat.send_message("Please send an archive file containing image files.\n"
-                              "The archive could be any archive format, eg. <code>ZIP RAR 7z</code>\n"
-                              "Image could be any image format, eg. <code>PNG JPG WEBP HEIC</code>\n\n"
-                              "請傳送一個內含貼圖圖片的歸檔檔案\n"
-                              "檔案可以是任意歸檔格式, 比如 <code>ZIP RAR 7z</code>\n"
-                              "圖片可以是任意圖片格式, 比如 <code>PNG JPG WEBP HEIC</code>\n",
-                              parse_mode="HTML")
+def print_ask_sticker_archive(update: Update):
+    update.effective_chat.send_message("Please send an archive file containing image files\n"
+                              "or just send images(less than 120 images), then send <code>done</code>\n"
+                              "Image and archive can be in any format.\n\n"
+                              "請傳送一個存有圖片檔案的歸檔(压缩包)\n"
+                              "或者直接傳送圖片(照片)(少於120張), 然後傳送<code>done</code>\n"
+                              "圖片和歸檔可以是任意格式.\n",
+                              parse_mode="HTML",
+                              reply_markup=reply_kb_DONE)
 
 
 def print_command_done(update, ctx):
@@ -352,7 +359,7 @@ def print_preparing_tg_sticker(update, title, name, amount):
 
 
 def print_wrong_LINE_STORE_URL(update, err_msg):
-    update.effective_chat.send_message('Make sure you sent a correct LINE Store link and again please.\n'
+    update.effective_chat.send_message('Make sure you sent a correct LINE Store link and try again.\n'
                             '請確認傳送的是正確的LINE商店URL連結後再試一次.\n'
                             '正しいLINEスタンプストアのリンクを送信してください\n\n' + err_msg)
 
@@ -361,4 +368,3 @@ def print_command_canceled(update):
     update.effective_chat.send_message("Command terminated.\n"
                               "已中斷指令.\n"
                               "コマンドは中止されました")
-

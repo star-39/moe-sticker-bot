@@ -1,9 +1,9 @@
 # [@moe_sticker_bot](https://t.me/moe_sticker_bot)
-A Telegram bot doing sticker stuffs, it imports LINE sticker set to Telegram, downloads LINE and Telegram stickers, creates new sticker set. 
+A Telegram bot doing sticker stuffs, it imports LINE sticker set to Telegram, downloads LINE and Telegram stickers, creates and manages Telegram sticker set. 
 
-Telegram用萌萌貼圖BOT, 可以從LINE Store導入貼圖包到Telegram, 可以下載LINE和telegram的貼圖包, 可以創建新的貼圖包.
+Telegram用萌萌貼圖BOT, 可以從LINE Store匯入貼圖包到Telegram, 可以下載LINE和telegram的貼圖包, 可以創建和管理Telegram貼圖包.
 
-Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいスタンプセットを作ったり
+Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
 
 ![](https://user-images.githubusercontent.com/75669297/120078508-deeebc00-c0ea-11eb-8fe1-f0a51dae4267.png)
 
@@ -13,9 +13,8 @@ A pre-built OCI container is available at https://github.com/users/star-39/packa
 
 Simply run:
 ```
-podman run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:latest
+docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:latest
 ```
-Of course, you can use docker as well, just replace `podman` with `docker`.
 
 ### Python Dependencies
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
@@ -70,7 +69,6 @@ sudo New-Item -ItemType symboliclink -path C:\Windows\system32\bsdtar.exe -targe
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
-
 
 ## Known issue
 ### No response?
