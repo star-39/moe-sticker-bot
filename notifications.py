@@ -208,20 +208,21 @@ def print_sticker_done(update: Update, ctx: CallbackContext):
     ctx.bot.send_sticker(update.effective_chat.id, ctx.bot.get_sticker_set(ctx.user_data['telegram_sticker_id']).stickers[0])
 
 
-def print_ask_id(update):
+def print_ask_id(update: Update):
     update.effective_chat.send_message(
         "Please enter an ID for this sticker set, used for share link.\n"
         "Can contain only english letters, digits and underscores.\n"
         "Must begin with a letter, can't contain consecutive underscores.\n\n"
         "請給此貼圖包設定一個ID, 用於分享連結.\n"
-        "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
+        "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.",
+        reply_markup=inline_kb_AUTO)
 
 def print_ask_sticker_set(update):
     update.effective_chat.send_message(
-        "Please send the ID of the sticker set that you want to add to.\n"
-        "Or just send a sticker from that set.\n\n"
-        "請傳送您要增添貼圖的貼圖包的ID,\n"
-        "或者傳送貼圖包內任意一張貼圖.")
+        "Send a sticker from the sticker set that you are adding to,\n"
+        "or send its share link or ID.\n\n"
+        "您想要往哪個貼圖包新增這些貼圖? 請傳送那個貼圖包內任意一張貼圖,\n"
+        "或者是它的分享連結或ID.")
 
 
 def print_wrong_id_syntax(update):
@@ -241,6 +242,21 @@ def print_ask_emoji(update: Update):
                               "如果想要為每個貼圖分別設定不同的emoji, 請按下Manual按鈕\n"
                               "一つずつ絵文字を付けたいなら、Manualボタンを押してください",
                               reply_markup=inline_kb_ASK_EMOJI)
+
+
+def print_ask_emoji_for_sticker_photo(update :Update, ctx: CallbackContext):
+    if ".webp" in ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']]:
+        ctx.bot.send_photo(chat_id=update.effective_chat.id,
+                        caption="Please send emoji(s) representing this sticker\n"
+                        "請傳送代表這個貼圖的emoji(可以多個)\n"
+                        "このスタンプにふさわしい絵文字を送信してください(複数可)\n" +
+                        f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
+                        photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'))
+    else:
+        update.effective_chat.send_sticker(sticker=ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']])
+        update.effective_chat.send_message("Please send emoji(s) representing this sticker\n"
+                       "請傳送代表這個貼圖的emoji(可以多個)\n"
+                       "このスタンプにふさわしい絵文字を送信してください(複数可)\n")
 
 
 def print_ask_title(update: Update, title: str):

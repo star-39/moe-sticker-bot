@@ -217,7 +217,7 @@ def initialize_manual_emoji(update: Update, ctx: CallbackContext):
     ctx.user_data['img_files_path'] = prepare_sticker_files(update, ctx, False)
     # This is the FIRST sticker.
     ctx.user_data['manual_emoji_index'] = 0
-    notify_next(update, ctx)
+    print_ask_emoji_for_sticker_photo(update, ctx)
 
 
 # MANUAL_EMOJI
@@ -256,23 +256,17 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
             return ConversationHandler.END
 
         if ctx.user_data['manual_emoji_index'] == len(ctx.user_data['img_files_path']) - 1:
-            clean_userdata(update, ctx)
             print_sticker_done(update, ctx)
             print_command_done(update, ctx)
+            clean_userdata(update, ctx)
             return ConversationHandler.END
 
     ctx.user_data['manual_emoji_index'] += 1
-    notify_next(update, ctx)
+    print_ask_emoji_for_sticker_photo(update, ctx)
     return MANUAL_EMOJI
 
 
-def notify_next(update, ctx):
-    ctx.bot.send_photo(chat_id=update.effective_chat.id,
-                       caption="Please send emoji(s) representing this sticker\n"
-                       "請傳送代表這個貼圖的emoji(可以多個)\n"
-                       "このスタンプにふさわしい絵文字を送信してください(複数可)\n" +
-                       f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
-                       photo=get_png_sticker(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']]))
+
 
 
 # ID
@@ -604,10 +598,9 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
                                   document=png_zip)
     except Exception as e:
         print_fatal_error(update, traceback.format_exc())
-
-    clean_userdata(update, ctx)
+        
     print_command_done(update, ctx)
-
+    clean_userdata(update, ctx)
     return ConversationHandler.END
 
 
