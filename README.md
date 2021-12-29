@@ -5,7 +5,8 @@ Telegram用萌萌貼圖BOT, 可以從LINE Store匯入貼圖包到Telegram, 可�
 
 Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
 
-![](https://user-images.githubusercontent.com/75669297/120078508-deeebc00-c0ea-11eb-8fe1-f0a51dae4267.png)
+![](https://user-images.githubusercontent.com/75669297/147678436-10bb9169-efad-4da8-acb5-9996edc78364.png)
+
 
 ## Deployment
 ### Deploy with pre-built containers
