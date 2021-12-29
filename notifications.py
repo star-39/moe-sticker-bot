@@ -384,3 +384,12 @@ def print_command_canceled(update):
     update.effective_chat.send_message("Command terminated.\n"
                               "已中斷指令.\n"
                               "コマンドは中止されました")
+
+def print_no_user_sticker_received(update):
+    update.effective_chat.send_message('Please send photos/images/stickers/archive first, then send "done" to continue\n'
+    '請傳送圖片/照片/貼圖/歸檔後, 再傳送"done"來繼續.', reply_markup=reply_kb_DONE)
+
+def print_user_sticker_done(update, ctx):
+    update.effective_chat.send_message(f"Done. {len(ctx.user_data['user_sticker_files'])} stickers received.\n"
+    f"成功收到 {len(ctx.user_data['user_sticker_files'])} 張貼圖",
+    reply_markup=ReplyKeyboardRemove())
