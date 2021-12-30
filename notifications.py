@@ -81,7 +81,7 @@ PRIVACY NOTICE:
 </code><b>
 Please send /start to start using
 請傳送 /start 來開始
-始めるには /start を入力してください
+始めるには /start を送信してください
 </b>
 Advanced commands:
 進階指令:<code>
@@ -236,7 +236,7 @@ def print_wrong_id_syntax(update):
 def print_ask_emoji(update: Update):
     update.effective_chat.send_message("Please send emoji representing this sticker set\n"
                               "請傳送用於表示整個貼圖包的emoji\n"
-                              "このスタンプセットにふさわしい絵文字を入力してください\n"
+                              "このスタンプセットにふさわしい絵文字を送信してください\n"
                               "eg. ☕ \n\n"
                               "To manually assign different emoji for each sticker, press Manual button\n"
                               "如果想要為每個貼圖分別設定不同的emoji, 請按下Manual按鈕\n"
@@ -264,7 +264,7 @@ def print_ask_title(update: Update, title: str):
         update.effective_chat.send_message(
             "Please set a title for this sticker set. Press Auto button to set original title from LINE Store as shown below:\n"
             "請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中原版的標題如下:\n"
-            "スタンプのタイトルを入力してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。" + "\n\n" +
+            "スタンプのタイトルを送信してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。" + "\n\n" +
             "<code>" + title + "</code>",
             reply_markup=inline_kb_AUTO,
             parse_mode="HTML")
@@ -272,7 +272,7 @@ def print_ask_title(update: Update, title: str):
         update.effective_chat.send_message(
             "Please set a title for this sticker set.\n"
             "請設定貼圖包的標題.\n"
-            "スタンプのタイトルを入力してください。")
+            "スタンプのタイトルを送信してください。")
 
 def edit_inline_kb_auto_selected(query: CallbackQuery):
     query.edit_message_reply_markup(inline_kb_AUTO_SELECTED)
@@ -288,8 +288,8 @@ def edit_inline_kb_random_selected(query: CallbackQuery):
 
 def print_ask_line_store_link(update):
     update.effective_chat.send_message("Please enter LINE store URL of the sticker set\n"
-                              "請輸入貼圖包的LINE STORE連結\n"
-                              "スタンプのLINE STOREリンクを入力してください\n\n"
+                              "請傳送貼圖包的LINE STORE連結\n"
+                              "スタンプのLINE STOREリンクを送信してください\n\n"
                               "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
                               parse_mode="HTML")
 
@@ -328,11 +328,11 @@ def print_suggest_download(update):
 
 
 def print_ask_sticker_archive(update: Update):
-    update.effective_chat.send_message("Please send an archive file containing image files\n"
-                              "or just send images(less than 120 images), then send <code>done</code>\n"
+    update.effective_chat.send_message("Please send images/photos/stickers(less than 120 in total),\n"
+                              "or send an archive containing images, then send <code>done</code>\n"
                               "Image and archive can be in any format.\n\n"
-                              "請傳送一個存有圖片檔案的歸檔(压缩包)\n"
-                              "或者直接傳送圖片(照片)(少於120張), 然後傳送<code>done</code>\n"
+                              "請傳送圖片/照片/貼圖(少於120張),\n"
+                              "或者傳送一個存有圖片檔案的歸檔(压缩包), 然後傳送<code>done</code>\n"
                               "圖片和歸檔可以是任意格式.\n",
                               parse_mode="HTML",
                               reply_markup=reply_kb_DONE)
