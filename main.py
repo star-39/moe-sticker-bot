@@ -36,7 +36,7 @@ import shutil
 import glob
 
 
-BOT_VERSION = "3.0 RC-1"
+BOT_VERSION = "3.0 RC-2"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = BOT_NAME + "_data"
