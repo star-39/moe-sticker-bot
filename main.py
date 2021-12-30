@@ -581,14 +581,11 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
                    glob.glob(os.path.join(sticker_dir, "*.webp")))
 
     try:
-        ctx.bot.send_document(chat_id=update.effective_chat.id,
-                              document=webp_zip)
+        update.effective_chat.send_document(open(webp_zip, 'rb'))
         if sticker_set.is_animated:
-            ctx.bot.send_document(chat_id=update.effective_chat.id,
-                                  document=tgs_zip)
+            update.effective_chat.send_document(open(tgs_zip, 'rb'))
         else:
-            ctx.bot.send_document(chat_id=update.effective_chat.id,
-                                  document=png_zip)
+            update.effective_chat.send_document(open(png_zip, 'rb'))
     except Exception as e:
         print_fatal_error(update, traceback.format_exc())
         
