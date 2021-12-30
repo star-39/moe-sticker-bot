@@ -2,7 +2,7 @@
 
 GITHUB_TOKEN=$1
 
-echo "Building moe-sticker-bot for Github Container Registry!"
+buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 c1=$(buildah from debian:11)
 
@@ -27,14 +27,18 @@ buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main
 # Fix python3.8+'s problem.
 buildah config --env COLUMNS=80 $c1
 
-buildah commit $c1 moe-sticker-bot
+buildah commit $c1 moe-sticker-bot:base
+
+buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:base
+
+#################################
+
+c1=$(buildah from moe-sticker-bot:base)
 
 buildah run $c1 -- curl -Lo /moe-sticker-bot.zip https://github.com/star-39/moe-sticker-bot/archive/refs/heads/master.zip
 buildah run $c1 -- bsdtar -xvf /moe-sticker-bot.zip -C /
 
-buildah commit $c1 moe-sticker-bot
-
-buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
+buildah commit $c1 moe-sticker-bot:latest
 
 buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:amd64
 buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:latest
