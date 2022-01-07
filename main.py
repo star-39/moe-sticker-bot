@@ -159,9 +159,9 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
 
     # line stickers
     else:
-        sticker_dir = os.path.join(
+        work_dir = os.path.join(
             DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
-        os.makedirs(sticker_dir, exist_ok=True)
+        os.makedirs(work_dir, exist_ok=True)
         # Special line "message" stickers
         if ctx.user_data['line_sticker_type'] == "sticker_message":
             for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
@@ -174,39 +174,39 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                     image_id = base_image_link_split[base_image_link_split.index(
                         'sticker') + 1]
                     subprocess.run(
-                        ["curl", "-Lo", f"{sticker_dir}{image_id}.base.png", base_image])
+                        ["curl", "-Lo", f"{work_dir}{image_id}.base.png", base_image])
                     subprocess.run(
-                        ["curl", "-Lo", f"{sticker_dir}{image_id}.overlay.png", overlay_image])
-                    subprocess.run(["convert", f"{sticker_dir}{image_id}.base.png", f"{sticker_dir}{image_id}.overlay.png",
+                        ["curl", "-Lo", f"{work_dir}{image_id}.overlay.png", overlay_image])
+                    subprocess.run(["convert", f"{work_dir}{image_id}.base.png", f"{work_dir}{image_id}.overlay.png",
                                     "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
                                     "-define", "webp:lossless=true",
-                                    f"{sticker_dir}{image_id}.webp"])
+                                    f"{work_dir}{image_id}.webp"])
         # normal line stickers
         else:
             zip_file_path = os.path.join(
-                sticker_dir, ctx.user_data['line_sticker_id'] + ".zip")
+                work_dir, ctx.user_data['line_sticker_id'] + ".zip")
             subprocess.run(["curl", "-Lo", zip_file_path,
                             ctx.user_data['line_sticker_download_url']])
-            subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", sticker_dir])
+            subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", work_dir])
             if not want_animated:
                 # Remove garbage
-                for f in glob.glob(os.path.join(sticker_dir, "*key*")) + glob.glob(os.path.join(sticker_dir, "tab*")) + glob.glob(os.path.join(sticker_dir, "productInfo.meta")):
+                for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):
                     os.remove(f)
                 # Resize to fulfill telegram's requirement, AR is automatically retained
                 # Lanczos resizing produces much sharper image.
-                for f in glob.glob(os.path.join(sticker_dir, "*")):
+                for f in glob.glob(os.path.join(work_dir, "*")):
                     subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                     "-format", "webp", "-define", "webp:lossless=true", f])
             else:
-                sticker_dir = os.path.join(sticker_dir, "animation@2x")
+                work_dir = os.path.join(work_dir, "animation@2x")
                 # LINE's apng has fps of 9, however ffmpeg defaults to 25
-                for f in glob.glob(os.path.join(sticker_dir, "*.png")):
+                for f in glob.glob(os.path.join(work_dir, "*.png")):
                     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "warning", "-i", f,
                                     "-lavfi", 'color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1',
                                     "-c:v", "libx264", "-r", "9", "-crf", "26", "-y", f + ".mp4"])
-                return sorted([f for f in glob.glob(os.path.join(sticker_dir, "*.mp4"))])
+                return sorted([f for f in glob.glob(os.path.join(work_dir, "*.mp4"))])
 
-    return sorted([f for f in glob.glob(os.path.join(sticker_dir, "**", "*.webp"), recursive=True)])
+    return sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webp"), recursive=True)])
 
 
 def initialize_manual_emoji(update: Update, ctx: CallbackContext):
