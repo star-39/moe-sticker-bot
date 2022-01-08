@@ -127,8 +127,10 @@ def do_get_animated_line_sticker(update, ctx):
             chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
         if err is not None:
             print_fatal_error(update, str(err))
+            clean_userdata(update, ctx)
             return ConversationHandler.END
     print_command_done(update, ctx)
+    clean_userdata(update, ctx)
 
 
 def prepare_sticker_files(update: Update, ctx, want_animated):
@@ -189,8 +191,15 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
             subprocess.run(["curl", "-Lo", zip_file_path,
                             ctx.user_data['line_sticker_download_url']])
             subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", work_dir])
-            if not want_animated:
-                # Remove garbage
+            if want_animated:
+                work_dir = os.path.join(work_dir, "animation@2x")
+                # LINE's apng has fps of 9, hence delay=100/9
+                for f in glob.glob(os.path.join(work_dir, "*.png")):
+                    subprocess.run(["convert", '-coalesce', '-background', 'white', '-alpha', 'remove', '-delay', '11',
+                                    'apng:' + f, f + '.mp4' ])
+                return sorted([f for f in glob.glob(os.path.join(work_dir, "*.mp4"))])
+            else:
+                # Remove garbages
                 for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):
                     os.remove(f)
                 # Resize to fulfill telegram's requirement, AR is automatically retained
@@ -198,14 +207,6 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                 for f in glob.glob(os.path.join(work_dir, "*")):
                     subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                     "-format", "webp", "-define", "webp:lossless=true", f])
-            else:
-                work_dir = os.path.join(work_dir, "animation@2x")
-                # LINE's apng has fps of 9, however ffmpeg defaults to 25
-                for f in glob.glob(os.path.join(work_dir, "*.png")):
-                    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "warning", "-i", f,
-                                    "-lavfi", 'color=white[c];[c][0]scale2ref[cs][0s];[cs][0s]overlay=shortest=1,setsar=1:1',
-                                    "-c:v", "libx264", "-r", "9", "-crf", "26", "-y", f + ".mp4"])
-                return sorted([f for f in glob.glob(os.path.join(work_dir, "*.mp4"))])
 
     return sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webp"), recursive=True)])
 
