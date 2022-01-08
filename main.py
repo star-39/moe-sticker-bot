@@ -716,7 +716,7 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        conversation_timeout=86400,
+        conversation_timeout=43200,
         run_async=True
     )
     conv_import_line_sticker = ConversationHandler(
@@ -732,7 +732,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         run_async=True,
-        conversation_timeout=86400
+        conversation_timeout=43200
     )
     conv_get_animated_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
@@ -744,7 +744,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         run_async=True,
-        conversation_timeout=86400
+        conversation_timeout=43200
     )
     conv_download_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
@@ -756,7 +756,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         run_async=True,
-        conversation_timeout=86400
+        conversation_timeout=43200
     )
     conv_download_telegram_sticker = ConversationHandler(
         entry_points=[CommandHandler(
@@ -768,7 +768,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         run_async=True,
-        conversation_timeout=86400
+        conversation_timeout=43200
     )
     conv_create_sticker_set = ConversationHandler(
         entry_points=[CommandHandler(
@@ -784,7 +784,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         # run_async=True,
-        conversation_timeout=86400
+        conversation_timeout=43200
     )
     conv_add_sticker_to_set = ConversationHandler(
         entry_points=[CommandHandler(
@@ -799,7 +799,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         # run_async=True,
-        conversation_timeout=86400
+        conversation_timeout=43200
     )
     # 派遣します！
     dispatcher.add_handler(conv_import_line_sticker)
