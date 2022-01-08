@@ -36,10 +36,10 @@ import shutil
 import glob
 
 
-BOT_VERSION = "3.0 RC-2"
+BOT_VERSION = "3.0 RC-3"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
-DATA_DIR = BOT_NAME + "_data"
+DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
 
 # Stages of conversations
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
@@ -124,9 +124,10 @@ def do_get_animated_line_sticker(update, ctx):
     print_import_starting(update, ctx)
     for gif_file in prepare_sticker_files(update, ctx, want_animated=True):
         err = retry_do(lambda: ctx.bot.send_animation(
-            chat_id=update.effective_chat.id, animation=gif_file))
+            chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
         if err is not None:
             print_fatal_error(update, str(err))
+            return ConversationHandler.END
     print_command_done(update, ctx)
 
 
@@ -333,13 +334,11 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
     if update.callback_query is None:
         ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
     elif update.callback_query.data == "auto":
-        # Auto title has already been set at previous step, do not touch here.
+        update.callback_query.answer()
+        edit_inline_kb_auto_selected(update.callback_query)
         pass
     else:
         return TITLE
-
-    update.callback_query.answer()
-    edit_inline_kb_auto_selected(update.callback_query)
 
     if ctx.user_data['manual_emoji'] is True:
         initialize_manual_emoji(update, ctx)
