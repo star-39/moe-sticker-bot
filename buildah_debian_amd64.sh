@@ -19,8 +19,8 @@ buildah run $c1 -- apt autoremove python3-pip -y
 buildah run $c1 -- apt install python3-setuptools -y
 buildah run $c1 -- apt autoclean
 
-## buildah run $c1 -- curl -Lo /usr/bin/ffmpeg https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4/linux-x64
-## buildah run $c1 -- chmod +x /usr/bin/ffmpeg
+buildah run $c1 -- curl -Lo /usr/bin/ffmpeg https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4.1/linux-x64
+buildah run $c1 -- chmod +x /usr/bin/ffmpeg
 
 buildah config --cmd '' $c1
 buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main.py" $c1
