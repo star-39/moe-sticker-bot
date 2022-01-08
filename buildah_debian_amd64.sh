@@ -12,7 +12,7 @@ buildah run $c1 -- apt update -y
 buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-tools -y
 
 buildah run $c1 -- pip3 install wheel setuptools
-buildah run $c1 -- pip3 install python-telegram-bot emoji requests beautifulsoup4 lottie[GIF] cairosvg
+buildah run $c1 -- pip3 install python-telegram-bot emoji requests beautifulsoup4 lottie pillow cairosvg
 buildah run $c1 -- pip3 cache purge
 
 buildah run $c1 -- apt autoremove python3-pip -y

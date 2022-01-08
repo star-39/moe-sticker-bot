@@ -2,4 +2,6 @@ python-telegram-bot
 emoji
 requests
 beautifulsoup4
-lottie[GIF]
+lottie
+pillow
+cairosvg

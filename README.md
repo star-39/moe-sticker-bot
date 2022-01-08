@@ -40,34 +40,26 @@ BOT_TOKEN=your_bot_token python3 main.py
 This software supports all platforms python supports, including Linux, Windows and Mac.
 
 ### Step by step manual deployment
-#### Fedora / RHEL / CentOS
-You may need to add [RPM Fusion](https://rpmfusion.org/Configuration) first.
+#### Linux
 ```
+# For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
 dnf install git ffmpeg ImageMagick libwebp bsdtar curl 
-pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
-git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
-BOT_TOKEN=your_bot_token python3 main.py
-```
-
-#### Ubuntu / Debian
-```
+# For Debian / Ubuntu etc.
 apt install git imagemagick libwebp6 ffmpeg libarchive-tools curl 
-pip3 install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
+
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+pip3 install -r requirements.txt
 BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 #### Windows
-Using Windows Powershell:
+Using Windows Powershell: (Requires [scoop](https://scoop.sh))
 ```
-# install scoop if you have not
-Set-ExecutionPolicy RemoteSigned -scope CurrentUser
-iwr -useb get.scoop.sh | iex
 scoop install git
 scoop install ffmpeg-nightly-shared imagemagick python sudo
-pip install python-telegram-bot requests beautifulsoup4 emoji lottie[GIF]
 sudo New-Item -ItemType symboliclink -path C:\Windows\system32\bsdtar.exe -target C:\Windows\system32\tar.exe
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+pip3 install -r requirements.txt
 $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
 
