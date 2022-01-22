@@ -475,6 +475,8 @@ def command_get_animated_line_sticker(update: Update, ctx: CallbackContext):
 
 
 def initialize_user_data(update: Update, ctx):
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
     clean_userdata(update, ctx)
     ctx.user_data['in_command'] = update.message.text.strip().split(' ')[0]
     ctx.user_data['manual_emoji'] = False
