@@ -15,10 +15,10 @@
 import json
 import time
 # import logging
-from typing import Any, List, Text
+from typing import Any
 from urllib.parse import urlparse
 import telegram.error
-from telegram import Update, Bot, Update, message
+from telegram import Update, Bot, Update
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
 from bs4 import BeautifulSoup
 import emoji
@@ -30,10 +30,12 @@ import secrets
 import traceback
 import argparse
 import shlex
-
-from notifications import *
 import shutil
 import glob
+
+from notifications import *
+from helper import *
+
 
 
 BOT_VERSION = "3.0 RC-5"
@@ -816,6 +818,8 @@ def main() -> None:
         Filters.text & ~Filters.command, handle_text_message))
     dispatcher.add_handler(MessageHandler(
         Filters.sticker, handle_sticker_message))
+
+    start_timer_userdata_gc(DATA_DIR)
 
     updater.start_polling()
     updater.idle()

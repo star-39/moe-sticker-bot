@@ -5,29 +5,29 @@ GITHUB_TOKEN=$1
 buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 #################################
-c1=$(buildah from debian:11)
+# c1=$(buildah from debian:11)
 
-install system dependencies
-buildah run $c1 -- apt update -y
-buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-tools apng2gif -y
+# install system dependencies
+# buildah run $c1 -- apt update -y
+# buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-tools apng2gif -y
 
-buildah run $c1 -- pip3 install wheel setuptools
-buildah run $c1 -- pip3 install python-telegram-bot emoji requests beautifulsoup4 lottie pillow cairosvg
-buildah run $c1 -- pip3 cache purge
+# buildah run $c1 -- pip3 install wheel setuptools
+# buildah run $c1 -- pip3 install python-telegram-bot emoji requests beautifulsoup4 lottie pillow cairosvg
+# buildah run $c1 -- pip3 cache purge
 
-buildah run $c1 -- apt autoremove python3-pip -y
-buildah run $c1 -- apt install python3-setuptools -y
-buildah run $c1 -- apt autoclean
+# buildah run $c1 -- apt autoremove python3-pip -y
+# buildah run $c1 -- apt install python3-setuptools -y
+# buildah run $c1 -- apt autoclean
 
-buildah config --cmd '' $c1
-buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main.py" $c1
+# buildah config --cmd '' $c1
+# buildah config --entrypoint "cd /moe-sticker-bot-master && /usr/bin/python3 main.py" $c1
 
-# Fix python3.8+'s problem.
-buildah config --env COLUMNS=80 $c1
+# # Fix python3.8+'s problem.
+# buildah config --env COLUMNS=80 $c1
 
-buildah commit $c1 moe-sticker-bot:base
+# buildah commit $c1 moe-sticker-bot:base
 
-buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:base
+# buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:base
 
 #################################
 
