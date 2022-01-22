@@ -195,8 +195,8 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
             subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", work_dir])
             if want_animated:
                 work_dir = os.path.join(work_dir, "animation@2x")
-                # LINE's apng has fps of 9, hence delay=100/9
                 for f in glob.glob(os.path.join(work_dir, "*.png")):
+                    # LINE's apng has fps of 9, hence delay=100/9
                     # subprocess.run(["convert", '-coalesce', '-background', 'white', '-alpha', 'remove', '-delay', '11',
                     #                 'apng:' + f, f + '.mp4' ])
                     # Speed up!

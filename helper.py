@@ -5,6 +5,7 @@ import time
 import shutil
 
 def userdata_gc(data_dir):
+    start_timer_userdata_gc(data_dir)
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
         return
