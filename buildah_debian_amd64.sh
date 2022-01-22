@@ -9,7 +9,7 @@ c1=$(buildah from debian:11)
 
 install system dependencies
 buildah run $c1 -- apt update -y
-buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-tools -y
+buildah run $c1 -- apt install python3 python3-pip imagemagick curl libarchive-tools apng2gif -y
 
 buildah run $c1 -- pip3 install wheel setuptools
 buildah run $c1 -- pip3 install python-telegram-bot emoji requests beautifulsoup4 lottie pillow cairosvg

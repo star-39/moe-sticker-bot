@@ -195,9 +195,12 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                 work_dir = os.path.join(work_dir, "animation@2x")
                 # LINE's apng has fps of 9, hence delay=100/9
                 for f in glob.glob(os.path.join(work_dir, "*.png")):
-                    subprocess.run(["convert", '-coalesce', '-background', 'white', '-alpha', 'remove', '-delay', '11',
-                                    'apng:' + f, f + '.mp4' ])
-                return sorted([f for f in glob.glob(os.path.join(work_dir, "*.mp4"))])
+                    # subprocess.run(["convert", '-coalesce', '-background', 'white', '-alpha', 'remove', '-delay', '11',
+                    #                 'apng:' + f, f + '.mp4' ])
+                    # Speed up!
+                    # IM delegates this process to ffmpeg, which is painfully slow!
+                    subprocess.run(['apng2gif', f, '-b', '#FFFFFF'])
+                return sorted([f for f in glob.glob(os.path.join(work_dir, "*.gif"))])
             else:
                 # Remove garbages
                 for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):

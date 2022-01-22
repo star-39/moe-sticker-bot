@@ -29,6 +29,7 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 * ImageMagick
 * libwebp
 * bsdtar (libarchive-tools)
+* apng2gif
 * curl
 
 Specify `BOT_TOKEN` environment variable and run:
@@ -42,24 +43,13 @@ This software supports all platforms python supports, including Linux, Windows a
 #### Linux
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl 
+dnf install git ImageMagick libwebp bsdtar curl apng2gif
 # For Debian / Ubuntu etc.
-apt install git imagemagick libwebp6 libarchive-tools curl 
+apt install git imagemagick libwebp6 libarchive-tools curl apng2gif 
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 pip3 install -r requirements.txt
 BOT_TOKEN=your_bot_token python3 main.py
-```
-
-#### Windows
-Using Windows Powershell: (Requires [scoop](https://scoop.sh))
-```
-scoop install git
-scoop install imagemagick python sudo
-sudo New-Item -ItemType symboliclink -path C:\Windows\system32\bsdtar.exe -target C:\Windows\system32\tar.exe
-git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
-pip3 install -r requirements.txt
-$ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
 
 ## Known issue
