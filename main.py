@@ -819,7 +819,7 @@ def main() -> None:
     dispatcher.add_handler(MessageHandler(
         Filters.sticker, handle_sticker_message))
 
-    start_timer_userdata_gc(DATA_DIR)
+    start_timer_userdata_gc()
 
     updater.start_polling()
     updater.idle()
