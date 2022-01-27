@@ -60,7 +60,7 @@ def retry_do(func) -> Any:
         except telegram.error.RetryAfter as ra:
             if index == 2:
                 return ra
-            time.sleep(int(ra.retry_after))
+            time.sleep(10)
 
         except Exception as e:
             if index == 2:
