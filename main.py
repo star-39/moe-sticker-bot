@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from cProfile import run
 import json
 import time
 # import logging
@@ -38,7 +39,7 @@ from helper import *
 
 
 
-BOT_VERSION = "3.0 RC-5"
+BOT_VERSION = "3.0 RC-6"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
@@ -156,7 +157,6 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                     ret = subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                           "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
                     if ret.returncode == 0:
-                        print("convert done")
                         images_path.append(f.replace('.image', '.webp'))
                 else:
                     images_path.append(f)
@@ -645,6 +645,9 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             print_no_user_sticker_received(update)
             return USER_STICKER
         else:
+            # Given 5 seconds.
+            # The other thread will hopefully finish downloading images.
+            time.sleep(5)
             print_user_sticker_done(update, ctx)
             print_ask_emoji(update)
             return EMOJI
@@ -791,7 +794,8 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        conversation_timeout=43200
+        conversation_timeout=43200,
+        run_async=True
     )
     conv_add_sticker_to_set = ConversationHandler(
         entry_points=[CommandHandler(
@@ -805,7 +809,8 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        conversation_timeout=43200
+        conversation_timeout=43200,
+        run_async=True
     )
     # 派遣します！
     dispatcher.add_handler(conv_import_line_sticker)
