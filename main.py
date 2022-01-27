@@ -725,6 +725,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         conversation_timeout=43200,
+        run_async=True
     )
     conv_import_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
@@ -738,7 +739,8 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        conversation_timeout=43200
+        conversation_timeout=43200,
+        run_async=True
     )
     conv_get_animated_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
@@ -749,7 +751,8 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        conversation_timeout=43200
+        conversation_timeout=43200,
+        run_async=True
     )
     conv_download_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
@@ -760,7 +763,8 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        conversation_timeout=43200
+        conversation_timeout=43200,
+        run_async=True
     )
     conv_download_telegram_sticker = ConversationHandler(
         entry_points=[CommandHandler(
@@ -771,7 +775,8 @@ def main() -> None:
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
-        conversation_timeout=43200
+        conversation_timeout=43200,
+        run_async=True
     )
     conv_create_sticker_set = ConversationHandler(
         entry_points=[CommandHandler(
