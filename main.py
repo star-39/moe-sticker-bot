@@ -18,6 +18,7 @@ import time
 # import logging
 from typing import Any
 from urllib.parse import urlparse
+from flask import request
 import telegram.error
 from telegram import Update, Bot, Update
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
@@ -39,7 +40,7 @@ from helper import *
 
 
 
-BOT_VERSION = "3.0 RC-6"
+BOT_VERSION = "3.0 RC-7"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
@@ -54,16 +55,16 @@ GET_TG_STICKER = range(1)
 # however, documentation never specified this limit,
 # hence, we should at least retry after triggering the limit.
 def retry_do(func) -> Any:
-    for index in range(3):
+    for index in range(5):
         try:
             func()
         except telegram.error.RetryAfter as ra:
-            if index == 2:
+            if index == 4:
                 return ra
-            time.sleep(10)
+            time.sleep(ra.retry_after)
 
         except Exception as e:
-            if index == 2:
+            if index == 4:
                 return e
             # It could probably be a network problem, sleep for a while and try again.
             time.sleep(5)
@@ -711,10 +712,19 @@ def handle_timeout(update: Update, ctx: CallbackContext):
     print_timeout_message(update)
 
 
+# def handle_error(update: Update, ctx: CallbackContext):
+#     bt = ''.join(traceback.format_exception(None, ctx.error, ctx.error.__traceback__))
+
+
 def main() -> None:
+    from telegram.utils.request import Request
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
+    # q = mq.MessageQueue(all_burst_limit=20, all_time_limit_ms=1000)
+    # req = Request(con_pool_size=8)
+    # bot = MQBot(BOT_TOKEN, mqueue=q, request=req)
+    
     updater = Updater(BOT_TOKEN)
     dispatcher = updater.dispatcher
 
