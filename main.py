@@ -18,7 +18,6 @@ import time
 # import logging
 from typing import Any
 from urllib.parse import urlparse
-from flask import request
 import telegram.error
 from telegram import Update, Bot, Update
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
