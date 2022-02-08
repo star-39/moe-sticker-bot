@@ -7,6 +7,8 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 
 ![](https://user-images.githubusercontent.com/75669297/147678436-10bb9169-efad-4da8-acb5-9996edc78364.png)
 
+Now supports video sticker! 現已支援動態貼圖! アニメーションスタンプ対応！
+
 
 ## Deployment
 ### Deploy with pre-built containers
@@ -52,15 +54,16 @@ pip3 install -r requirements.txt
 BOT_TOKEN=your_bot_token python3 main.py
 ```
 
+## CHANGELOG
+* 4.0 ALPHA-1 (20220209)
+
+  Supports animated line sticker import.
+
+
 ## Known issue
 ### No response?
 The bot might have encountered some unhandled exception, try sending `/cancel` or report to GitHub issues.
 
-### LINE animated stickers will never be supported due to Telegram's restrictions
-LINE's animated stickers are in APNG bitmap, however,
-Telegram's animated sticker only allow vector images, which is a completely different.
-Telegram even sets the size limit to 64KB, hence
-converting stickers to Telegram animated format is impossible.
 
 ## License
 The GPL V3 License
