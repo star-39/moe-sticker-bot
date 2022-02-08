@@ -222,9 +222,9 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
             if want_animated:
                 work_dir = os.path.join(work_dir, "animation@2x")
                 for f in glob.glob(os.path.join(work_dir, "*.png")):
-                    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "warning", "-i", f, 
+                    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", f, 
                                     "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-                                     "-c:v", "libvpx-vp9", "-cpu-used", "3", "-crf", "28", "-b:v", "700k",
+                                     "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
                                       "-to", "00:00:02.800", "-an",  
                                      f + '.webm'])
                     # subprocess.run(['apng2gif', f, '-b', '#FFFFFF'])
