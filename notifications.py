@@ -13,7 +13,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, Video
 from telegram.callbackquery import CallbackQuery
 from telegram.ext.callbackcontext import CallbackContext
 import main
@@ -42,10 +42,6 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 <b>/download_line_sticker</b><code>
   從LINE STORE下載貼圖包
   LINE STOREからスタンプをダウンロード
-</code>
-<b>/get_animated_line_sticker</b><code>
-  獲取GIF版LINE STORE動態貼圖
-  LINE STOREから動くスタンプのGIFを入手
 </code>
 <b>/download_telegram_sticker</b><code>
   下載Telegram的貼圖包.(webp png)
@@ -104,7 +100,7 @@ A:  Your interaction with this bot is done with "conversation",
     when you send a command, a "conversation" starts, follow 
     what the bot says and you will get there.
     使用此bot的基本概念是"會話", 當您傳送一個指令後, 即進入了"會話",
-    跟隨bot向您傳送的提示消息一步一步操作, 就可以了.
+    跟隨bot向您傳送的提示一步一步操作, 就可以了.
 
 <b>
 Q:  The generated sticker set ID has the bot's name as suffix.
@@ -198,13 +194,6 @@ def print_sticker_done(update: Update, ctx: CallbackContext):
                               "貼圖包已經成功創建!\n"
                               "ステッカーセットの作成が成功しました！\n\n"
                               "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id'])
-    if ctx.user_data['line_sticker_type'] == "sticker_animated":
-        update.effective_chat.send_message("It seems the sticker set you imported also has a animated version\n"
-                                  "You can use /get_animated_line_sticker to have their GIF version\n"
-                                  "您匯入的貼圖包還有動態貼圖版本\n"
-                                  "可以使用 /get_animated_line_sticker 獲取GIF版動態貼圖\n"
-                                  "このスタンプの動くバージョンもございます。\n"
-                                  "/get_animated_line_sticker を使ってGIF版のスタンプを入手できます")
     ctx.bot.send_sticker(update.effective_chat.id, ctx.bot.get_sticker_set(ctx.user_data['telegram_sticker_id']).stickers[0])
 
 
@@ -244,7 +233,7 @@ def print_ask_emoji(update: Update):
                               reply_markup=inline_kb_ASK_EMOJI)
 
 
-def print_ask_emoji_for_sticker_photo(update :Update, ctx: CallbackContext):
+def print_ask_emoji_for_single_sticker(update :Update, ctx: CallbackContext):
     if ".webp" in ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']]:
         ctx.bot.send_photo(chat_id=update.effective_chat.id,
                         caption="Please send emoji(s) representing this sticker\n"
@@ -252,6 +241,13 @@ def print_ask_emoji_for_sticker_photo(update :Update, ctx: CallbackContext):
                         "このスタンプにふさわしい絵文字を送信してください(複数可)\n" +
                         f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
                         photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'))
+    elif ".webm" in ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']]:
+        ctx.bot.send_video(chat_id=update.effective_chat.id,
+                        caption="Please send emoji(s) representing this sticker\n"
+                        "請傳送代表這個貼圖的emoji(可以多個)\n"
+                        "このスタンプにふさわしい絵文字を送信してください(複数可)\n" +
+                        f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
+                        video=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'))
     else:
         update.effective_chat.send_sticker(sticker=ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']])
         update.effective_chat.send_message("Please send emoji(s) representing this sticker\n"
