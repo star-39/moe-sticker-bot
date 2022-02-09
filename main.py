@@ -72,13 +72,13 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
                                                                   name=ctx.user_data['telegram_sticker_id'],
                                                                   title=ctx.user_data['telegram_sticker_title'],
                                                                   emojis=ctx.user_data['telegram_sticker_emoji'],
-                                                                  webm_sticker=get_webm_sticker(img_files_path[0])))
+                                                                  webm_sticker=get_webm_sticker(img_files_path[0])), lambda: False)
         else:
             err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                   name=ctx.user_data['telegram_sticker_id'],
                                                                   title=ctx.user_data['telegram_sticker_title'],
                                                                   emojis=ctx.user_data['telegram_sticker_emoji'],
-                                                                  png_sticker=get_png_sticker(img_files_path[0])))
+                                                                  png_sticker=get_png_sticker(img_files_path[0])), lambda: False)
         if err is not None:
             print_fatal_error(update, str(err))
             return
@@ -241,7 +241,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                                                                   emojis=em,
                                                                   webm_sticker=get_webm_sticker(
                                                                       ctx.user_data['img_files_path'][0])
-                                                                  ))
+                                                                  ), lambda: False)
         else:
             err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                   name=ctx.user_data['telegram_sticker_id'],
@@ -249,7 +249,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
                                                                   emojis=em,
                                                                   png_sticker=get_png_sticker(
                                                                       ctx.user_data['img_files_path'][0])
-                                                                  ))
+                                                                  ), lambda: False)
         if err is not None:
             clean_userdata(update, ctx)
             print_fatal_error(update, str(err))
