@@ -13,8 +13,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import traceback
 from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, Video
-from telegram.callbackquery import CallbackQuery
+from telegram.callbackquery import CallbackQuery, Message
 from telegram.ext.callbackcontext import CallbackContext
 import main
 
@@ -67,7 +68,7 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
    常見問題/關於. よくある質問/について
 </code>
 <b>/cancel</b><code>
-  Cancel conversation. 中斷指令. キャンセル 
+  Interrupt conversation. 中斷指令. キャンセル 
 </code>
 """, parse_mode="HTML")
 
@@ -116,7 +117,7 @@ A:  Your interaction with this bot is done with "conversation",
 
 <b>
 Q:  The generated sticker set ID has the bot's name as suffix.
-    創建的貼圖包ID末尾有這個bot的名字..
+    創建的貼圖包ID末尾有這個bot的名字.
 </b>
 A:  This is forced by Telegram, ID of sticker set created by bot must has it's name as suffix.
     這是Telegram的強制要求, BOT創建的貼圖包ID末尾必須要有BOT的名字.
@@ -136,34 +137,36 @@ A:  The bot might encountered an error, please try sending /cancel
 """, parse_mode="HTML")
 
 
-def print_import_starting(update, ctx):
+def print_import_processing(update: Update, ctx):
     try:
-        update.effective_chat.send_message("Now starting, please wait...\n"
-                                           "正在開始, 請稍後...\n"
-                                           "作業がまもなく開始します、少々お時間を...\n\n"
+        return update.effective_chat.send_message("Preparing stickers, please wait...\n"
+                                           "正在準備貼圖, 請稍後...\n"
+                                           "作業が開始しています、少々お時間を...\n\n"
                                            "<code>"
                                            f"LINE TYPE: {ctx.user_data['line_sticker_type']}\n"
                                            f"LINE ID: {ctx.user_data['line_sticker_id']}\n"
                                            f"TG ID: {ctx.user_data['telegram_sticker_id']}\n"
-                                           f"TG TITLE: {ctx.user_data['telegram_sticker_title']}\n"
-                                           "</code>",
-                                           parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
-        if ctx.user_data['line_sticker_type'] == "sticker_message":
-            update.effective_chat.send_message("You are importing LINE Message Stickers which needs more time to complete.\n"
-                                               "您正在匯入LINE訊息貼圖, 這需要更長的等候時間.")
+                                           f"TG TITLE: {ctx.user_data['telegram_sticker_title']}"
+                                           "</code>"
+                                           "\n\n--------------------\n\n"
+                                           "<b>Progress / 當前進度</b>\n"
+                                           "<code>Preparing stickers...</code>\n"
+                                           ,
+                                           parse_mode="HTML")
     except:
         pass
 
 
-def print_progress(message_progress, current, total, update=None):
+def edit_message_progress(message_progress: Message, current, total):
     progress_1 = '[=>                  ]'
     progress_25 = '[====>               ]'
     progress_50 = '[=========>          ]'
     progress_75 = '[==============>     ]'
     progress_100 = '[====================]'
     try:
-        if update is not None:
-            return update.effective_chat.send_message("<b>Current Status 當前進度</b>\n"
+        message_header = message_progress.text_html[:message_progress.text.index('--------------------')+20] + "\n\n"
+        if current == 1:
+            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
                                                       "<code>" + progress_1 + "</code>\n"
                                                       "<code>       " +
                                                       str(current) + " of " +
@@ -171,35 +174,35 @@ def print_progress(message_progress, current, total, update=None):
                                                       "     </code>",
                                                       parse_mode="HTML")
         if current == int(0.25 * total):
-            message_progress.edit_text("<b>Current Status 當前進度</b>\n"
+            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_25 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == int(0.5 * total):
-            message_progress.edit_text("<b>Current Status 當前進度</b>\n"
+            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_50 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == int(0.75 * total):
-            message_progress.edit_text("<b>Current Status 當前進度</b>\n"
+            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_75 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == total:
-            message_progress.edit_text("<b>Current Status 當前進度</b>\n"
+            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
                                        "<code>" + progress_100 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
     except:
-        pass
+        print(traceback.format_exc())
 
 
 def print_sticker_done(update: Update, ctx: CallbackContext):

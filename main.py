@@ -56,7 +56,7 @@ LINE_STICKER_MESSAGE = "line_s_msg"
 
 
 def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
-    print_import_starting(update, ctx)
+    message_progress = print_import_processing(update, ctx)
 
     if ctx.user_data['in_command'].startswith("/create_sticker_set") or ctx.user_data['in_command'].startswith("/add_sticker_to_set"):
         img_files_path = prepare_user_sticker_files(update, ctx, ctx.user_data['telegram_sticker_is_animated'])
@@ -81,14 +81,13 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
             print_fatal_error(update, str(err))
             return
 
-    message_progress = print_progress(
-        None, 1, len(img_files_path), update=update)
+    edit_message_progress(message_progress, 1, len(img_files_path))
     for index, img_file_path in enumerate(img_files_path):
         # If not add sticker to set, skip the first image.
         if not ctx.user_data['in_command'].startswith("/add_sticker_to_set"):
             if index == 0:
                 continue
-        print_progress(message_progress, index + 1, len(img_files_path))
+        edit_message_progress(message_progress, index + 1, len(img_files_path))
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
             err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                               name=ctx.user_data['telegram_sticker_id'],
@@ -185,10 +184,11 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
             if ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
                 work_dir = os.path.join(work_dir, "animation@2x")
             elif ctx.user_data['line_sticker_type'] == LINE_STICKER_EFFECT_ANIMATION:
-                work_dir = os.path.join(work_dir, "popup")
+                for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
+                    shutil.move(f, os.path.join(work_dir, os.path.basename(f)[:os.path.basename(f).index('.png')] + '@99x.png'))
             else:
                 pass
-            for f in glob.glob(os.path.join(work_dir, "*.png")):
+            for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
                 subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", f,
                                 "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                 "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
@@ -201,7 +201,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
 
 
 def initialize_manual_emoji(update: Update, ctx: CallbackContext):
-    print_import_starting(update, ctx)
+    print_import_processing(update, ctx)
     if ctx.user_data['in_command'].startswith("/create_sticker_set") or ctx.user_data['in_command'].startswith("/add_sticker_to_set"):
         ctx.user_data['img_files_path'] = prepare_user_sticker_files(update, ctx, ctx.user_data['telegram_sticker_is_animated'])
     else:
@@ -360,6 +360,7 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
     else:
         return TITLE
 
+    print_ask_emoji(update)
     return EMOJI
 
 
