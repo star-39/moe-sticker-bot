@@ -575,37 +575,51 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     sticker_dir = os.path.join(
         DATA_DIR, str(update.effective_user.id), sticker_set.name)
     os.makedirs(sticker_dir, exist_ok=True)
+    if sticker_set.is_animated:
+        sticker_suffix = ".tgs"
+    elif sticker_set.is_video:
+        sticker_suffix = ".webm"
+    else:
+        sticker_suffix = ".webp"
+
     for index, sticker in enumerate(sticker_set.stickers):
         try:
             ctx.bot.get_file(sticker.file_id).download(os.path.join(sticker_dir,
                                                                     sticker.set_name +
                                                                     "_" + str(index).zfill(3) + "_" +
                                                                     emoji.demojize(sticker.emoji)[1:-1] +
-                                                                    (".tgs" if sticker_set.is_animated else ".webp")))
+                                                                    sticker_suffix))
         except Exception as e:
             print_fatal_error(update, traceback.format_exc())
             clean_userdata(update, ctx)
             return ConversationHandler.END
     webp_zip = os.path.join(sticker_dir, sticker_set.name + "_webp.zip")
+    webm_zip = os.path.join(sticker_dir, sticker_set.name + "_webm.zip")
     tgs_zip = os.path.join(sticker_dir, sticker_set.name + "_tgs.zip")
     png_zip = os.path.join(sticker_dir, sticker_set.name + "_png.zip")
-
-    if not sticker_set.is_animated:
-        subprocess.run(["mogrify", "-format", "png"] +
-                       glob.glob(os.path.join(sticker_dir, "*.webp")))
-        subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", png_zip] +
-                       glob.glob(os.path.join(sticker_dir, "*.png")))
-        subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", webp_zip] +
-                       glob.glob(os.path.join(sticker_dir, "*.webp")))
-
     try:
         if sticker_set.is_animated:
+            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", tgs_zip] +
+                        glob.glob(os.path.join(sticker_dir, "*.tgs")))
             update.effective_chat.send_document(open(tgs_zip, 'rb'))
+        elif sticker_set.is_video:
+            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", webm_zip] +
+                        glob.glob(os.path.join(sticker_dir, "*.webm")))
+            update.effective_chat.send_document(open(webm_zip, 'rb'))
         else:
+            subprocess.run(["mogrify", "-format", "png"] +
+                        glob.glob(os.path.join(sticker_dir, "*.webp")))
+            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", png_zip] +
+                        glob.glob(os.path.join(sticker_dir, "*.png")))
+            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", webp_zip] +
+                        glob.glob(os.path.join(sticker_dir, "*.webp")))
             update.effective_chat.send_document(open(webp_zip, 'rb'))
             update.effective_chat.send_document(open(png_zip, 'rb'))
+
     except Exception as e:
         print_fatal_error(update, traceback.format_exc())
+        clean_userdata(update, ctx)
+        return ConversationHandler.END
 
     print_command_done(update, ctx)
     clean_userdata(update, ctx)
