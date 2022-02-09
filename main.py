@@ -577,26 +577,19 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     tgs_zip = os.path.join(sticker_dir, sticker_set.name + "_tgs.zip")
     png_zip = os.path.join(sticker_dir, sticker_set.name + "_png.zip")
 
-    if sticker_set.is_animated:
-        fs = glob.glob(os.path.join(sticker_dir, "*.tgs"))
-        for f in fs:
-            subprocess.run(["lottie_convert.py", f, f + ".webp"])
-        subprocess.run(["bsdtar", "--strip-components",
-                       "3", "-acvf", tgs_zip] + fs)
-    else:
+    if not sticker_set.is_animated:
         subprocess.run(["mogrify", "-format", "png"] +
                        glob.glob(os.path.join(sticker_dir, "*.webp")))
         subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", png_zip] +
                        glob.glob(os.path.join(sticker_dir, "*.png")))
-
-    subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", webp_zip] +
-                   glob.glob(os.path.join(sticker_dir, "*.webp")))
+        subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", webp_zip] +
+                    glob.glob(os.path.join(sticker_dir, "*.webp")))
 
     try:
-        update.effective_chat.send_document(open(webp_zip, 'rb'))
         if sticker_set.is_animated:
             update.effective_chat.send_document(open(tgs_zip, 'rb'))
         else:
+            update.effective_chat.send_document(open(webp_zip, 'rb'))
             update.effective_chat.send_document(open(png_zip, 'rb'))
     except Exception as e:
         print_fatal_error(update, traceback.format_exc())

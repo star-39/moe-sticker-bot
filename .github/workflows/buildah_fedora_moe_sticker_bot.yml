@@ -25,7 +25,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Build fedora OCI container amd64
+      - name: Build debian OCI container amd64
         run: |
           chmod +x buildah_debian_amd64.sh
           ./buildah_debian_amd64.sh ${{ secrets.GITHUB_TOKEN }}
