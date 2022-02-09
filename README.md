@@ -24,14 +24,13 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 * requests
 * bs4
 * emoji
-* lottie
 
 ### System Dependencies
 * python 3.9+
 * ImageMagick
 * libwebp
 * bsdtar (libarchive-tools)
-* apng2gif
+* ffmpeg
 * curl
 
 Specify `BOT_TOKEN` environment variable and run:
@@ -41,13 +40,17 @@ BOT_TOKEN=your_bot_token python3 main.py
 
 This software supports all platforms python supports, including Linux, Windows and Mac.
 
-### Step by step manual deployment
-#### Linux
+However, it's tested on Linux only.
+
+### Manual deployment on Linux
+For better performance, it's recommended to use my custom build of FFMpeg:
+
+https://github.com/star-39/ffmpeg-nano-static
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl apng2gif
+dnf install git ImageMagick libwebp bsdtar curl ffmpeg
 # For Debian / Ubuntu etc.
-apt install git imagemagick libwebp6 libarchive-tools curl apng2gif 
+apt install git imagemagick libwebp6 libarchive-tools curl ffmpeg 
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 pip3 install -r requirements.txt
@@ -55,6 +58,10 @@ BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 ## CHANGELOG
+* 4.0 ALPHA-3 (20220209)
+
+  Supports all special line stickers,
+  including effect_animation and sticon(emoji)
 * 4.0 ALPHA-1 (20220209)
 
   Supports animated line sticker import.

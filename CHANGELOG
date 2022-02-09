@@ -1,3 +1,7 @@
-Version 4.0 ALPHA-1 (20220209-01)
-  * Support animated(video) sticker in LINE import.
-  
+* 4.0 ALPHA-3 (20220209)
+
+  Supports all special line stickers,
+  including effect_animation and sticon(emoji)
+* 4.0 ALPHA-1 (20220209)
+
+  Supports animated line sticker import.
