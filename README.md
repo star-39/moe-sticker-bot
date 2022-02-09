@@ -58,6 +58,9 @@ BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 ## CHANGELOG
+* 4.0 ALPHA-5 (20220210)
+
+  Bring back fake RetryAfter check since some people still have this issue.
 * 4.0 ALPHA-4 (20220210)
 
   Support user uploaded animated(video) stickers. You can both create or add to set.
