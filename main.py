@@ -37,7 +37,7 @@ from helper import *
 
 
 
-BOT_VERSION = "4.0 ALPHA-2"
+BOT_VERSION = "4.0 ALPHA-3"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
