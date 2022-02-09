@@ -58,6 +58,11 @@ BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 ## CHANGELOG
+* 4.0 ALPHA-4 (20220210)
+
+  Support user uploaded animated(video) stickers. You can both create or add to set.
+  Better support sticon(line_emoji)
+  Bug fixes.
 * 4.0 ALPHA-3 (20220209)
 
   Supports all special line stickers,
