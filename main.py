@@ -15,10 +15,9 @@
 import json
 import time
 # import logging
-from typing import Any
 from urllib.parse import urlparse
-import telegram.error
-from telegram import Update, Bot, Update
+# import telegram.error
+from telegram import Update, Bot
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
 from bs4 import BeautifulSoup
 import emoji
@@ -38,7 +37,7 @@ from helper import *
 
 
 
-BOT_VERSION = "4.0 ALPHA-1"
+BOT_VERSION = "4.0 ALPHA-2"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
@@ -47,47 +46,6 @@ DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
 LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
 USER_STICKER, EMOJI, TITLE, ID, MANUAL_EMOJI = range(5)
 GET_TG_STICKER = range(1)
-
-
-# Uploading sticker could easily trigger TG's flood limit,
-# however, documentation never specified this limit,
-# hence, we should at least retry after triggering the limit.
-def retry_do(func) -> Any:
-    for index in range(5):
-        try:
-            func()
-        except telegram.error.RetryAfter as ra:
-            if index == 4:
-                return ra
-            time.sleep(ra.retry_after)
-
-        except Exception as e:
-            if index == 4:
-                return e
-            # It could probably be a network problem, sleep for a while and try again.
-            time.sleep(5)
-        else:
-            break
-
-
-def get_png_sticker(f: str) -> Any:
-    if f.endswith(".webp"):
-        return open(f, 'rb')
-    else:
-        return f
-
-def get_webm_sticker(f: str) -> Any:
-    if f.endswith(".webm"):
-        return open(f, 'rb')
-    else:
-        return f
-
-# Clean temparary user data after each conversasion.
-def clean_userdata(update: Update, ctx: CallbackContext):
-    ctx.user_data.clear()
-    userdata_dir = os.path.join(DATA_DIR, str(update.effective_user.id))
-    if os.path.exists(userdata_dir):
-        shutil.rmtree(userdata_dir, ignore_errors=True)
 
 
 def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
@@ -144,22 +102,6 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
 
     print_sticker_done(update, ctx)
     print_command_done(update, ctx)
-
-
-# def do_get_animated_line_sticker(update, ctx):
-#     if ctx.user_data['line_sticker_type'] != "sticker_animated":
-#         print_not_animated_warning(update)
-#         return ConversationHandler.END
-#     print_import_starting(update, ctx)
-#     for gif_file in prepare_sticker_files(update, ctx, want_animated=True):
-#         err = retry_do(lambda: ctx.bot.send_animation(
-#             chat_id=update.effective_chat.id, animation=open(gif_file, 'rb')))
-#         if err is not None:
-#             print_fatal_error(update, str(err))
-#             clean_userdata(update, ctx)
-#             return ConversationHandler.END
-#     print_command_done(update, ctx)
-#     clean_userdata(update, ctx)
 
 
 def prepare_sticker_files(update: Update, ctx, want_animated):
@@ -227,7 +169,6 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                                      "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
                                       "-to", "00:00:02.800", "-an",  
                                      f + '.webm'])
-                    # subprocess.run(['apng2gif', f, '-b', '#FFFFFF'])
                 return sorted([f for f in glob.glob(os.path.join(work_dir, "*.webm"))])
             else:
                 # Remove garbages
@@ -449,10 +390,6 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
     elif str(ctx.user_data['in_command']).startswith("/download_line_sticker"):
         update.message.reply_text(ctx.user_data['line_sticker_download_url'])
         return ConversationHandler.END
-    # elif str(ctx.user_data['in_command']).startswith("/get_animated_line_sticker"):
-    #     do_get_animated_line_sticker(update, ctx)
-    #     clean_userdata(update, ctx)
-    #     return ConversationHandler.END
     else:
         pass
 
@@ -800,18 +737,6 @@ def main() -> None:
         conversation_timeout=43200,
         run_async=True
     )
-    # conv_get_animated_line_sticker = ConversationHandler(
-    #     entry_points=[CommandHandler(
-    #         'get_animated_line_sticker', command_get_animated_line_sticker)],
-    #     states={
-    #         LINE_STICKER_INFO: [MessageHandler(Filters.text & ~Filters.command, parse_line_url)],
-    #         ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
-    #     },
-    #     fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
-    #         Filters.command, print_in_conv_warning)],
-    #     conversation_timeout=43200,
-    #     run_async=True
-    # )
     conv_download_line_sticker = ConversationHandler(
         entry_points=[CommandHandler(
             'download_line_sticker', command_download_line_sticker)],
@@ -869,7 +794,6 @@ def main() -> None:
     )
     # 派遣します！
     dispatcher.add_handler(conv_import_line_sticker)
-    # dispatcher.add_handler(conv_get_animated_line_sticker)
     dispatcher.add_handler(conv_download_line_sticker)
     dispatcher.add_handler(conv_download_telegram_sticker)
     dispatcher.add_handler(conv_advanced_import)

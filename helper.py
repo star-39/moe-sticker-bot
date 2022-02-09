@@ -6,6 +6,9 @@ import shutil
 import main
 import telegram.bot
 from telegram.ext import messagequeue as mq
+from telegram import Update
+from telegram.ext import CallbackContext
+
 
 class MQBot(telegram.bot.Bot):
     def __init__(self, *args, is_queued_def=True, mqueue=None, **kwargs):
@@ -26,9 +29,56 @@ class MQBot(telegram.bot.Bot):
     @mq.queuedmessage
     def create_sticker_set(self, *args, **kwargs):
         return super(MQBot, self).create_sticker_set(*args, **kwargs)
-    
 
 
+# Uploading sticker could easily trigger Telegram's flood limit,
+# however, documentation never specified this limit,
+# hence, we should at least retry after triggering the limit.
+def retry_do(func):
+    for index in range(5):
+        try:
+            func()
+        except telegram.error.RetryAfter as ra:
+            if index == 4:
+                return ra
+            time.sleep(ra.retry_after)
+
+        except Exception as e:
+            if index == 4:
+                return e
+            # It could probably be a network problem, sleep for a while and try again.
+            time.sleep(5)
+        else:
+            break 
+
+
+# To save processing time, if a sticker already exist in Telegram's server,
+# use its file id instead downloading than uploading it.
+# Distinguish by judging the suffix.
+def get_png_sticker(f: str):
+    if f.endswith(".webp"):
+        return open(f, 'rb')
+    else:
+        return f
+
+def get_webm_sticker(f: str):
+    if f.endswith(".webm"):
+        return open(f, 'rb')
+    else:
+        return f
+
+
+# Clean temparary user data after each conversasion.
+def clean_userdata(update: Update, ctx: CallbackContext):
+    ctx.user_data.clear()
+    userdata_dir = os.path.join(main.DATA_DIR, str(update.effective_user.id))
+    if os.path.exists(userdata_dir):
+        shutil.rmtree(userdata_dir, ignore_errors=True)
+
+
+# Due to some unknown bugs, userdata may not be cleaned after conversation.
+# If a RAMDISK is used to boost performance, this could be a problem.
+# Run a timer to periodically clean outdated userdata.
 def start_timer_userdata_gc():
     timer = Timer(43200, start_timer_userdata_gc)
     timer.start()
