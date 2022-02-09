@@ -47,22 +47,23 @@ LINE_STICKER_INFO, EMOJI, TITLE, MANUAL_EMOJI = range(4)
 USER_STICKER, EMOJI, TITLE, ID, MANUAL_EMOJI = range(5)
 GET_TG_STICKER = range(1)
 
+# Line sticker types
+LINE_STICKER_STATIC = "line_s"
+LINE_STICKER_ANIMATION = "line_s_ani"
+LINE_STICKER_EFFECT_ANIMATION = "line_s_sfxani"
+LINE_EMOJI_STATIC = "line_e"
+LINE_EMOJI_ANIMATION = "line_e_ani"
+LINE_STICKER_MESSAGE = "line_s_msg"
+
 
 def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
     print_import_starting(update, ctx)
 
-    is_animated = False
-    if ctx.user_data['line_sticker_type'] == 'sticker_animated':
-        is_animated = True
-
-    if is_animated:
-        img_files_path = prepare_sticker_files(update, ctx, want_animated=True)
-    else:
-        img_files_path = prepare_sticker_files(update, ctx, want_animated=False)
+    img_files_path = prepare_line_sticker_files(update, ctx)
 
     if not ctx.user_data['in_command'].startswith("/add_sticker_to_set"):
         # Create a new sticker set using the first image.
-        if is_animated:
+        if ctx.user_data['line_sticker_is_animated'] is True:
             err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                 name=ctx.user_data['telegram_sticker_id'],
                                                                 title=ctx.user_data['telegram_sticker_title'],
@@ -86,7 +87,7 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
             if index == 0:
                 continue
         print_progress(message_progress, index + 1, len(img_files_path))
-        if is_animated:
+        if ctx.user_data['line_sticker_is_animated'] is True:
             err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                             name=ctx.user_data['telegram_sticker_id'],
                                                             emojis=ctx.user_data['telegram_sticker_emoji'],
@@ -116,6 +117,7 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                 if os.path.isfile(f):
                     subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                     "-format", "webp", "-define", "webp:lossless=true", f + "[0]"])
+            return sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webp"), recursive=True)])
         # User sent images.
         else:
             images_path = []
@@ -130,65 +132,70 @@ def prepare_sticker_files(update: Update, ctx, want_animated):
                     images_path.append(f)
             return images_path
 
-    # line stickers
+
+def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
+    work_dir = os.path.join(
+        DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
+    os.makedirs(work_dir, exist_ok=True)
+    # Special line "message" stickers
+    if ctx.user_data['line_sticker_type'] == LINE_STICKER_MESSAGE:
+        for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
+            json_text = element.get('data-preview')
+            if json_text is not None:
+                json_data = json.loads(json_text)
+                base_image = json_data['staticUrl'].split(';')[0]
+                overlay_image = json_data['customOverlayUrl'].split(';')[0]
+                base_image_link_split = base_image.split('/')
+                image_id = base_image_link_split[base_image_link_split.index(
+                    'sticker') + 1]
+                subprocess.run(
+                    ["curl", "-Lo", f"{work_dir}{image_id}.base.png", base_image])
+                subprocess.run(
+                    ["curl", "-Lo", f"{work_dir}{image_id}.overlay.png", overlay_image])
+                subprocess.run(["convert", f"{work_dir}{image_id}.base.png", f"{work_dir}{image_id}.overlay.png",
+                                "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
+                                "-define", "webp:lossless=true",
+                                f"{work_dir}{image_id}.webp"])
+
     else:
-        work_dir = os.path.join(
-            DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
-        os.makedirs(work_dir, exist_ok=True)
-        # Special line "message" stickers
-        if ctx.user_data['line_sticker_type'] == "sticker_message":
-            for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
-                json_text = element.get('data-preview')
-                if json_text is not None:
-                    json_data = json.loads(json_text)
-                    base_image = json_data['staticUrl'].split(';')[0]
-                    overlay_image = json_data['customOverlayUrl'].split(';')[0]
-                    base_image_link_split = base_image.split('/')
-                    image_id = base_image_link_split[base_image_link_split.index(
-                        'sticker') + 1]
-                    subprocess.run(
-                        ["curl", "-Lo", f"{work_dir}{image_id}.base.png", base_image])
-                    subprocess.run(
-                        ["curl", "-Lo", f"{work_dir}{image_id}.overlay.png", overlay_image])
-                    subprocess.run(["convert", f"{work_dir}{image_id}.base.png", f"{work_dir}{image_id}.overlay.png",
-                                    "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
-                                    "-define", "webp:lossless=true",
-                                    f"{work_dir}{image_id}.webp"])
-        # normal line stickers
+        zip_file_path = os.path.join(
+            work_dir, ctx.user_data['line_sticker_id'] + ".zip")
+        subprocess.run(["curl", "-Lo", zip_file_path,
+                        ctx.user_data['line_sticker_download_url']])
+        subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", work_dir])
+        for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):
+            os.remove(f)
+        # standard static line stickers.
+        if ctx.user_data['line_sticker_type'] == LINE_STICKER_STATIC:
+            # Resize to fulfill telegram's requirement, AR is automatically retained
+            # Lanczos resizing produces much sharper image.
+            for f in glob.glob(os.path.join(work_dir, "*")):
+                subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
+                                "-format", "webp", "-define", "webp:lossless=true", f])
+        # is animated line stickers/emojis.
         else:
-            zip_file_path = os.path.join(
-                work_dir, ctx.user_data['line_sticker_id'] + ".zip")
-            subprocess.run(["curl", "-Lo", zip_file_path,
-                            ctx.user_data['line_sticker_download_url']])
-            subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", work_dir])
-            if want_animated:
+            if ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
                 work_dir = os.path.join(work_dir, "animation@2x")
-                for f in glob.glob(os.path.join(work_dir, "*.png")):
-                    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", f, 
-                                    "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-                                     "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
-                                      "-to", "00:00:02.800", "-an",  
-                                     f + '.webm'])
-                return sorted([f for f in glob.glob(os.path.join(work_dir, "*.webm"))])
+            elif ctx.user_data['line_sticker_type'] == LINE_STICKER_EFFECT_ANIMATION:
+                work_dir = os.path.join(work_dir, "popup")
             else:
-                # Remove garbages
-                for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):
-                    os.remove(f)
-                # Resize to fulfill telegram's requirement, AR is automatically retained
-                # Lanczos resizing produces much sharper image.
-                for f in glob.glob(os.path.join(work_dir, "*")):
-                    subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
-                                    "-format", "webp", "-define", "webp:lossless=true", f])
+                pass
+            for f in glob.glob(os.path.join(work_dir, "*.png")):
+                subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", f, 
+                                "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
+                                    "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
+                                    "-to", "00:00:02.800", "-an",  
+                                    f + '.webm'])
+
+            return sorted([f for f in glob.glob(os.path.join(work_dir, "*.webm"))])
+
 
     return sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webp"), recursive=True)])
 
 
 def initialize_manual_emoji(update: Update, ctx: CallbackContext):
     print_import_starting(update, ctx)
-    if ctx.user_data['line_sticker_type'] == 'sticker_animated':
-        ctx.user_data['img_files_path'] = prepare_sticker_files(update, ctx, True)
-    else:
-        ctx.user_data['img_files_path'] = prepare_sticker_files(update, ctx, False)
+    ctx.user_data['img_files_path'] = prepare_line_sticker_files(update, ctx)
     # This is the FIRST sticker.
     ctx.user_data['manual_emoji_index'] = 0
     print_ask_emoji_for_single_sticker(update, ctx)
@@ -206,7 +213,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
     # First sticker to create new set.
     if ctx.user_data['manual_emoji_index'] == 0 and not ctx.user_data['in_command'].startswith("/add_sticker_to_set"):
         # Create a new sticker set using the first image.:
-        if ctx.user_data['line_sticker_type'] == 'sticker_animated':
+        if ctx.user_data['line_sticker_is_animated'] is True:
             err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                 name=ctx.user_data['telegram_sticker_id'],
                                                                 title=ctx.user_data['telegram_sticker_title'],
@@ -227,7 +234,7 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
             print_fatal_error(update, str(err))
             return ConversationHandler.END
     else:
-        if ctx.user_data['line_sticker_type'] == 'sticker_animated':
+        if ctx.user_data['line_sticker_is_animated'] is True:
             err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                             name=ctx.user_data['telegram_sticker_id'],
                                                             emojis=em,
@@ -320,8 +327,8 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
         return ID
 
     # Auto ID generation.
-    ctx.user_data['telegram_sticker_id'] = f"line_{ctx.user_data['line_sticker_type']}_" \
-        f"{ctx.user_data['line_sticker_id']}_" \
+    ctx.user_data['telegram_sticker_id'] = ctx.user_data['line_sticker_type'] + \
+        f"_{ctx.user_data['line_sticker_id']}_" \
         f"{secrets.token_hex(nbytes=3)}_by_{BOT_NAME}"
 
     if update.callback_query is None:
@@ -406,23 +413,36 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
     i = json_details['sku']
     url = json_details['url']
     url_comps = urlparse(url).path[1:].split('/')
+    is_animated = False
     if url_comps[0] == "stickershop":
         # First one matches AnimatedSticker with NO sound and second one with sound.
         if 'MdIcoPlay_b' in webpage.text or 'MdIcoAni_b' in webpage.text:
-            t = "sticker_animated"
+            t = LINE_STICKER_ANIMATION
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/stickerpack@2x.zip"
+            is_animated = True
         elif 'MdIcoMessageSticker_b' in webpage.text:
-            t = "sticker_message"
+            t = LINE_STICKER_MESSAGE
             u = webpage.url
+        elif 'MdIcoEffectSoundSticker_b' in webpage.text:
+            t = LINE_STICKER_EFFECT_ANIMATION
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
+                i + "/iphone/stickerpack@2x.zip"
+            is_animated = True
         else:
-            t = "sticker"
+            t = LINE_STICKER_STATIC
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/stickers@2x.zip"
     elif url_comps[0] == "emojishop":
-        t = "emoji"
-        u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
-            i + "/iphone/package.zip"
+        if 'MdIcoPlay_b' in webpage.text:
+            t = LINE_EMOJI_ANIMATION
+            u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
+                i + "/iphone/package_animation.zip"
+            is_animated = True
+        else:
+            t = LINE_EMOJI_STATIC
+            u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
+                i + "/iphone/package.zip"
     else:
         raise Exception("Not a supported sticker type!\nLink is: " + url)
 
@@ -430,6 +450,7 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
     ctx.user_data['line_sticker_type'] = t
     ctx.user_data['line_sticker_id'] = i
     ctx.user_data['line_sticker_download_url'] = u
+    ctx.user_data['line_sticker_is_animated'] = is_animated
 
 
 def command_import_line_sticker(update: Update, ctx: CallbackContext):
@@ -471,7 +492,8 @@ def initialize_user_data(update: Update, ctx):
     ctx.user_data['line_sticker_url'] = ""
     ctx.user_data['line_store_webpage'] = None
     ctx.user_data['line_sticker_download_url'] = ""
-    ctx.user_data['line_sticker_type'] = ""
+    ctx.user_data['line_sticker_type'] = None
+    ctx.user_data['line_sticker_is_animated'] = False
     ctx.user_data['line_sticker_id'] = ""
     ctx.user_data['telegram_sticker_emoji'] = ""
     ctx.user_data['telegram_sticker_id'] = ""

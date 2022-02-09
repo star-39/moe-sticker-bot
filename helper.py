@@ -3,6 +3,7 @@ import glob
 import os
 import time
 import shutil
+import traceback
 import main
 import telegram.bot
 from telegram.ext import messagequeue as mq
@@ -45,7 +46,8 @@ def retry_do(func):
 
         except Exception as e:
             if index == 4:
-                return e
+                print(traceback.format_exc())
+                return traceback.format_exc().replace('<', '＜').replace('>', '＞')
             # It could probably be a network problem, sleep for a while and try again.
             time.sleep(5)
         else:
