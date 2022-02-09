@@ -11,31 +11,31 @@ from telegram import Update
 from telegram.ext import CallbackContext
 
 
-class MQBot(telegram.bot.Bot):
-    def __init__(self, *args, is_queued_def=True, mqueue=None, **kwargs):
-        super(MQBot, self).__init__(*args, **kwargs)
-        # below 2 attributes should be provided for decorator usage
-        self._is_messages_queued_default = is_queued_def
-        self._msg_queue = mqueue or mq.MessageQueue()
+# class MQBot(telegram.bot.Bot):
+#     def __init__(self, *args, is_queued_def=True, mqueue=None, **kwargs):
+#         super(MQBot, self).__init__(*args, **kwargs)
+#         # below 2 attributes should be provided for decorator usage
+#         self._is_messages_queued_default = is_queued_def
+#         self._msg_queue = mqueue or mq.MessageQueue()
 
-    def __del__(self):
-        try:
-            self._msg_queue.stop()
-        except:
-            pass
+#     def __del__(self):
+#         try:
+#             self._msg_queue.stop()
+#         except:
+#             pass
 
-    @mq.queuedmessage
-    def add_sticker_to_set(self, *args, **kwargs):
-        return super(MQBot, self).add_sticker_to_set(*args, **kwargs)
-    @mq.queuedmessage
-    def create_sticker_set(self, *args, **kwargs):
-        return super(MQBot, self).create_sticker_set(*args, **kwargs)
+#     @mq.queuedmessage
+#     def add_sticker_to_set(self, *args, **kwargs):
+#         return super(MQBot, self).add_sticker_to_set(*args, **kwargs)
+#     @mq.queuedmessage
+#     def create_sticker_set(self, *args, **kwargs):
+#         return super(MQBot, self).create_sticker_set(*args, **kwargs)
 
 
 # Uploading sticker could easily trigger Telegram's flood limit,
 # however, documentation never specified this limit,
 # hence, we should at least retry after triggering the limit.
-def retry_do(func):
+def retry_do(func, is_fake_ra):
     for index in range(5):
         try:
             func()
@@ -43,6 +43,11 @@ def retry_do(func):
             if index == 4:
                 return ra
             time.sleep(ra.retry_after)
+
+            if is_fake_ra():
+                break
+            else:
+                continue
 
         except Exception as e:
             if index == 4:
