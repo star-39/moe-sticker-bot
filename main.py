@@ -215,8 +215,8 @@ def initialize_manual_emoji(update: Update, ctx: CallbackContext):
         ctx.user_data['img_files_path'] = prepare_user_sticker_files(
             update, ctx, ctx.user_data['telegram_sticker_is_animated'])
     else:
-        ctx.user_data['img_files_path'] = prepare_user_sticker_files(
-            update, ctx, ctx.user_data['telegram_sticker_is_animated'])
+        ctx.user_data['img_files_path'] = prepare_line_sticker_files(
+            update, ctx)
     # This is the FIRST sticker.
     ctx.user_data['manual_emoji_index'] = 0
     print_ask_emoji_for_single_sticker(update, ctx)

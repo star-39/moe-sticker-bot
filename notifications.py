@@ -368,7 +368,7 @@ def print_command_done(update, ctx):
 
 
 def print_in_conv_warning(update, ctx):
-    if 'in_command' in ctx.userdata:
+    if 'in_command' in ctx.user_data:
         update.effective_chat.send_message("You are already in command : " + str(ctx.user_data['in_command']).removeprefix("/") + "\n\n"
                                         "If you encountered a problem, please send /cancel and start over.\n"
                                         "如果您遇到了問題, 請傳送 /cancel 來試試重新開始.")
