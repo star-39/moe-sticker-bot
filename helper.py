@@ -52,7 +52,7 @@ def retry_do(func, is_fake_ra):
         except Exception as e:
             if index == 4:
                 print(traceback.format_exc())
-                return traceback.format_exc().replace('<', '＜').replace('>', '＞')
+                return traceback.format_exc()
             # It could probably be a network problem, sleep for a while and try again.
             time.sleep(5)
         else:

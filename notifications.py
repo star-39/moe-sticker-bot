@@ -107,31 +107,37 @@ def print_faq_message(update: Update):
 <b>FAQ:</b>
 <b>
 Q:  I'm not that sure how to use this bot...
-    我不太會用...
-</b>
+    我不太會用...</b>
 A:  Your interaction with this bot is done with "conversation",
     when you send a command, a "conversation" starts, follow 
     what the bot says and you will get there.
     使用此bot的基本概念是"會話", 當您傳送一個指令後, 即進入了"會話",
     跟隨bot向您傳送的提示一步一步操作, 就可以了.
-
 <b>
 Q:  The generated sticker set ID has the bot's name as suffix.
-    創建的貼圖包ID末尾有這個bot的名字.
-</b>
+    創建的貼圖包ID末尾有這個bot的名字.</b>
 A:  This is forced by Telegram, ID of sticker set created by bot must has it's name as suffix.
     這是Telegram的強制要求, BOT創建的貼圖包ID末尾必須要有BOT的名字.
-   
 <b>
 Q:  The sticker set title is in English when <code>auto</code> is used during setting title.
-    當設定標題時使用了<code>auto</code>, 結果貼圖包的標題是英文的
-</b>
+    當設定標題時使用了<code>auto</code>, 結果貼圖包的標題是英文的</b>
 A:  The sticker set is multilingual, you should paste LINE store link with language suffix.
     有的LINE貼圖包有多種語言, 請確認LINE商店連結的末尾有指定語言.
-
 <b>
-Q: No response? 沒有反應?
-</b>
+Q:  Can I add video sticker to static sticker set or vice versa?
+    我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
+A:  Of course you can! You video will be static in static set,
+    and your static sticker will remain static in video set.
+    當然可以! 動態貼圖在靜態貼圖包裡會變成靜態, 靜態貼圖在動態貼圖包裡依然會是靜態.
+<b>
+Q:  Who owns the sticker sets the bot created?
+    BOT創造的貼圖包由誰所有?</b>
+A:  It's you of course! Albeit compulsory suffix in ID, you are the owner of the sticker sets.
+    You can manage them through Telegram's official @Stickers bot.
+    當然是您! 雖然ID末尾強制有BOT的名字, 但是貼圖包的擁有人是您本人.
+    您可以通過Telegram官方的 @Stickers BOT管理您創進的貼圖包.
+<b>
+Q: No response? 沒有反應?</b>
 A:  The bot might encountered an error, please try sending /cancel
     BOT可能遇到了問題, 請嘗試傳送 /cancel
 """, parse_mode="HTML")
@@ -235,9 +241,9 @@ def print_ask_sticker_set(update):
 def print_wrong_id_syntax(update):
     update.effective_chat.send_message(
         "Wrong ID syntax!! Try again. ID格式錯誤!! 請再試一次.\n\n"
-        "Can contain only english letters, digits and underscores.\n"
+        "Can contain only less than 64 english letters, digits and underscores.\n"
         "Must begin with a letter, can't contain consecutive underscores.\n"
-        "ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
+        "ID只可以由少於64個英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.")
 
 
 def print_ask_emoji(update: Update):
@@ -277,8 +283,8 @@ def print_ask_emoji_for_single_sticker(update: Update, ctx: CallbackContext):
 def print_ask_title(update: Update, title: str):
     if title != "":
         update.effective_chat.send_message(
-            "Please set a title for this sticker set. Press Auto button to set original title from LINE Store as shown below:\n"
-            "請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中原版的標題如下:\n"
+            "Please set a title for this sticker set. Press Auto button to set title from LINE Store as shown below:\n"
+            "請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中的標題如下:\n"
             "スタンプのタイトルを送信してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。" + "\n\n" +
             "<code>" + title + "</code>",
             reply_markup=inline_kb_AUTO,
@@ -310,19 +316,13 @@ def print_ask_line_store_link(update):
                                        parse_mode="HTML")
 
 
-def print_not_animated_warning(update):
-    update.effective_chat.send_message("Sorry! This LINE Sticker set is NOT animated! Please check again.\n"
-                                       "抱歉! 這個LINE貼圖包沒有動態版本! 請檢查連結是否有誤.\n"
-                                       "このスタンプの動くバージョンはございません。もう一度ご確認してください。")
-
-
 def print_fatal_error(update, err_msg):
     update.effective_chat.send_message("<b>"
                                        "Fatal error! Please try again. /start\n"
                                        "發生致命錯誤! 請您從頭再試一次. /start\n"
                                        "致命的なエラーが発生しました！もう一度やり直してください /start\n\n"
                                        "</b>"
-                                       "<code>" + err_msg + "</code>", parse_mode="HTML")
+                                       "<code>" + err_msg.replace('<', '＜').replace('>', '＞') + "</code>", parse_mode="HTML")
 
 
 def print_use_start_command(update):
