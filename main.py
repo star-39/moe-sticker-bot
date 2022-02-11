@@ -47,7 +47,7 @@ GET_TG_STICKER, SELECT_TYPE, LINE_STICKER_INFO, TITLE, ID, EDIT_CHOICE, EDIT_SET
 # Line sticker types
 LINE_STICKER_STATIC = "line_s"
 LINE_STICKER_ANIMATION = "line_s_ani"
-LINE_STICKER_POPUP_ANIMATION = "line_s_popup_ani"
+LINE_STICKER_POPUP = "line_s_popup"
 LINE_EMOJI_STATIC = "line_e"
 LINE_EMOJI_ANIMATION = "line_e_ani"
 LINE_STICKER_MESSAGE = "line_s_msg"
@@ -208,7 +208,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
         else:
             if ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
                 work_dir = os.path.join(work_dir, "animation@2x")
-            elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP_ANIMATION:
+            elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP:
                 for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
                     # workaround for sticker orders.
                     shutil.move(f, os.path.join(work_dir, os.path.basename(
@@ -482,7 +482,7 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
             t = LINE_STICKER_MESSAGE
             u = webpage.url
         elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoFlash_b' in webpage.text:
-            t = LINE_STICKER_POPUP_ANIMATION
+            t = LINE_STICKER_POPUP
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/stickerpack@2x.zip"
             is_animated = True
@@ -870,17 +870,23 @@ def handle_text_message(update: Update, ctx: CallbackContext):
         update.effective_chat.send_message(
             'Please send "done" again. 請再傳送一次 done')
         return
-    print_use_start_command(update)
-    ctx.user_data['last_user_message'] = update.message.text
-    ctx.user_data['last_user_message_timestamp'] = int(time.time())
-    if update.message.text.startswith("https://store.line.me") or update.message.text.startswith("https://line.me"):
-        ctx.user_data['user_sent_line_link'] = True
-        print_suggest_import(update)
+    if 'in_command' in ctx.user_data:
+        print_in_conv_warning(update, ctx)
+    else:
+        print_use_start_command(update)
+        ctx.user_data['last_user_message'] = update.message.text
+        ctx.user_data['last_user_message_timestamp'] = int(time.time())
+        if update.message.text.startswith("https://store.line.me") or update.message.text.startswith("https://line.me"):
+            ctx.user_data['user_sent_line_link'] = True
+            print_suggest_import(update)
 
 
 def handle_sticker_message(update: Update, ctx: CallbackContext):
-    print_use_start_command(update)
-    print_suggest_download(update)
+    if 'in_command' in ctx.user_data:
+        print_in_conv_warning(update, ctx)
+    else:
+        print_use_start_command(update)
+        print_suggest_download(update)
 
 
 def command_about(update: Update, ctx: CallbackContext):
