@@ -46,7 +46,7 @@ For better performance on Linux, it's recommended to use my custom build of FFMp
 https://github.com/star-39/ffmpeg-nano-static
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl ffmpeg python2
+dnf install git ImageMagick libwebp bsdtar curl ffmpeg python3
 # For Debian / Ubuntu etc.
 apt install git imagemagick libwebp6 libarchive-tools curl ffmpeg python3
 # For macOS
@@ -56,11 +56,8 @@ git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 pip3 install -r requirements.txt
 BOT_TOKEN=your_bot_token python3 main.py
 ```
-
 #### Windows
-Please install scoop(https://scoop.sh) first.
-
-Using Windows Powershell
+Please install scoop(https://scoop.sh) first, using Windows Powershell:
 ```
 scoop install ffmpeg imagemagick python
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
