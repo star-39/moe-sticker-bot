@@ -64,7 +64,7 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
   下載Telegram的貼圖包.(webp png)
   Telegramステッカーセットをダウンロード(webp png)
 </code>
-<b>/create_sticker_set  /manage_sticker_set</b><code>
+<b>/create_sticker_set</b><code>
   創建新的Telegram的貼圖包.
   Telegramステッカーセットの新規作成
 </code>

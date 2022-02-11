@@ -694,6 +694,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if update.message.document.file_size > 50 * 1024 * 1024:
             update.effective_chat.send_message(
                 reply_to_message_id=update.message.message_id, text="file too big! skipping this one.")
+        # workaround for supporting AVIF, works with IM only.
         if update.message.document.mime_type.startswith("image") or update.message.document.file_name.lower().endswith(".avif"):
             # ImageMagick and ffmpeg are smart enough to recognize actual image format.
             update.message.document.get_file().download(media_file_path)
