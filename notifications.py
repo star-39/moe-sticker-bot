@@ -170,39 +170,34 @@ def edit_message_progress(message_progress: Message, current, total):
     progress_75 = '[==============>     ]'
     progress_100 = '[====================]'
     try:
-        message_header = message_progress.text_html[:message_progress.text.index('--------------------')+20] + "\n\n"
+        message_header = message_progress.text_html[:message_progress.text_html.rfind('<code>')]
         if current == 1:
-            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
-                                                      "<code>" + progress_1 + "</code>\n"
+            message_progress.edit_text(message_header + "<code>" + progress_1 + "</code>\n"
                                                       "<code>       " +
                                                       str(current) + " of " +
                                                       str(total) +
                                                       "     </code>",
                                                       parse_mode="HTML")
         if current == int(0.25 * total):
-            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
-                                       "<code>" + progress_25 + "</code>\n"
+            message_progress.edit_text(message_header + "<code>" + progress_25 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == int(0.5 * total):
-            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
-                                       "<code>" + progress_50 + "</code>\n"
+            message_progress.edit_text(message_header + "<code>" + progress_50 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == int(0.75 * total):
-            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
-                                       "<code>" + progress_75 + "</code>\n"
+            message_progress.edit_text(message_header + "<code>" + progress_75 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
         if current == total:
-            message_progress.edit_text(message_header + "<b>Current Status 當前進度</b>\n"
-                                       "<code>" + progress_100 + "</code>\n"
+            message_progress.edit_text(message_header + "<code>" + progress_100 + "</code>\n"
                                        "<code>       " +
                                        str(current) + " of " +
                                        str(total) + "     </code>",
