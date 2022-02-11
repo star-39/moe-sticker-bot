@@ -36,7 +36,7 @@ from notifications import *
 from helper import *
 
 
-BOT_VERSION = "4.0 ALPHA-5"
+BOT_VERSION = "4.0 ALPHA-6"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
@@ -181,7 +181,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
         for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):
             os.remove(f)
         # standard static line stickers.
-        if ctx.user_data['line_sticker_type'] == LINE_STICKER_STATIC:
+        if ctx.user_data['line_sticker_type'] == LINE_STICKER_STATIC or ctx.user_data['line_sticker_type'] == LINE_EMOJI_STATIC:
             # Resize to fulfill telegram's requirement, AR is automatically retained
             # Lanczos resizing produces much sharper image.
             for f in glob.glob(os.path.join(work_dir, "*")):
@@ -193,8 +193,10 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
                 work_dir = os.path.join(work_dir, "animation@2x")
             elif ctx.user_data['line_sticker_type'] == LINE_STICKER_EFFECT_ANIMATION:
                 for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
+                    # workaround for sticker orders.
                     shutil.move(f, os.path.join(work_dir, os.path.basename(
                         f)[:os.path.basename(f).index('.png')] + '@99x.png'))
+            # LINE_EMOJI_ANIMATION
             else:
                 pass
             for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
