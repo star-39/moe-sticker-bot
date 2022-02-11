@@ -67,6 +67,11 @@ $ENV:BOT_TOKEN=your_bot_token ; python main.py
 
 
 ## CHANGELOG
+5.0 RC-3 (20220212)
+  * Fix a bug where creating sticker set with one sticker will cause fatal error.
+  * Fix missing clean_userdata in /download_line_sticker
+  * Tune VP9 params to avoid hitting 256K limit. This reduces video quality by a bit.
+  
 5.0 RC-2 (20220211)
   * Fix media_group
   * Minor bug fixes.
