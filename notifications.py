@@ -391,14 +391,25 @@ def print_ask_user_sticker(update: Update, ctx: CallbackContext):
                                            parse_mode="HTML",
                                            reply_markup=reply_kb_DONE)
     else:
-        update.effective_chat.send_message("Please send images/photos/stickers(less than 120 in total),\n"
+        update.effective_chat.send_message("Please send images/photos/stickers(less than 120 in total)(don't group items),\n"
                                            "or send an archive containing image files,\n"
                                            "wait until upload complete, then send <code>done</code>\n\n"
-                                           "請傳送任意格式的圖片/照片/貼圖(少於120張)\n"
+                                           "請傳送任意格式的圖片/照片/貼圖(少於120張)(不要合併成組)\n"
                                            "或者傳送內有貼圖檔案的歸檔,"
                                            "請等候所有檔案上載完成, 然後傳送<code>done</code>\n",
                                            parse_mode="HTML",
                                            reply_markup=reply_kb_DONE)
+
+
+def print_do_not_send_media_group(update: Update, ctx: CallbackContext):
+    update.effective_chat.send_message("Please do not group media files,\n"
+                                        "send files separately. \n"
+                                        "skipping this one... Please try again.\n\n"
+                                        "請不要合併成組傳送(group items),\n"
+                                        "請分開傳送這些檔案."
+                                        "已略去這個組訊息, 請再試一次.\n",
+                                        parse_mode="HTML",
+                                        reply_markup=reply_kb_DONE)
 
 
 def print_command_done(update, ctx):
@@ -408,7 +419,7 @@ def print_command_done(update, ctx):
 
 def print_in_conv_warning(update, ctx):
     if 'in_command' in ctx.user_data:
-        update.effective_chat.send_message("Oops, please follow the bot's instructions.\n"
+        update.effective_chat.send_message("Oops, please follow the bot's instructions to send messages.\n"
                                            "If you encountered a problem, try to send /cancel and start over.\n"
                                            "請跟隨bot的提示傳送相應的訊息喔."
                                            "如果您遇到了問題, 請傳送 /cancel 來試試重新開始.")
