@@ -5,10 +5,7 @@ Telegram用萌萌貼圖BOT, 可以從LINE Store匯入貼圖包到Telegram, 可�
 
 Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
 
-![](https://user-images.githubusercontent.com/75669297/147678436-10bb9169-efad-4da8-acb5-9996edc78364.png)
-
-Now supports video sticker! 現已支援動態貼圖! アニメーションスタンプ対応！
-
+![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png)
 
 ## Deployment
 ### Deploy with pre-built containers
@@ -69,6 +66,7 @@ BOT_TOKEN=your_bot_token python3 main.py
   * Many bug fixes.
 
 5.0 ALPHA-1 (20220211)
+  * Full support of animated(video) sticker. 完整支援動態貼圖. アニメーションスタンプフル対応。
   * New feature: /manage_sticker_set, now you can add, delete, move sticker in a sticker set.
   * Add support for Line full screen sticker(animated).
 
