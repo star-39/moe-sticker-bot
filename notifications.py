@@ -270,7 +270,7 @@ def print_ask_which_to_move(update: Update):
 def print_ask_where_to_move(update: Update):
     update.effective_chat.send_message(
         "Where do you want to move this sticker to?\n"
-        "Please send the sticker that you are inserting the previous sticker to."
+        "Send a sticker, then the previous sticker will be inserted to that position.\n"
         "您想要把貼圖移動到哪裡?\n"
         "請傳送一個貼圖, 原先的貼圖便會插入到那個位置上."
     )
@@ -384,18 +384,19 @@ def print_suggest_download(update):
 def print_ask_user_sticker(update: Update, ctx: CallbackContext):
     if ctx.user_data['telegram_sticker_is_animated'] is True:
         update.effective_chat.send_message("Please send videos/stickers(less than 120 in total),\n"
-                                           "then send <code>done</code>\n"
+                                           "wait until upload complete, then send <code>done</code>\n"
                                            "Video can be in any format, should shorter than 3 seconds.\n\n"
                                            "請傳送任意格式的短片(視訊)(少於120張), 時長應短於3秒鐘\n"
-                                           "然後傳送<code>done</code>\n",
+                                           "請等候所有檔案上載完成, 然後傳送<code>done</code>\n",
                                            parse_mode="HTML",
                                            reply_markup=reply_kb_DONE)
     else:
         update.effective_chat.send_message("Please send images/photos/stickers(less than 120 in total),\n"
-                                           "then send <code>done</code>\n"
-                                           "Image can be in any format.\n\n"
-                                           "請傳送任意格式的圖片/照片/貼圖(少於120張),\n"
-                                           "然後傳送<code>done</code>\n",
+                                           "or send an archive containing image files,\n"
+                                           "wait until upload complete, then send <code>done</code>\n\n"
+                                           "請傳送任意格式的圖片/照片/貼圖(少於120張)\n"
+                                           "或者傳送內有貼圖檔案的歸檔,"
+                                           "請等候所有檔案上載完成, 然後傳送<code>done</code>\n",
                                            parse_mode="HTML",
                                            reply_markup=reply_kb_DONE)
 
