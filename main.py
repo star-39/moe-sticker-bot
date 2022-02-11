@@ -453,6 +453,7 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         return TITLE
     elif str(ctx.user_data['in_command']).startswith("/download_line_sticker"):
         update.message.reply_text(ctx.user_data['line_sticker_download_url'])
+        clean_userdata(update, ctx)
         return ConversationHandler.END
     else:
         pass
