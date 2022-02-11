@@ -53,20 +53,24 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 こんにちは！萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
 
 <b>/import_line_sticker</b><code>
-  從LINE STORE將貼圖包匯入至Telegram
-  LINE STOREからスタンプをTelegramにインポート
+  從LINE Store將貼圖包匯入至Telegram
+  LINE StoreからスタンプをTelegramにインポート
 </code>
 <b>/download_line_sticker</b><code>
-  從LINE STORE下載貼圖包
-  LINE STOREからスタンプをダウンロード
+  從LINE Store下載貼圖包
+  LINE Storeからスタンプをダウンロード
 </code>
 <b>/download_telegram_sticker</b><code>
   下載Telegram的貼圖包.(webp png)
   Telegramステッカーセットをダウンロード(webp png)
 </code>
 <b>/create_sticker_set  /manage_sticker_set</b><code>
-  創建新的Telegram的貼圖包或新增貼圖.
-  Telegramステッカーセットの管理
+  創建新的Telegram的貼圖包.
+  Telegramステッカーセットの新規作成
+</code>
+<b>/manage_sticker_set</b><code>
+  管理Telegram貼圖包(增添/刪除/排序).
+  Telegramステッカーセットの管理(追加/削除/順番)
 </code>
 <b>/faq  /about</b><code>
    常見問題/關於. よくある質問/について
