@@ -121,7 +121,7 @@ def prepare_user_sticker_files(update: Update, ctx, want_animated):
         ret = subprocess.run(['bsdtar', '-xf', archive_path, '-C', work_dir], capture_output=True)
         if ret.returncode != 0:
             raise Exception("Unable to extract image from archive!")
-        os.remove(archive_path, ignore_errors=True)
+        os.remove(archive_path)
         for f in glob.glob(os.path.join(work_dir, "**"), recursive=True):
             if os.path.isfile(f):
                 shutil.move(f, f + ".media")
