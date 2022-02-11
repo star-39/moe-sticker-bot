@@ -395,7 +395,7 @@ def print_ask_user_sticker(update: Update, ctx: CallbackContext):
                                            "or send an archive containing image files,\n"
                                            "wait until upload complete, then send <code>done</code>\n\n"
                                            "請傳送任意格式的圖片/照片/貼圖(少於120張)(不要合併成組)\n"
-                                           "或者傳送內有貼圖檔案的歸檔,"
+                                           "或者傳送內有貼圖檔案的歸檔,\n"
                                            "請等候所有檔案上載完成, 然後傳送<code>done</code>\n",
                                            parse_mode="HTML",
                                            reply_markup=reply_kb_DONE)
@@ -406,7 +406,7 @@ def print_do_not_send_media_group(update: Update, ctx: CallbackContext):
                                         "send files separately. \n"
                                         "Skipping this one... Please try again.\n\n"
                                         "請不要合併成組傳送(group items),\n"
-                                        "請分開傳送這些檔案."
+                                        "請分開傳送這些檔案.\n"
                                         "已略去這個組訊息, 請再試一次.\n",
                                         reply_to_message_id=update.message.message_id,
                                         reply_markup=reply_kb_DONE)
