@@ -358,7 +358,7 @@ def parse_id(update: Update, ctx: CallbackContext) -> int:
                 m = m.split('/')[-1]
             ctx.user_data['telegram_sticker_id'] = m
         if not ctx.user_data['telegram_sticker_id'].endswith(BOT_NAME):
-            print_wrong_id_syntax(update)
+            update.effective_chat.send_message("set not created by this bot! Try another one.")
             return ID
         try:
             sticker_set = ctx.bot.get_sticker_set(
@@ -694,7 +694,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if update.message.document.file_size > 50 * 1024 * 1024:
             update.effective_chat.send_message(
                 reply_to_message_id=update.message.message_id, text="file too big! skipping this one.")
-        if update.message.document.mime_type.startswith("image"):
+        if update.message.document.mime_type.startswith("image") or update.message.document.file_name.lower().endswith(".avif"):
             # ImageMagick and ffmpeg are smart enough to recognize actual image format.
             update.message.document.get_file().download(media_file_path)
             ctx.user_data['user_sticker_files'].append(media_file_path)
@@ -704,7 +704,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             # libarchive is smart enough to recognize actual archive format.
             if len(ctx.user_data['user_sticker_files']) > 0:
                 update.message.reply_text(
-                    "Do not send archive after sending images!")
+                    "Do not send archive after sending images! skipping...")
                 return USER_STICKER
             archive_file_path = media_file_path.replace(".media", ".archive")
             update.message.document.get_file().download(archive_file_path)

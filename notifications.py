@@ -130,8 +130,8 @@ A:  The sticker set is multilingual, you should paste LINE store link with langu
 <b>
 Q:  Can I add video sticker to static sticker set or vice versa?
     我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
-A:  Of course you can! You video will be static in static set,
-    and your static sticker will remain static in video set.
+A:  Of course you can! Video will be static in static set
+    and static sticker will remain static in video set.
     當然可以! 動態貼圖在靜態貼圖包裡會變成靜態, 靜態貼圖在動態貼圖包裡依然會是靜態.
 <b>
 Q:  Who owns the sticker sets the bot created?
@@ -157,9 +157,8 @@ def print_import_processing(update: Update, ctx):
                                                   f"LINE ID: {ctx.user_data['line_sticker_id']}\n"
                                                   f"TG ID: {ctx.user_data['telegram_sticker_id']}\n"
                                                   f"TG TITLE: {ctx.user_data['telegram_sticker_title']}\n"
-                                                  f"TG LINK: </code>https://t.me/addstickers/{ctx.user_data['telegram_sticker_id']}\n"
-                                                  "--------------------\n"
-                                                  "<b>Progress / 當前進度</b>\n"
+                                                  f"TG LINK: </code>https://t.me/addstickers/{ctx.user_data['telegram_sticker_id']}\n\n"
+                                                  "<b>Progress / 進度</b>\n"
                                                   "<code>Preparing stickers...</code>\n",
                                                   parse_mode="HTML")
     except:
