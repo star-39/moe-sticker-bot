@@ -688,7 +688,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         work_dir, secrets.token_hex(nbytes=4) + ".media")
     if update.message.document is not None:
         if update.message.media_group_id is not None:
-            update.effective_chat.send_message("do not group media files! 請分開傳送不要合組! skipping this...")
+            print_do_not_send_media_group(update, ctx)
             return USER_STICKER
         # Uncompressed image.
         if update.message.document.file_size > 50 * 1024 * 1024:
@@ -718,6 +718,9 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         #     return USER_STICKER
     # Compressed image.
     elif len(update.message.photo) > 0:
+        if update.message.media_group_id is not None:
+            print_do_not_send_media_group(update, ctx)
+            return USER_STICKER
         update.message.photo[-1].get_file().download(media_file_path)
         ctx.user_data['user_sticker_files'].append(media_file_path)
         return USER_STICKER

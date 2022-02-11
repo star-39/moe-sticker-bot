@@ -404,11 +404,11 @@ def print_ask_user_sticker(update: Update, ctx: CallbackContext):
 def print_do_not_send_media_group(update: Update, ctx: CallbackContext):
     update.effective_chat.send_message("Please do not group media files,\n"
                                         "send files separately. \n"
-                                        "skipping this one... Please try again.\n\n"
+                                        "Skipping this one... Please try again.\n\n"
                                         "請不要合併成組傳送(group items),\n"
                                         "請分開傳送這些檔案."
                                         "已略去這個組訊息, 請再試一次.\n",
-                                        parse_mode="HTML",
+                                        reply_to_message_id=update.message.message_id,
                                         reply_markup=reply_kb_DONE)
 
 
@@ -464,8 +464,8 @@ def print_command_canceled(update):
 
 
 def print_no_user_sticker_received(update):
-    update.effective_chat.send_message('Please send photos/images/stickers/archive first, then send "done" to continue\n'
-                                       '請傳送圖片/照片/貼圖/歸檔後, 再傳送"done"來繼續.', reply_markup=reply_kb_DONE)
+    update.effective_chat.send_message('Please send photos/images/stickers/videos/archive first, then send "done" to continue\n'
+                                       '請先傳送圖片/照片/貼圖/短片/歸檔後, 再傳送"done"來繼續.', reply_markup=reply_kb_DONE)
 
 
 def print_user_sticker_done(update, ctx):
