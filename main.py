@@ -593,13 +593,16 @@ def command_alsi(update: Update, ctx: CallbackContext) -> int:
 
 
 # GET_TG_STICKER
-def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
+def get_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     sticker_set = ctx.bot.get_sticker_set(name=update.message.sticker.set_name)
-    print_preparing_tg_sticker(
-        update, sticker_set.title, sticker_set.name, str(len(sticker_set.stickers)))
+    ctx.user_data['telegram_sticker_id'] = sticker_set.name
+    ctx.user_data['telegram_sticker_title'] = sticker_set.title
     sticker_dir = os.path.join(
         DATA_DIR, str(update.effective_user.id), sticker_set.name)
     os.makedirs(sticker_dir, exist_ok=True)
+
+    message_progress = print_import_processing(update, ctx)
+
     if sticker_set.is_animated:
         sticker_suffix = ".tgs"
     elif sticker_set.is_video:
@@ -609,6 +612,7 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
 
     for index, sticker in enumerate(sticker_set.stickers):
         try:
+            edit_message_progress(message_progress, index+1, len(sticker_set.stickers))
             ctx.bot.get_file(sticker.file_id).download(os.path.join(sticker_dir,
                                                                     sticker.set_name +
                                                                     "_" + str(index).zfill(3) + "_" +
@@ -849,7 +853,7 @@ def main() -> None:
         entry_points=[CommandHandler(
             'download_telegram_sticker', command_download_telegram_sticker)],
         states={
-            GET_TG_STICKER: [MessageHandler(Filters.sticker, prepare_tg_sticker)],
+            GET_TG_STICKER: [MessageHandler(Filters.sticker, get_tg_sticker)],
             ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
