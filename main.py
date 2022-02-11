@@ -117,6 +117,15 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
 
 def prepare_user_sticker_files(update: Update, ctx, want_animated):
     images_path = []
+    # User sent sticker archive
+    if ctx.user_data['user_sticker_archive']:
+        archive_path = ctx.user_data['user_sticker_archive']
+        work_dir = os.path.dirname(archive_path)
+        subprocess.run(['bsdtar', '-xf', archive_path, '-C', work_dir])
+        for f in glob.glob(os.path.join(work_dir, "**"), recursive=True):
+            if os.path.isfile(f):
+                ctx.user_data['user_sticker_files'].append(f + ".media")
+
     # animated, convert to WEBM VP9
     if want_animated:
         for f in ctx.user_data['user_sticker_files']:
@@ -668,8 +677,13 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
     media_file_path = os.path.join(
         work_dir, secrets.token_hex(nbytes=4) + ".media")
     if update.message.document is not None:
+        if update.message.media_group_id is not None:
+            update.effective_chat.send_message("do not group media files! skipping this...")
+            return USER_STICKER
+        print(update.message.document.mime_type)
+        ctx.bot.get_file()
         # Uncompressed image.
-        if update.message.document.file_size > 10 * 1024 * 1024:
+        if update.message.document.file_size > 50 * 1024 * 1024:
             update.effective_chat.send_message(
                 reply_to_message_id=update.message.message_id, text="file too big! skipping this one.")
         if update.message.document.mime_type.startswith("image"):
@@ -677,10 +691,22 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             update.message.document.get_file().download(media_file_path)
             ctx.user_data['user_sticker_files'].append(media_file_path)
             return USER_STICKER
+        # Probably an archive.
         else:
-            update.effective_chat.send_message(
-                reply_to_message_id=update.message.message_id, text="Unable to process this file.")
-            return USER_STICKER
+            # libarchive is smart enough to recognize actual archive format.
+            if len(ctx.user_data['user_sticker_files']) > 0:
+                update.message.reply_text(
+                    "Do not send archive after sending images!")
+                return USER_STICKER
+            archive_file_path = media_file_path.replace(".media", ".archive")
+            update.message.document.get_file().download(archive_file_path)
+            ctx.user_data['user_sticker_archive'] = archive_file_path
+            print_ask_emoji(update)
+            return EMOJI
+        # else:
+        #     update.effective_chat.send_message(
+        #         reply_to_message_id=update.message.message_id, text="Unable to process this file.")
+        #     return USER_STICKER
     # Compressed image.
     elif len(update.message.photo) > 0:
         update.message.photo[-1].get_file().download(media_file_path)
@@ -789,8 +815,6 @@ def parse_edit_set(update: Update, ctx: CallbackContext):
             try:
                 sticker_set = ctx.bot.get_sticker_set(s.set_name)
                 dest = sticker_set.stickers.index(s)
-                #debug
-                print(str(dest))
                 ctx.bot.set_sticker_position_in_set(ctx.user_data['telegram_sticker_edit_mov_prev'].file_id, dest)
             except Exception as e:
                 update.effective_chat.send_message("Failed to move! Try again.\n" + str(e))
