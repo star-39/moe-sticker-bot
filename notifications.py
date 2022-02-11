@@ -37,6 +37,10 @@ inline_kb_MANUAL_SELECTED = InlineKeyboardMarkup(
     [[InlineKeyboardButton("Manual selected/已選手動", callback_data="none")]])
 inline_kb_RANDOM_SELECTED = InlineKeyboardMarkup(
     [[InlineKeyboardButton("Random selected/已選隨機", callback_data="none")]])
+inline_kb_MANAGE_SET = InlineKeyboardMarkup([
+    [InlineKeyboardButton("Add sticker/增添貼圖", callback_data="add")],
+    [InlineKeyboardButton("Delete sticker/刪除貼圖", callback_data="del")],
+    [InlineKeyboardButton("Change order/調整順序", callback_data="mov")]])
 
 reply_kb_DONE = ReplyKeyboardMarkup([['done']], one_time_keyboard=True)
 
@@ -60,9 +64,9 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
   下載Telegram的貼圖包.(webp png)
   Telegramステッカーセットをダウンロード(webp png)
 </code>
-<b>/create_sticker_set  /add_sticker_to_set</b><code>
+<b>/create_sticker_set  /manage_sticker_set</b><code>
   創建新的Telegram的貼圖包或新增貼圖.
-  Telegramステッカーセット新規作成または追加
+  Telegramステッカーセットの管理
 </code>
 <b>/faq  /about</b><code>
    常見問題/關於. よくある質問/について
@@ -146,38 +150,38 @@ A:  The bot might encountered an error, please try sending /cancel
 def print_import_processing(update: Update, ctx):
     try:
         return update.effective_chat.send_message("Preparing stickers, please wait...\n"
-                                           "正在準備貼圖, 請稍後...\n"
-                                           "作業が開始しています、少々お時間を...\n\n"
-                                           "<code>"
-                                           f"LINE TYPE: {ctx.user_data['line_sticker_type']}\n"
-                                           f"LINE ID: {ctx.user_data['line_sticker_id']}\n"
-                                           f"TG ID: {ctx.user_data['telegram_sticker_id']}\n"
-                                           f"TG TITLE: {ctx.user_data['telegram_sticker_title']}"
-                                           "</code>"
-                                           "\n\n--------------------\n\n"
-                                           "<b>Progress / 當前進度</b>\n"
-                                           "<code>Preparing stickers...</code>\n"
-                                           ,
-                                           parse_mode="HTML")
+                                                  "正在準備貼圖, 請稍後...\n"
+                                                  "作業が開始しています、少々お時間を...\n\n"
+                                                  "<code>"
+                                                  f"LINE TYPE: {ctx.user_data['line_sticker_type']}\n"
+                                                  f"LINE ID: {ctx.user_data['line_sticker_id']}\n"
+                                                  f"TG ID: {ctx.user_data['telegram_sticker_id']}\n"
+                                                  f"TG TITLE: {ctx.user_data['telegram_sticker_title']}"
+                                                  "</code>"
+                                                  "\n\n--------------------\n\n"
+                                                  "<b>Progress / 當前進度</b>\n"
+                                                  "<code>Preparing stickers...</code>\n",
+                                                  parse_mode="HTML")
     except:
         pass
 
 
-def edit_message_progress(message_progress: Message, current, total):
+def edit_message_progress(message_progress: Message, ctx: CallbackContext, current, total):
     progress_1 = '[=>                  ]'
     progress_25 = '[====>               ]'
     progress_50 = '[=========>          ]'
     progress_75 = '[==============>     ]'
     progress_100 = '[====================]'
     try:
-        message_header = message_progress.text_html[:message_progress.text_html.rfind('<code>')]
+        message_header = message_progress.text_html[:message_progress.text_html.rfind(
+            '<code>')]
         if current == 1:
             message_progress.edit_text(message_header + "<code>" + progress_1 + "</code>\n"
-                                                      "<code>       " +
-                                                      str(current) + " of " +
-                                                      str(total) +
-                                                      "     </code>",
-                                                      parse_mode="HTML")
+                                       "<code>       " +
+                                       str(current) + " of " +
+                                       str(total) +
+                                       "     </code>",
+                                       parse_mode="HTML")
         if current == int(0.25 * total):
             message_progress.edit_text(message_header + "<code>" + progress_25 + "</code>\n"
                                        "<code>       " +
@@ -202,6 +206,14 @@ def edit_message_progress(message_progress: Message, current, total):
                                        str(current) + " of " +
                                        str(total) + "     </code>",
                                        parse_mode="HTML")
+        if current > total:
+            message_progress.edit_text(message_header + "\n"
+                                       "√ " +
+                                       ctx.user_data['in_command'] +
+                                       " " + "/start"
+                                       "\nCommand success. 成功完成指令.",
+                                       parse_mode="HTML")
+
     except:
         print(traceback.format_exc())
 
@@ -227,10 +239,39 @@ def print_ask_id(update: Update):
 
 def print_ask_sticker_set(update):
     update.effective_chat.send_message(
-        "Send a sticker from the sticker set that you are adding to,\n"
+        "Send a sticker from the sticker set that want to edit,\n"
         "or send its share link or ID.\n\n"
-        "您想要往哪個貼圖包新增這些貼圖? 請傳送那個貼圖包內任意一張貼圖,\n"
+        "您想要修改哪個貼圖包? 請傳送那個貼圖包內任意一張貼圖,\n"
         "或者是它的分享連結或ID.")
+
+
+def print_ask_what_to_edit(update: Update):
+    update.effective_chat.send_message(
+        "What do you want to edit? Please select below:\n"
+        "您想要修改貼圖包的甚麼內容? 請選擇:",
+        reply_markup=inline_kb_MANAGE_SET
+        )
+
+def print_ask_which_to_delete(update: Update):
+    update.effective_chat.send_message(
+        "Which sticker do you want to delete? Please send it.\n"
+        "您想要刪除哪一個貼圖? 請傳送那個貼圖"
+    )
+
+
+def print_ask_which_to_move(update: Update):
+    update.effective_chat.send_message(
+        "Please send the sticker that you want to move.\n"
+        "請傳送您想要移動位置的那個貼圖."
+    )
+
+def print_ask_where_to_move(update: Update):
+    update.effective_chat.send_message(
+        "Where do you want to move this sticker to?\n"
+        "Please send the sticker that you are inserting the previous sticker to."
+        "您想要把貼圖移動到哪裡?\n"
+        "請傳送一個貼圖, 然後原先的貼圖便會插入到那個位置上."
+    )
 
 
 def print_wrong_id_syntax(update):
@@ -365,8 +406,8 @@ def print_command_done(update, ctx):
 def print_in_conv_warning(update, ctx):
     if 'in_command' in ctx.user_data:
         update.effective_chat.send_message("You are already in command : " + str(ctx.user_data['in_command']).removeprefix("/") + "\n\n"
-                                        "If you encountered a problem, please send /cancel and start over.\n"
-                                        "如果您遇到了問題, 請傳送 /cancel 來試試重新開始.")
+                                           "If you encountered a problem, please send /cancel and start over.\n"
+                                           "如果您遇到了問題, 請傳送 /cancel 來試試重新開始.")
 
 
 def print_ask_telegram_sticker(update):

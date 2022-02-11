@@ -58,21 +58,24 @@ BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 ## CHANGELOG
-* 4.0 ALPHA-5 (20220210)
+5.0 ALPHA-1 (20220211)
+  * New feature: /manage_sticker_set, now you can add, delete, move sticker in a sticker set.
+  * Add support for Line full screen sticker(animated).
 
-  Bring back fake RetryAfter check since some people still have this issue.
-* 4.0 ALPHA-4 (20220210)
+4.0 ALPHA-5 (20220210)
+  * Bring back fake RetryAfter check since some people still having this issue.
 
-  Support user uploaded animated(video) stickers. You can both create or add to set.
-  Better support sticon(line_emoji)
-  Bug fixes.
-* 4.0 ALPHA-3 (20220209)
+4.0 ALPHA-4 (20220210)
+  * Support user uploaded animated(video) stickers. You can both create or add to set.
+  * Better support sticon(line_emoji)
+  * Bug fixes.
 
-  Supports all special line stickers,
-  including effect_animation and sticon(emoji)
-* 4.0 ALPHA-1 (20220209)
+4.0 ALPHA-3 (20220209)
+  * Supports all special line stickers,
+  * including effect_animation and sticon(emoji)
 
-  Supports animated line sticker import.
+4.0 ALPHA-1 (20220209)
+  * Supports animated line sticker import.
 
 
 ## Known issue
