@@ -55,6 +55,12 @@ LINE_EMOJI_STATIC = "line_e"
 LINE_EMOJI_ANIMATION = "line_e_ani"
 LINE_STICKER_MESSAGE = "line_s_msg"
 
+FFMPEG_BIN = get_ffmpeg_bin()
+MOGRIFY_BIN = get_mogrify_bin()
+CONVERT_BIN = get_convert_bin()
+BSDTAR_BIN = get_bsdtar_bin()
+
+
 
 def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
     message_progress = print_import_processing(update, ctx)
@@ -118,7 +124,7 @@ def prepare_user_sticker_files(update: Update, ctx, want_animated):
     if want_animated:
         for f in ctx.user_data['user_sticker_files']:
             if f.endswith('.media'):
-                ret = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", f,
+                ret = subprocess.run(FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                       "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                       "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
                                       "-to", "00:00:02.800", "-an",
@@ -136,7 +142,7 @@ def prepare_user_sticker_files(update: Update, ctx, want_animated):
     else:
         for f in ctx.user_data['user_sticker_files']:
             if f.endswith('.media'):
-                ret = subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
+                ret = subprocess.run(MOGRIFY_BIN + ["-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                       "-format", "webp", "-define", "webp:lossless=true", f + "[0]"], capture_output=True)
                 if ret.returncode == 0:
                     images_path.append(f.replace('.media', '.webp'))
@@ -167,7 +173,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
                     ["curl", "-Lo", f"{work_dir}{image_id}.base.png", base_image])
                 subprocess.run(
                     ["curl", "-Lo", f"{work_dir}{image_id}.overlay.png", overlay_image])
-                subprocess.run(["convert", f"{work_dir}{image_id}.base.png", f"{work_dir}{image_id}.overlay.png",
+                subprocess.run(CONVERT_BIN + [f"{work_dir}{image_id}.base.png", f"{work_dir}{image_id}.overlay.png",
                                 "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
                                 "-define", "webp:lossless=true",
                                 f"{work_dir}{image_id}.webp"])
@@ -177,7 +183,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
             work_dir, ctx.user_data['line_sticker_id'] + ".zip")
         subprocess.run(["curl", "-Lo", zip_file_path,
                         ctx.user_data['line_sticker_download_url']])
-        subprocess.run(["bsdtar", "-xf", zip_file_path, "-C", work_dir])
+        subprocess.run(BSDTAR_BIN + ["-xf", zip_file_path, "-C", work_dir])
         for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):
             os.remove(f)
         # standard static line stickers.
@@ -185,7 +191,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
             # Resize to fulfill telegram's requirement, AR is automatically retained
             # Lanczos resizing produces much sharper image.
             for f in glob.glob(os.path.join(work_dir, "*")):
-                subprocess.run(["mogrify", "-background", "none", "-filter", "Lanczos", "-resize", "512x512",
+                subprocess.run(MOGRIFY_BIN + ["-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                 "-format", "webp", "-define", "webp:lossless=true", f])
         # is animated line stickers/emojis.
         else:
@@ -200,7 +206,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
             else:
                 pass
             for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
-                subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", f,
+                subprocess.run(FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                 "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                 "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
                                 "-to", "00:00:02.800", "-an",
@@ -618,19 +624,19 @@ def prepare_tg_sticker(update: Update, ctx: CallbackContext) -> int:
     png_zip = os.path.join(sticker_dir, sticker_set.name + "_png.zip")
     try:
         if sticker_set.is_animated:
-            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", tgs_zip] +
+            subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", tgs_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.tgs")))
             update.effective_chat.send_document(open(tgs_zip, 'rb'))
         elif sticker_set.is_video:
-            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", webm_zip] +
+            subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", webm_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.webm")))
             update.effective_chat.send_document(open(webm_zip, 'rb'))
         else:
-            subprocess.run(["mogrify", "-format", "png"] +
+            subprocess.run(MOGRIFY_BIN + ["-format", "png"] +
                            glob.glob(os.path.join(sticker_dir, "*.webp")))
-            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", png_zip] +
+            subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", png_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.png")))
-            subprocess.run(["bsdtar", "--strip-components", "3", "-acvf", webp_zip] +
+            subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", webp_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.webp")))
             update.effective_chat.send_document(open(webp_zip, 'rb'))
             update.effective_chat.send_document(open(png_zip, 'rb'))
@@ -789,7 +795,7 @@ def handle_timeout(update: Update, ctx: CallbackContext):
 
 
 def main() -> None:
-    from telegram.utils.request import Request
+    # from telegram.utils.request import Request
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 

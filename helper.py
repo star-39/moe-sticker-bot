@@ -6,6 +6,7 @@ import shutil
 import traceback
 import main
 import telegram.bot
+import platform
 from telegram.ext import messagequeue as mq
 from telegram import Update
 from telegram.ext import CallbackContext
@@ -31,6 +32,49 @@ from telegram.ext import CallbackContext
 #     def create_sticker_set(self, *args, **kwargs):
 #         return super(MQBot, self).create_sticker_set(*args, **kwargs)
 
+
+# Names of binaries that we depend on vary across different OSes.
+# To make the code truely cross-platform, this problem should be sloved in code,
+# but not in environment.
+def get_ffmpeg_bin():
+    b = ['ffmpeg']
+    if shutil.which(b[0]) is None:
+        raise Exception(b[0] + "not found! Exiting...")
+    else:
+        return b
+
+def get_mogrify_bin():
+    b = []
+    if platform.system() == "Linux":
+        b = ['mogrify']
+    else:
+        b = ['magick', 'mogrify']
+    if shutil.which(b[0]) is None:
+        raise Exception(b[0] + "not found! Exiting...")
+    else:
+        return b
+
+def get_convert_bin():
+    b = []
+    if platform.system() == "Linux":
+        b = ['convert']
+    else:
+        b = ['magick', 'convert']
+    if shutil.which(b[0]) is None:
+        raise Exception(b[0] + "not found! Exiting...")
+    else:
+        return b
+
+def get_bsdtar_bin():
+    b = []
+    if platform.system() == "Linux":
+        b = ['bsdtar']
+    else:
+        b = ['tar']
+    if shutil.which(b[0]) is None:
+        raise Exception(b[0] + "not found! Exiting...")
+    else:
+        return b
 
 # Uploading sticker could easily trigger Telegram's flood limit,
 # however, documentation never specified this limit,
