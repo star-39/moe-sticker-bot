@@ -58,6 +58,16 @@ BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 ## CHANGELOG
+5.0 RC-2 (20220211)
+  * Fix media_group
+  * Minor bug fixes.
+  * Version 5.0 now enters freature freeze. No new feature will be added. Will have bug fixes only.
+
+5.0 RC-1 (20220211)
+  * Support Line popup sticker without sound
+  * Support AVIF.
+  * Many bug fixes.
+
 5.0 ALPHA-1 (20220211)
   * New feature: /manage_sticker_set, now you can add, delete, move sticker in a sticker set.
   * Add support for Line full screen sticker(animated).
