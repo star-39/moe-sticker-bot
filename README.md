@@ -59,7 +59,7 @@ BOT_TOKEN=your_bot_token python3 main.py
 #### Windows
 Please install scoop(https://scoop.sh) first, using Windows Powershell:
 ```
-scoop install ffmpeg imagemagick python
+scoop install python3 ffmpeg imagemagick python
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 pip install -r requirements.txt
 $ENV:BOT_TOKEN=your_bot_token ; python main.py
