@@ -133,7 +133,7 @@ def prepare_user_sticker_files(update: Update, ctx, want_animated):
             if f.endswith('.media'):
                 ret = subprocess.run(FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                       "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-                                      "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
+                                      "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
                                       "-to", "00:00:02.800", "-an",
                                       f + '.webm'], capture_output=True)
                 # Skip errored conversion. Don't panic.
@@ -219,7 +219,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
             for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
                 subprocess.run(FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                 "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-                                "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
+                                "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
                                 "-to", "00:00:02.800", "-an",
                                 f + '.webm'])
 
