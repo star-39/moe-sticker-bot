@@ -209,8 +209,7 @@ def edit_message_progress(message_progress: Message, ctx: CallbackContext, curre
         if current > total:
             message_progress.edit_text(message_header + "\n"
                                        "√ " +
-                                       ctx.user_data['in_command'] +
-                                       " " + "/start"
+                                       ctx.user_data['in_command'] + "  /start"
                                        "\nCommand success. 成功完成指令.",
                                        parse_mode="HTML")
 
@@ -270,7 +269,7 @@ def print_ask_where_to_move(update: Update):
         "Where do you want to move this sticker to?\n"
         "Please send the sticker that you are inserting the previous sticker to."
         "您想要把貼圖移動到哪裡?\n"
-        "請傳送一個貼圖, 然後原先的貼圖便會插入到那個位置上."
+        "請傳送一個貼圖, 原先的貼圖便會插入到那個位置上."
     )
 
 
@@ -400,7 +399,7 @@ def print_ask_user_sticker(update: Update, ctx: CallbackContext):
 
 def print_command_done(update, ctx):
     update.effective_chat.send_message(
-        ctx.user_data['in_command'] + "\nCommand complete.\n該指令會話已完成\n\n/start.")
+        ctx.user_data['in_command'] + "  /start \nCommand success. 成功完成指令.")
 
 
 def print_in_conv_warning(update, ctx):

@@ -12,10 +12,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from codecs import ignore_errors
 import json
 import time
 # import logging
 from urllib.parse import urlparse
+from cv2 import trace
 # import telegram.error
 from telegram import Update, Bot
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
@@ -68,6 +70,9 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
     else:
         img_files_path = prepare_line_sticker_files(update, ctx)
 
+    if img_file_path is None:
+        raise("Unknown error!")
+
     if not ctx.user_data['in_command'].startswith("/manage_sticker_set"):
         # Create a new sticker set using the first image.
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
@@ -83,8 +88,7 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
                                                                   emojis=ctx.user_data['telegram_sticker_emoji'],
                                                                   png_sticker=get_png_sticker(img_files_path[0])), lambda: False)
         if err is not None:
-            print_fatal_error(update, str(err))
-            return
+            raise(err)
 
     for index, img_file_path in enumerate(img_files_path):
         edit_message_progress(message_progress, ctx, index + 1, len(img_files_path))
@@ -108,8 +112,7 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
                            lambda: (
                            index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
         if err is not None:
-            print_fatal_error(update, str(err))
-            return
+            raise(err)
     edit_message_progress(message_progress, ctx, 1, 0)
     print_sticker_done(update, ctx)
     # print_command_done(update, ctx)
@@ -121,9 +124,13 @@ def prepare_user_sticker_files(update: Update, ctx, want_animated):
     if ctx.user_data['user_sticker_archive']:
         archive_path = ctx.user_data['user_sticker_archive']
         work_dir = os.path.dirname(archive_path)
-        subprocess.run(['bsdtar', '-xf', archive_path, '-C', work_dir])
+        ret = subprocess.run(['bsdtar', '-xf', archive_path, '-C', work_dir], capture_output=True)
+        if ret.returncode != 0:
+            raise Exception("Unable to extract image from archive!")
+        os.remove(archive_path, ignore_errors=True)
         for f in glob.glob(os.path.join(work_dir, "**"), recursive=True):
             if os.path.isfile(f):
+                shutil.move(f, f + ".media")
                 ctx.user_data['user_sticker_files'].append(f + ".media")
 
     # animated, convert to WEBM VP9
@@ -136,7 +143,6 @@ def prepare_user_sticker_files(update: Update, ctx, want_animated):
                                       "-to", "00:00:02.800", "-an",
                                       f + '.webm'], capture_output=True)
                 # Skip errored conversion. Don't panic.
-                # That may ruin user experience.
                 if ret.returncode == 0:
                     images_path.append(f + '.webm')
                 else:
@@ -236,6 +242,8 @@ def initialize_manual_emoji(update: Update, ctx: CallbackContext):
     else:
         ctx.user_data['img_files_path'] = prepare_line_sticker_files(
             update, ctx)
+    if len(ctx.user_data['img_files_path']) == 0:
+        raise("Unknown error!")
     # This is the FIRST sticker.
     ctx.user_data['manual_emoji_index'] = 0
     print_ask_emoji_for_single_sticker(update, ctx)
@@ -421,10 +429,16 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
         return EMOJI
 
     if ctx.user_data['manual_emoji'] is True:
-        initialize_manual_emoji(update, ctx)
+        try:
+            initialize_manual_emoji(update, ctx)
+        except:
+            print_fatal_error(update, traceback.format_exc())
         return MANUAL_EMOJI
     else:
-        do_auto_create_sticker_set(update, ctx)
+        try:
+            do_auto_create_sticker_set(update, ctx)
+        except:
+            print_fatal_error(update, traceback.format_exc())
         clean_userdata(update, ctx)
         return ConversationHandler.END
 
@@ -603,7 +617,10 @@ def command_alsi(update: Update, ctx: CallbackContext) -> int:
         return MANUAL_EMOJI
     else:
         ctx.user_data['telegram_sticker_emoji'] = alsi_args.emoji
-        do_auto_create_sticker_set(update, ctx)
+        try:
+            do_auto_create_sticker_set(update, ctx)
+        except:
+            print_fatal_error(update, traceback.format_exc())
         return ConversationHandler.END
 
 
@@ -680,8 +697,6 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if update.message.media_group_id is not None:
             update.effective_chat.send_message("do not group media files! skipping this...")
             return USER_STICKER
-        print(update.message.document.mime_type)
-        ctx.bot.get_file()
         # Uncompressed image.
         if update.message.document.file_size > 50 * 1024 * 1024:
             update.effective_chat.send_message(
