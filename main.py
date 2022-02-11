@@ -47,7 +47,7 @@ GET_TG_STICKER, SELECT_TYPE, LINE_STICKER_INFO, TITLE, ID, EDIT_CHOICE, EDIT_SET
 # Line sticker types
 LINE_STICKER_STATIC = "line_s"
 LINE_STICKER_ANIMATION = "line_s_ani"
-LINE_STICKER_EFFECT_ANIMATION = "line_s_sfxani"
+LINE_STICKER_POPUP_ANIMATION = "line_s_popup_ani"
 LINE_EMOJI_STATIC = "line_e"
 LINE_EMOJI_ANIMATION = "line_e_ani"
 LINE_STICKER_MESSAGE = "line_s_msg"
@@ -58,7 +58,6 @@ CONVERT_BIN = get_convert_bin()
 BSDTAR_BIN = get_bsdtar_bin()
 
 
-
 def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
     message_progress = print_import_processing(update, ctx)
 
@@ -67,9 +66,6 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
             update, ctx, ctx.user_data['telegram_sticker_is_animated'])
     else:
         img_files_path = prepare_line_sticker_files(update, ctx)
-
-    if img_file_path is None:
-        raise("Unknown error!")
 
     if not ctx.user_data['in_command'].startswith("/manage_sticker_set"):
         # Create a new sticker set using the first image.
@@ -212,7 +208,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
         else:
             if ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
                 work_dir = os.path.join(work_dir, "animation@2x")
-            elif ctx.user_data['line_sticker_type'] == LINE_STICKER_EFFECT_ANIMATION:
+            elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP_ANIMATION:
                 for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
                     # workaround for sticker orders.
                     shutil.move(f, os.path.join(work_dir, os.path.basename(
@@ -222,7 +218,7 @@ def prepare_line_sticker_files(update: Update, ctx: CallbackContext):
                 pass
             for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
                 subprocess.run(FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
-                                "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos:unsharp", "-pix_fmt", "yuva420p",
+                                "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                 "-c:v", "libvpx-vp9", "-cpu-used", "3", "-minrate", "50k", "-b:v", "400k", "-maxrate", "500k",
                                 "-to", "00:00:02.800", "-an",
                                 f + '.webm'])
@@ -485,8 +481,8 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
         elif 'MdIcoMessageSticker_b' in webpage.text:
             t = LINE_STICKER_MESSAGE
             u = webpage.url
-        elif 'MdIcoEffectSoundSticker_b' in webpage.text:
-            t = LINE_STICKER_EFFECT_ANIMATION
+        elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoFlash_b' in webpage.text:
+            t = LINE_STICKER_POPUP_ANIMATION
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/stickerpack@2x.zip"
             is_animated = True
@@ -564,7 +560,6 @@ def initialize_user_data(update: Update, ctx):
     ctx.user_data['telegram_sticker_edit_mov_prev'] = None 
     ctx.user_data['telegram_sticker_edit_mov_dest'] = None
     ctx.user_data['user_sticker_archive'] = ""
-    ctx.user_data['user_sticker_count'] = 0
     ctx.user_data['user_sticker_files'] = []
 
 

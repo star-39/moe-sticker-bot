@@ -156,9 +156,9 @@ def print_import_processing(update: Update, ctx):
                                                   f"LINE TYPE: {ctx.user_data['line_sticker_type']}\n"
                                                   f"LINE ID: {ctx.user_data['line_sticker_id']}\n"
                                                   f"TG ID: {ctx.user_data['telegram_sticker_id']}\n"
-                                                  f"TG TITLE: {ctx.user_data['telegram_sticker_title']}"
-                                                  "</code>"
-                                                  "\n\n--------------------\n\n"
+                                                  f"TG TITLE: {ctx.user_data['telegram_sticker_title']}\n"
+                                                  f"TG LINK: </code>https://t.me/addstickers/{ctx.user_data['telegram_sticker_id']}\n"
+                                                  "--------------------\n"
                                                   "<b>Progress / 當前進度</b>\n"
                                                   "<code>Preparing stickers...</code>\n",
                                                   parse_mode="HTML")
