@@ -12,12 +12,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from codecs import ignore_errors
 import json
 import time
 # import logging
 from urllib.parse import urlparse
-from cv2 import trace
 # import telegram.error
 from telegram import Update, Bot
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
