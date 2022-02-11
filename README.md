@@ -39,20 +39,35 @@ This software supports all platforms python supports, including Linux, Windows a
 
 However, it's tested on Linux only.
 
-### Manual deployment on Linux
-For better performance, it's recommended to use my custom build of FFMpeg:
+### Manual deployment
+#### Linux/macOS
+For better performance on Linux, it's recommended to use my custom build of FFMpeg:
 
 https://github.com/star-39/ffmpeg-nano-static
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl ffmpeg
+dnf install git ImageMagick libwebp bsdtar curl ffmpeg python2
 # For Debian / Ubuntu etc.
-apt install git imagemagick libwebp6 libarchive-tools curl ffmpeg 
+apt install git imagemagick libwebp6 libarchive-tools curl ffmpeg python3
+# For macOS
+brew install git imagemagick ffmpeg curl python3
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 pip3 install -r requirements.txt
 BOT_TOKEN=your_bot_token python3 main.py
 ```
+
+#### Windows
+Please install scoop(https://scoop.sh) first.
+
+Using Windows Powershell
+```
+scoop install ffmpeg imagemagick python
+git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+pip install -r requirements.txt
+$ENV:BOT_TOKEN=your_bot_token ; python main.py
+```
+
 
 ## CHANGELOG
 5.0 RC-2 (20220211)
