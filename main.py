@@ -299,11 +299,11 @@ def manual_add_emoji(update: Update, ctx: CallbackContext) -> int:
             print_fatal_error(update, str(err))
             return ConversationHandler.END
 
-        if ctx.user_data['manual_emoji_index'] == len(ctx.user_data['img_files_path']) - 1:
-            print_sticker_done(update, ctx)
-            print_command_done(update, ctx)
-            clean_userdata(update, ctx)
-            return ConversationHandler.END
+    if ctx.user_data['manual_emoji_index'] == len(ctx.user_data['img_files_path']) - 1:
+        print_sticker_done(update, ctx)
+        print_command_done(update, ctx)
+        clean_userdata(update, ctx)
+        return ConversationHandler.END
 
     ctx.user_data['manual_emoji_index'] += 1
     print_ask_emoji_for_single_sticker(update, ctx)
