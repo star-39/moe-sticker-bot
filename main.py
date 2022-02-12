@@ -542,30 +542,6 @@ def command_get_animated_line_sticker(update: Update, ctx: CallbackContext):
     return LINE_STICKER_INFO
 
 
-def initialize_user_data(update: Update, ctx):
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
-    clean_userdata(update, ctx)
-    ctx.user_data['in_command'] = update.message.text.strip().split(' ')[0]
-    ctx.user_data['manual_emoji'] = False
-    ctx.user_data['line_sticker_url'] = ""
-    ctx.user_data['line_store_webpage'] = None
-    ctx.user_data['line_sticker_download_url'] = ""
-    ctx.user_data['line_sticker_type'] = None
-    ctx.user_data['line_sticker_is_animated'] = False
-    ctx.user_data['line_sticker_id'] = ""
-    ctx.user_data['telegram_sticker_emoji'] = ""
-    ctx.user_data['telegram_sticker_id'] = ""
-    ctx.user_data['telegram_sticker_title'] = ""
-    ctx.user_data['telegram_sticker_is_animated'] = False
-    ctx.user_data['telegram_sticker_edit_choice'] = ""
-    ctx.user_data['telegram_sticker_edit_mov_prev'] = None 
-    ctx.user_data['telegram_sticker_edit_mov_dest'] = None
-    ctx.user_data['user_sticker_archive'] = ""
-    ctx.user_data['user_sticker_files'] = []
-    ctx.user_data['user_sticker_download_queue'] = []
-
-
 def command_alsi(update: Update, ctx: CallbackContext) -> int:
     # if update.message.text.startswith("alsi"):
     alsi_parser = argparse.ArgumentParser(
