@@ -239,6 +239,12 @@ def print_ask_id(update: Update):
         reply_markup=inline_kb_AUTO)
 
 
+def print_file_too_big(update: Update):
+    update.effective_chat.send_message(
+        "This file is too big, skipping...\n",
+        "這個檔案太大了, 已略去...")
+
+
 def print_ask_sticker_set(update):
     update.effective_chat.send_message(
         "Send a sticker from the sticker set that want to edit,\n"

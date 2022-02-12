@@ -8,7 +8,7 @@ import main
 import telegram.bot
 import platform
 from telegram.ext import messagequeue as mq
-from telegram import Update
+from telegram import Update, File
 from telegram.ext import CallbackContext
 
 
@@ -117,6 +117,34 @@ def get_webm_sticker(f: str):
         return open(f, 'rb')
     else:
         return f
+
+
+def guess_file_is_archive(f: str):
+    archive_exts = ('.rar', '.7z', '.zip', '.tar', '.gz', '.bz2', '.zst', '.rar5')
+    if f.lower().endswith(archive_exts):
+        return True
+    else:
+        return False
+
+
+def queued_download(f: File, save_path: str, ctx: CallbackContext):
+    ctx.user_data['user_sticker_download_queue'].append(save_path)
+    f.download(save_path)
+    ctx.user_data['user_sticker_download_queue'].remove(save_path)
+
+
+def wait_download_queue(update, ctx):
+    if len(ctx.user_data['user_sticker_download_queue']) > 0:
+        for _ in range(12):
+            if len(ctx.user_data['user_sticker_download_queue']) == 0:
+                return
+            else:
+                time.sleep(5)
+    else:
+        return
+
+    update.effective_chat.send_message("unknown error! try sending done again or /cancel")
+    
 
 
 # Clean temparary user data after each conversasion.

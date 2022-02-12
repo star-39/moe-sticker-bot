@@ -52,6 +52,7 @@ LINE_EMOJI_STATIC = "line_e"
 LINE_EMOJI_ANIMATION = "line_e_ani"
 LINE_STICKER_MESSAGE = "line_s_msg"
 
+# Binary names for cross-platform purpose
 FFMPEG_BIN = get_ffmpeg_bin()
 MOGRIFY_BIN = get_mogrify_bin()
 CONVERT_BIN = get_convert_bin()
@@ -562,6 +563,7 @@ def initialize_user_data(update: Update, ctx):
     ctx.user_data['telegram_sticker_edit_mov_dest'] = None
     ctx.user_data['user_sticker_archive'] = ""
     ctx.user_data['user_sticker_files'] = []
+    ctx.user_data['user_sticker_download_queue'] = []
 
 
 def command_alsi(update: Update, ctx: CallbackContext) -> int:
@@ -691,55 +693,48 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if update.message.media_group_id is not None:
             print_do_not_send_media_group(update, ctx)
             return USER_STICKER
-        # Uncompressed image.
         if update.message.document.file_size > 50 * 1024 * 1024:
-            update.effective_chat.send_message(
-                reply_to_message_id=update.message.message_id, text="file too big! skipping this one.")
-        # workaround for supporting AVIF, works with IM only.
-        if update.message.document.mime_type.startswith("image") or update.message.document.file_name.lower().endswith(".avif"):
-            # ImageMagick and ffmpeg are smart enough to recognize actual image format.
-            update.message.document.get_file().download(media_file_path)
-            ctx.user_data['user_sticker_files'].append(media_file_path)
-            return USER_STICKER
-        # Probably an archive.
-        else:
+            print_file_too_big(update)
+        if guess_file_is_archive(update.message.document.file_name):
             # libarchive is smart enough to recognize actual archive format.
             if len(ctx.user_data['user_sticker_files']) > 0:
                 update.message.reply_text(
                     "Do not send archive after sending images! skipping...")
                 return USER_STICKER
             archive_file_path = media_file_path.replace(".media", ".archive")
-            update.message.document.get_file().download(archive_file_path)
+            queued_download(update.message.document.get_file(), archive_file_path, ctx)
             ctx.user_data['user_sticker_archive'] = archive_file_path
             print_ask_emoji(update)
             return EMOJI
-        # else:
-        #     update.effective_chat.send_message(
-        #         reply_to_message_id=update.message.message_id, text="Unable to process this file.")
-        #     return USER_STICKER
+        else:
+            # ImageMagick and ffmpeg are smart enough to recognize actual image format.
+            queued_download(update.message.document.get_file(), media_file_path, ctx)
+            ctx.user_data['user_sticker_files'].append(media_file_path)
+            return USER_STICKER
     # Compressed image.
     elif len(update.message.photo) > 0:
         if update.message.media_group_id is not None:
             print_do_not_send_media_group(update, ctx)
             return USER_STICKER
-        update.message.photo[-1].get_file().download(media_file_path)
+        queued_download(update.message.photo[-1].get_file(), media_file_path, ctx)
         ctx.user_data['user_sticker_files'].append(media_file_path)
         return USER_STICKER
 
     elif update.message.video is not None:
-        if update.message.video.file_size > 10 * 1024 * 1024:
-            update.effective_chat.send_message(
-                reply_to_message_id=update.message.message_id, text="video too big! skipping this one. try trimming it.")
-        update.message.video.get_file().download(media_file_path)
+        if update.message.video.file_size > 20 * 1024 * 1024:
+            print_file_too_big(update)
+            return USER_STICKER
+        queued_download(update.message.video.get_file(), media_file_path, ctx)
         ctx.user_data['user_sticker_files'].append(media_file_path)
         return USER_STICKER
+
     # Telegram sticker.
     elif update.message.sticker is not None:
-        if ctx.user_data['telegram_sticker_is_animated'] is False and update.message.sticker.is_video is False and update.message.sticker.is_animated is False:
+        if (ctx.user_data['telegram_sticker_is_animated'] == update.message.sticker.is_video) and not update.message.sticker.is_animated:
             # If you send .webp image on PC, API will recognize it as a sticker
             # However, that "sticker" may not fufill requirements.
-            if update.message.sticker.width != 512 and update.message.sticker.height != 512:
-                update.message.sticker.get_file().download(media_file_path)
+            if (update.message.sticker.width != 512 and update.message.sticker.height != 512) or update.message.sticker.is_video:
+                queued_download(update.message.sticker.get_file(), media_file_path, ctx)
                 ctx.user_data['user_sticker_files'].append(media_file_path)
             else:
                 sticker_file_id = update.message.sticker.file_id
@@ -747,19 +742,17 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         else:
             update.effective_chat.send_message(
                 reply_to_message_id=update.message.message_id, text="wrong sticker type! skipping this one")
-
         return USER_STICKER
+
     elif "done" in update.message.text.lower():
         if len(ctx.user_data['user_sticker_files']) == 0:
             print_no_user_sticker_received(update)
             return USER_STICKER
-        else:
-            # Given 5 seconds.
-            # The other threads will hopefully finish downloading images.
-            time.sleep(5)
-            print_user_sticker_done(update, ctx)
-            print_ask_emoji(update)
-            return EMOJI
+
+        wait_download_queue(update, ctx)
+        print_user_sticker_done(update, ctx)
+        print_ask_emoji(update)
+        return EMOJI
     else:
         update.effective_chat.send_message("Please send done.")
 
