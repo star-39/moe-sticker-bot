@@ -53,16 +53,12 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 こんにちは！萌え萌えのスタンプBOTです！下からコマンドを選択してくださいね
 
 <b>/import_line_sticker</b><code>
-  從LINE Store將貼圖包匯入至Telegram
-  LINE StoreからスタンプをTelegramにインポート
-</code>
-<b>/download_line_sticker</b><code>
-  從LINE Store下載貼圖包
-  LINE Storeからスタンプをダウンロード
+  匯入LINE貼圖包至Telegram
+  LINEスタンプをTelegramにインポート
 </code>
 <b>/download_telegram_sticker</b><code>
-  下載Telegram的貼圖包.(webp png)
-  Telegramステッカーセットをダウンロード(webp png)
+  下載Telegram的貼圖包
+  Telegramステッカーセットをダウンロード
 </code>
 <b>/create_sticker_set</b><code>
   創建新的Telegram的貼圖包.
@@ -101,8 +97,8 @@ Please send /start to start using
 始めるには /start を送信してください
 </b>
 Advanced commands:
-進階指令:<code>
-alsi</code>
+進階指令:
+<code>alsi</code>  /download_line_sticker
 <code>
 BOT_VERSION: {BOT_VERSION}
 </code>
@@ -211,7 +207,7 @@ def edit_message_progress(message_progress: Message, ctx: CallbackContext, curre
                                        parse_mode="HTML")
         if current > total:
             message_progress.edit_text(message_header + "\n"
-                                       "√ " +
+                                       "√  " +
                                        ctx.user_data['in_command'] + "  /start"
                                        "\nCommand success. 成功完成指令.",
                                        parse_mode="HTML")
@@ -382,17 +378,17 @@ def print_suggest_import(update):
 
 
 def print_suggest_download(update):
-    update.effective_chat.send_message("You have sent a sticker, guess you want to download this sticker set? Please send /download_telegram_sticker\n"
-                                       "您傳送了一個貼圖, 是想要下載這個Telegram貼圖包嗎? 請使用 /download_telegram_sticker\n"
-                                       "このステッカーセットを丸ごとダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
+    update.effective_chat.send_message("Guess you want to download this sticker set? Please use /download_telegram_sticker\n"
+                                       "如果您想要下載這個Telegram貼圖包, 請使用 /download_telegram_sticker\n"
+                                       "このステッカーセットをダウンロードしようとしていますか？ /download_telegram_sticker で始めてください")
 
 
 def print_ask_user_sticker(update: Update, ctx: CallbackContext):
     if ctx.user_data['telegram_sticker_is_animated'] is True:
-        update.effective_chat.send_message("Please send videos/stickers(less than 120 in total),\n"
+        update.effective_chat.send_message("Please send videos/stickers(less than 120 in total)(don't group items),\n"
                                            "wait until upload complete, then send <code>done</code>\n"
                                            "Video can be in any format, should shorter than 3 seconds.\n\n"
-                                           "請傳送任意格式的短片(視訊)(少於120張), 時長應短於3秒鐘\n"
+                                           "請傳送任意格式的短片(視訊)(少於120張)(不要合併成組), 時長應短於3秒鐘\n"
                                            "請等候所有檔案上載完成, 然後傳送<code>done</code>\n",
                                            parse_mode="HTML",
                                            reply_markup=reply_kb_DONE)
@@ -443,18 +439,6 @@ def print_timeout_message(update):
                                        "長い間操作がないためタイムアウトしました、もう一度やり直してください。\n\n"
                                        "/start",
                                        disable_notification=True)
-
-
-def print_preparing_tg_sticker(update, title, name, amount):
-    update.effective_chat.send_message("This might take some time, please wait...\n"
-                                       "此項作業可能需時較長, 請稍等...\n"""
-                                       "少々お待ちください...\n"
-                                       "<code>\n"
-                                       f"Title: {title}\n"
-                                       f"ID: {name}\n"
-                                       f"Amount: {amount}\n"
-                                       "</code>",
-                                       parse_mode="HTML")
 
 
 def print_wrong_LINE_STORE_URL(update, err_msg):
