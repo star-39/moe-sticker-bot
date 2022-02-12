@@ -65,11 +65,10 @@ pip install -r requirements.txt
 $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
 
-
 ## CHANGELOG
-5.0 RC-3 (20220212)
+5.0 RC-4 (20220212)
   * Improved user sticker exprerience.
-  
+
 5.0 RC-3 (20220212)
   * Fix a bug where creating sticker set with one sticker will cause fatal error.
   * Fix missing clean_userdata in /download_line_sticker
