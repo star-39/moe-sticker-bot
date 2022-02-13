@@ -1,3 +1,4 @@
+import subprocess
 from threading import Timer
 import glob
 import os
@@ -38,10 +39,9 @@ from telegram.ext import CallbackContext
 # but not in environment.
 def get_ffmpeg_bin():
     b = ['ffmpeg']
-    if shutil.which(b[0]) is None:
-        raise Exception(b[0] + "not found! Exiting...")
-    else:
-        return b
+    check_bin(b[0])
+    return b
+
 
 def get_mogrify_bin():
     b = []
@@ -49,10 +49,9 @@ def get_mogrify_bin():
         b = ['mogrify']
     else:
         b = ['magick', 'mogrify']
-    if shutil.which(b[0]) is None:
-        raise Exception(b[0] + "not found! Exiting...")
-    else:
-        return b
+    check_bin(b[0])
+    return b
+
 
 def get_convert_bin():
     b = []
@@ -60,10 +59,9 @@ def get_convert_bin():
         b = ['convert']
     else:
         b = ['magick', 'convert']
-    if shutil.which(b[0]) is None:
-        raise Exception(b[0] + "not found! Exiting...")
-    else:
-        return b
+    check_bin(b[0])
+    return b
+
 
 def get_bsdtar_bin():
     b = []
@@ -71,10 +69,15 @@ def get_bsdtar_bin():
         b = ['bsdtar']
     else:
         b = ['tar']
-    if shutil.which(b[0]) is None:
-        raise Exception(b[0] + "not found! Exiting...")
-    else:
-        return b
+    check_bin(b[0])
+    return b
+
+
+def check_bin(bin: str):
+    if shutil.which(bin) is None:
+        # Die if deps not found.
+        raise Exception(bin + " not found! Exiting...")
+
 
 # Uploading sticker could easily trigger Telegram's flood limit,
 # however, documentation never specified this limit,
@@ -96,11 +99,11 @@ def retry_do(func, is_fake_ra):
         except Exception as e:
             if index == 4:
                 print(traceback.format_exc())
-                return traceback.format_exc()
+                return e
             # It could probably be a network problem, sleep for a while and try again.
             time.sleep(5)
         else:
-            break 
+            break
 
 
 # To save processing time, if a sticker already exist in Telegram's server,
@@ -112,6 +115,7 @@ def get_png_sticker(f: str):
     else:
         return f
 
+
 def get_webm_sticker(f: str):
     if f.endswith(".webm"):
         return open(f, 'rb')
@@ -120,7 +124,8 @@ def get_webm_sticker(f: str):
 
 
 def guess_file_is_archive(f: str):
-    archive_exts = ('.rar', '.7z', '.zip', '.tar', '.gz', '.bz2', '.zst', '.rar5')
+    archive_exts = ('.rar', '.7z', '.zip', '.tar',
+                    '.gz', '.bz2', '.zst', '.rar5')
     if f.lower().endswith(archive_exts):
         return True
     else:
@@ -143,8 +148,26 @@ def wait_download_queue(update, ctx):
     else:
         return
 
-    update.effective_chat.send_message("unknown error! try sending done again or /cancel")
-    
+    update.effective_chat.send_message(
+        "unknown error! try sending done again or /cancel")
+
+
+def im_convert_to_webp(f: str, unsharp=False):
+    # Resize to fulfill telegram's requirement, AR is automatically retained
+    # Lanczos resizing produces much sharper image.
+    params = []
+    if unsharp:
+        params = ['-unsharp', '0']
+    return subprocess.run(main.CONVERT_BIN + ["-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-define", "webp:lossless=true"] + params + [f + "[0]", f + ".webp"], capture_output=True)
+
+
+def ff_convert_to_webm(f: str, unsharp=False):
+    return subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
+                                             "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
+                                             "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
+                                             "-to", "00:00:02.800", "-an",
+                                             f + '.webm'], capture_output=True)
+
 
 def initialize_user_data(update: Update, ctx):
     if not os.path.exists(main.DATA_DIR):
@@ -163,7 +186,8 @@ def initialize_user_data(update: Update, ctx):
     ctx.user_data['telegram_sticker_title'] = ""
     ctx.user_data['telegram_sticker_is_animated'] = False
     ctx.user_data['telegram_sticker_edit_choice'] = ""
-    ctx.user_data['telegram_sticker_edit_mov_prev'] = None 
+    ctx.user_data['telegram_sticker_edit_mov_prev'] = None
+    ctx.user_data['telegram_sticker_files'] = []
     ctx.user_data['user_sticker_archive'] = ""
     ctx.user_data['user_sticker_files'] = []
     ctx.user_data['user_sticker_download_queue'] = []
