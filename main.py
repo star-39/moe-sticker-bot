@@ -197,14 +197,14 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
 
                 images = sorted([f for f in glob.glob(os.path.join(work_dir, "*.webm"))])
 
+    if len(images) == 0:
+        raise Exception("No image available! Try again.")
     ctx.user_data['telegram_sticker_files'] = images
 
 
 def initialize_emoji_assign(update: Update, ctx: CallbackContext):
     print_import_processing(update, ctx)
     prepare_sticker_files(update, ctx)
-    if len(ctx.user_data['telegram_sticker_files']) == 0:
-        raise("Unknown error!")
     # This is the FIRST sticker.
     ctx.user_data['telegram_sticker_emoji_assign_index'] = 0
     print_ask_emoji_for_single_sticker(update, ctx)
@@ -371,7 +371,12 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
         if update.callback_query.data == "manual":
             update.callback_query.answer()
             edit_inline_kb_manual_selected(update.callback_query)
-            initialize_emoji_assign(update, ctx)
+            try:
+                initialize_emoji_assign(update, ctx)
+            except:
+                print_fatal_error(update, traceback.format_exc())
+                clean_userdata(update, ctx)
+                return ConversationHandler.END
             return EMOJI_ASSIGN
         elif update.callback_query.data == "random":
             ctx.user_data['telegram_sticker_emoji'] = "⭐️"
