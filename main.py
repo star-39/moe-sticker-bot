@@ -953,7 +953,8 @@ def main() -> None:
 
     if WEBHOOK_URL is not None:
         updater.start_webhook(listen='0.0.0.0', port=443, url_path=BOT_TOKEN, key='/privkey.pem', cert='/fullchain.pem', webhook_url=WEBHOOK_URL + BOT_TOKEN)
-        updater.bot.set_webhook(url=WEBHOOK_URL + BOT_TOKEN, certificate=open('/fullchain.pem', 'rb'))
+        # Fix PTB's weired SSL: TLSV1_ALERT_UNKNOWN_CA problem.
+        subprocess.run(['curl', '-F', 'url=' + WEBHOOK_URL + BOT_TOKEN, 'https://api.telegram.org/bot' + BOT_TOKEN])
     else:
         updater.start_polling()
 
