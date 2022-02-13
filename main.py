@@ -212,6 +212,7 @@ def initialize_emoji_assign(update: Update, ctx: CallbackContext):
 
 # EMOJI_ASSIGN
 def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
+
     # Verify emoji.
     em = ''.join(e for e in re.findall(
         emoji.get_emoji_regexp(), update.message.text))
@@ -266,16 +267,16 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
             print_fatal_error(update, str(err))
             return ConversationHandler.END
 
-    ctx.user_data['telegram_sticker_emoji_assign_index'] += 1
 
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == len(ctx.user_data['telegram_sticker_files']) - 1:
         print_sticker_done(update, ctx)
         print_command_done(update, ctx)
         clean_userdata(update, ctx)
         return ConversationHandler.END
-    else:
-        print_ask_emoji_for_single_sticker(update, ctx)
-        return EMOJI_ASSIGN
+
+    ctx.user_data['telegram_sticker_emoji_assign_index'] += 1
+    print_ask_emoji_for_single_sticker(update, ctx)
+    return EMOJI_ASSIGN
 
 
 # ID
