@@ -665,13 +665,12 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         queued_download(update.message.video.get_file(), media_file_path, ctx)
         ctx.user_data['user_sticker_files'].append(media_file_path)
         return USER_STICKER
-
     # Telegram sticker.
     elif update.message.sticker is not None:
-        if (ctx.user_data['telegram_sticker_is_animated'] == update.message.sticker.is_video) and not update.message.sticker.is_animated:
+        if ctx.user_data['telegram_sticker_is_animated'] is False and update.message.sticker.is_video is False and update.message.sticker.is_animated is False:
             # If you send .webp image on PC, API will recognize it as a sticker
             # However, that "sticker" may not fufill requirements.
-            if (update.message.sticker.width != 512 and update.message.sticker.height != 512) or update.message.sticker.is_video:
+            if (update.message.sticker.width != 512 and update.message.sticker.height != 512):
                 queued_download(update.message.sticker.get_file(), media_file_path, ctx)
                 ctx.user_data['user_sticker_files'].append(media_file_path)
             else:
@@ -954,6 +953,7 @@ def main() -> None:
     if WEBHOOK_URL is not None:
         updater.start_webhook(listen='0.0.0.0', port=443, url_path=BOT_TOKEN, key='/privkey.pem', cert='/fullchain.pem', webhook_url=WEBHOOK_URL + BOT_TOKEN)
         # Fix PTB's weired SSL: TLSV1_ALERT_UNKNOWN_CA problem.
+        time.sleep(5)
         subprocess.run(['curl', '-F', 'url=' + WEBHOOK_URL + BOT_TOKEN, 'https://api.telegram.org/bot' + BOT_TOKEN])
     else:
         updater.start_polling()
