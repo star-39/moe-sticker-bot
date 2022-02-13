@@ -66,6 +66,11 @@ $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
 
 ## CHANGELOG
+5.0 RC-5 (20220214)
+  * Allow using WebHook for better performance.
+  * Code refactors.
+  * Support Line name sticker.
+
 5.0 RC-4 (20220212)
   * Improved user sticker exprerience.
 
