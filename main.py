@@ -38,6 +38,7 @@ from helper import *
 
 BOT_VERSION = "5.0 RC-5"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
 
@@ -107,7 +108,6 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
             raise(err)
     edit_message_progress(message_progress, ctx, 1, 0)
     print_sticker_done(update, ctx)
-    # print_command_done(update, ctx)
 
 
 def prepare_sticker_files(update: Update, ctx: CallbackContext):
@@ -388,8 +388,9 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
     try:
         do_auto_create_sticker_set(update, ctx)
     except:
-        clean_userdata(update, ctx)
         print_fatal_error(update, traceback.format_exc())
+
+    clean_userdata(update, ctx)
     return ConversationHandler.END
     
 
@@ -839,13 +840,8 @@ def handle_timeout(update: Update, ctx: CallbackContext):
 
 
 def main() -> None:
-    # from telegram.utils.request import Request
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
-
-    # q = mq.MessageQueue(all_burst_limit=20, all_time_limit_ms=1000)
-    # req = Request(con_pool_size=8)
-    # bot = MQBot(BOT_TOKEN, mqueue=q, request=req)
 
     updater = Updater(BOT_TOKEN)
     dispatcher = updater.dispatcher
@@ -953,7 +949,11 @@ def main() -> None:
 
     start_timer_userdata_gc()
 
-    updater.start_polling()
+    if WEBHOOK_URL is not None:
+        updater.start_webhook(listen='0.0.0.0', port=443, url_path=BOT_TOKEN, key='/privkey.pem', cert='/fullchain.pem', webhook_url=WEBHOOK_URL + BOT_TOKEN)
+    else:
+        updater.start_polling()
+
     updater.idle()
 
 

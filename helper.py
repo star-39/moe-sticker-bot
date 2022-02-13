@@ -133,23 +133,26 @@ def guess_file_is_archive(f: str):
 
 
 def queued_download(f: File, save_path: str, ctx: CallbackContext):
-    ctx.user_data['user_sticker_download_queue'].append(save_path)
+    # ctx.user_data['user_sticker_download_queue'].append(save_path)
+    # print("start")
     f.download(save_path)
-    ctx.user_data['user_sticker_download_queue'].remove(save_path)
+    # print("end")
+    # ctx.user_data['user_sticker_download_queue'].remove(save_path)
 
 
 def wait_download_queue(update, ctx):
-    if len(ctx.user_data['user_sticker_download_queue']) > 0:
-        for _ in range(12):
-            if len(ctx.user_data['user_sticker_download_queue']) == 0:
-                return
-            else:
-                time.sleep(5)
-    else:
-        return
+    time.sleep(5)
+    # if len(ctx.user_data['user_sticker_download_queue']) > 0:
+    #     for _ in range(12):
+    #         if len(ctx.user_data['user_sticker_download_queue']) == 0:
+    #             return
+    #         else:
+    #             time.sleep(5)
+    # else:
+    #     return
 
-    update.effective_chat.send_message(
-        "unknown error! try sending done again or /cancel")
+    # update.effective_chat.send_message(
+    #     "unknown error! try sending done again or /cancel")
 
 
 def im_convert_to_webp(f: str, unsharp=False):
