@@ -266,15 +266,16 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
             print_fatal_error(update, str(err))
             return ConversationHandler.END
 
+    ctx.user_data['telegram_sticker_emoji_assign_index'] += 1
+
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == len(ctx.user_data['telegram_sticker_files']) - 1:
         print_sticker_done(update, ctx)
         print_command_done(update, ctx)
         clean_userdata(update, ctx)
         return ConversationHandler.END
-
-    ctx.user_data['telegram_sticker_emoji_assign_index'] += 1
-    print_ask_emoji_for_single_sticker(update, ctx)
-    return EMOJI_ASSIGN
+    else:
+        print_ask_emoji_for_single_sticker(update, ctx)
+        return EMOJI_ASSIGN
 
 
 # ID
@@ -365,25 +366,25 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
 
 # EMOJI_SELECT
 def parse_emoji(update: Update, ctx: CallbackContext) -> int:
-    if update.callback_query is None:
+    if update.callback_query is not None:
+        if update.callback_query.data == "manual":
+            update.callback_query.answer()
+            edit_inline_kb_manual_selected(update.callback_query)
+            initialize_emoji_assign(update, ctx)
+            return EMOJI_ASSIGN
+        elif update.callback_query.data == "random":
+            ctx.user_data['telegram_sticker_emoji'] = "⭐️"
+            update.callback_query.answer()
+            edit_inline_kb_random_selected(update.callback_query)
+        else:
+            return EMOJI_SELECT
+    else:
         emojis = ''.join(e for e in re.findall(
             emoji.get_emoji_regexp(), update.message.text))
         if emojis == '':
             update.message.reply_text("Please send emoji! Try again")
             return EMOJI_SELECT
         ctx.user_data['telegram_sticker_emoji'] = emojis
-    elif update.callback_query.data == "manual":
-        update.callback_query.answer()
-        edit_inline_kb_manual_selected(update.callback_query)
-
-        initialize_emoji_assign(update, ctx)
-        
-    elif update.callback_query.data == "random":
-        ctx.user_data['telegram_sticker_emoji'] = "⭐️"
-        update.callback_query.answer()
-        edit_inline_kb_random_selected(update.callback_query)
-    else:
-        return EMOJI_SELECT
 
     try:
         do_auto_create_sticker_set(update, ctx)

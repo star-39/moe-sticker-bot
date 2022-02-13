@@ -298,23 +298,26 @@ def print_ask_emoji(update: Update):
 
 
 def print_ask_emoji_for_single_sticker(update: Update, ctx: CallbackContext):
-    if ".webp" in ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']]:
+    sticker_file = ctx.user_data['telegram_sticker_files'][ctx.user_data['telegram_sticker_emoji_assign_index']]
+    current = ctx.user_data['telegram_sticker_emoji_assign_index'] + 1
+    total = len(ctx.user_data['telegram_sticker_files'])
+    if ".webp" in sticker_file:
         ctx.bot.send_photo(chat_id=update.effective_chat.id,
                            caption="Please send emoji(s) representing this sticker\n"
                            "請傳送代表這個貼圖的emoji(可以多個)\n"
                            "このスタンプにふさわしい絵文字を送信してください(複数可)\n" +
-                           f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
-                           photo=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'))
-    elif ".webm" in ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']]:
+                           f"{current} of {total}",
+                           photo=open(sticker_file, 'rb'))
+    elif ".webm" in sticker_file:
         ctx.bot.send_video(chat_id=update.effective_chat.id,
                            caption="Please send emoji(s) representing this sticker\n"
                            "請傳送代表這個貼圖的emoji(可以多個)\n"
                            "このスタンプにふさわしい絵文字を送信してください(複数可)\n" +
-                           f"{ctx.user_data['manual_emoji_index'] + 1} of {len(ctx.user_data['img_files_path'])}",
-                           video=open(ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']], 'rb'))
+                           f"{current} of {total}",
+                           video=open(sticker_file, 'rb'))
     else:
         update.effective_chat.send_sticker(
-            sticker=ctx.user_data['img_files_path'][ctx.user_data['manual_emoji_index']])
+            sticker=sticker_file)
         update.effective_chat.send_message("Please send emoji(s) representing this sticker\n"
                                            "請傳送代表這個貼圖的emoji(可以多個)\n"
                                            "このスタンプにふさわしい絵文字を送信してください(複数可)\n")
