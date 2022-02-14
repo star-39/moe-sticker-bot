@@ -17,7 +17,7 @@ import time
 # import logging
 from urllib.parse import urlparse
 # import telegram.error
-from telegram import Update, Bot
+from telegram import Update, Bot, error
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
 from bs4 import BeautifulSoup
 import emoji
@@ -845,6 +845,13 @@ def handle_timeout(update: Update, ctx: CallbackContext):
     print_timeout_message(update)
 
 
+def handle_error(update: object, context: CallbackContext):
+    if context.error == telegram.error.Unauthorized:
+        return ConversationHandler.END
+    else:
+        print(context.error.__traceback__)
+
+
 def main() -> None:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
@@ -952,14 +959,14 @@ def main() -> None:
         Filters.text & ~Filters.command, handle_text_message))
     dispatcher.add_handler(MessageHandler(
         Filters.sticker, handle_sticker_message))
+    dispatcher.add_error_handler(handle_error)
 
     start_timer_userdata_gc()
 
     if WEBHOOK_URL is not None:
         updater.start_webhook(listen='0.0.0.0', port=443, url_path=BOT_TOKEN, key='/privkey.pem', cert='/fullchain.pem', webhook_url=WEBHOOK_URL + BOT_TOKEN)
         # Fix PTB's weired SSL: TLSV1_ALERT_UNKNOWN_CA problem.
-        time.sleep(5)
-        subprocess.run(['curl', '-F', 'url=' + WEBHOOK_URL + BOT_TOKEN, 'https://api.telegram.org/bot' + BOT_TOKEN])
+        Timer(10, delayed_set_webhook).start()
     else:
         updater.start_polling()
 

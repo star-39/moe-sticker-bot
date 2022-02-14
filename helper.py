@@ -165,11 +165,23 @@ def im_convert_to_webp(f: str, unsharp=False):
 
 
 def ff_convert_to_webm(f: str, unsharp=False):
-    return subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
+    ret = subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                              "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                              "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
                                              "-to", "00:00:02.800", "-an",
                                              f + '.webm'], capture_output=True)
+
+    if ret.returncode != 0:
+        return ret
+    else:
+        if os.path.getsize(f + '.webm') > 255000:
+            return subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
+                                             "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
+                                             "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "250k", "-maxrate", "300k",
+                                             "-to", "00:00:02.800", "-an",
+                                             f + '.webm'], capture_output=True)
+        else:
+            return ret
 
 
 def initialize_user_data(update: Update, ctx):
@@ -220,3 +232,7 @@ def start_timer_userdata_gc():
         nowtime = time.time()
         if nowtime - mtime > 43200:
             shutil.rmtree(d, ignore_errors=True)
+
+
+def delayed_set_webhook():
+    subprocess.run(['curl', '-F', 'url=' + main.WEBHOOK_URL + main.BOT_TOKEN, 'https://api.telegram.org/bot' + main.BOT_TOKEN])
