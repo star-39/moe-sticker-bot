@@ -31,6 +31,7 @@ import argparse
 import shlex
 import shutil
 import glob
+import threading
 
 from notifications import *
 from helper import *
@@ -964,9 +965,9 @@ def main() -> None:
     start_timer_userdata_gc()
 
     if WEBHOOK_URL is not None:
+        threading.Timer(10, delayed_set_webhook).start()
         updater.start_webhook(listen='0.0.0.0', port=443, url_path=BOT_TOKEN, key='/privkey.pem', cert='/fullchain.pem', webhook_url=WEBHOOK_URL + BOT_TOKEN)
         # Fix PTB's weired SSL: TLSV1_ALERT_UNKNOWN_CA problem.
-        Timer(10, delayed_set_webhook).start()
     else:
         updater.start_polling()
 
