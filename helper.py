@@ -8,6 +8,7 @@ import traceback
 import main
 import telegram.bot
 import platform
+import telegram
 from telegram.ext import messagequeue as mq
 from telegram import Update, File
 from telegram.ext import CallbackContext
@@ -236,3 +237,4 @@ def start_timer_userdata_gc():
 
 def delayed_set_webhook():
     subprocess.run(['curl', '-F', 'url=' + main.WEBHOOK_URL + main.BOT_TOKEN, 'https://api.telegram.org/bot' + main.BOT_TOKEN])
+    

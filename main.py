@@ -107,6 +107,7 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
                            index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
         if err is not None:
             raise(err)
+
     edit_message_progress(message_progress, ctx, 1, 0)
     print_sticker_done(update, ctx)
 
@@ -241,9 +242,15 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                                       ctx.user_data['telegram_sticker_files'][0])
                                                                   ), lambda: False)
         if err is not None:
-            clean_userdata(update, ctx)
-            print_fatal_error(update, str(err))
-            return ConversationHandler.END
+            if err is telegram.error.BadRequest:
+                if "Stickers_too_much" in err.message:
+                    print_sticker_full(update)
+                else:
+                    print_fatal_error(update, traceback.format_exc())
+            else:
+                print_fatal_error(update, traceback.format_exc())
+        clean_userdata(update, ctx)
+        return ConversationHandler.END
     else:
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
             err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
@@ -264,9 +271,15 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                            lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == ctx.bot.get_sticker_set(
                                name=ctx.user_data['telegram_sticker_id']).stickers))
         if err is not None:
-            clean_userdata(update, ctx)
-            print_fatal_error(update, str(err))
-            return ConversationHandler.END
+            if err is telegram.error.BadRequest:
+                if "Stickers_too_much" in err.message:
+                    print_sticker_full(update)
+                else:
+                    print_fatal_error(update, traceback.format_exc())
+            else:
+                print_fatal_error(update, traceback.format_exc())
+        clean_userdata(update, ctx)
+        return ConversationHandler.END
 
 
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == len(ctx.user_data['telegram_sticker_files']) - 1:
@@ -331,10 +344,6 @@ def parse_id(update: Update, ctx: CallbackContext) -> int:
         except:
             update.effective_chat.send_message("No such set! try again.")
             return ID
-        if len(sticker_set.stickers) > 120:
-            update.effective_chat.send_message(
-                "Set already full! try another one.")
-            return ID
         print_ask_what_to_edit(update)
         return EDIT_CHOICE
 
@@ -395,6 +404,11 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
 
     try:
         do_auto_create_sticker_set(update, ctx)
+    except telegram.error.BadRequest as br:
+        if "Stickers_too_much" in br.message:
+            print_sticker_full(update)
+        else:
+            print_fatal_error(update, traceback.format_exc())
     except:
         print_fatal_error(update, traceback.format_exc())
 

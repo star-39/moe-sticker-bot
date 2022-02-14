@@ -254,7 +254,8 @@ def print_ask_what_to_edit(update: Update):
         "What do you want to edit? Please select below:\n"
         "您想要修改貼圖包的甚麼內容? 請選擇:",
         reply_markup=inline_kb_MANAGE_SET
-        )
+    )
+
 
 def print_ask_which_to_delete(update: Update):
     update.effective_chat.send_message(
@@ -268,6 +269,7 @@ def print_ask_which_to_move(update: Update):
         "Please send the sticker that you want to move.\n"
         "請傳送您想要移動位置的那個貼圖."
     )
+
 
 def print_ask_where_to_move(update: Update):
     update.effective_chat.send_message(
@@ -408,13 +410,13 @@ def print_ask_user_sticker(update: Update, ctx: CallbackContext):
 
 def print_do_not_send_media_group(update: Update, ctx: CallbackContext):
     update.effective_chat.send_message("Please do not group media files,\n"
-                                        "send files separately. \n"
-                                        "Skipping this one... Please try again.\n\n"
-                                        "請不要合併成組傳送(group items),\n"
-                                        "請分開傳送這些檔案.\n"
-                                        "已略去這個組訊息, 請再試一次.\n",
-                                        reply_to_message_id=update.message.message_id,
-                                        reply_markup=reply_kb_DONE)
+                                       "send files separately. \n"
+                                       "Skipping this one... Please try again.\n\n"
+                                       "請不要合併成組傳送(group items),\n"
+                                       "請分開傳送這些檔案.\n"
+                                       "已略去這個組訊息, 請再試一次.\n",
+                                       reply_to_message_id=update.message.message_id,
+                                       reply_markup=reply_kb_DONE)
 
 
 def print_command_done(update, ctx):
@@ -471,3 +473,9 @@ def print_ask_type_to_create(update: Update):
     update.effective_chat.send_message("What kind of sticker set you want to create?\n"
                                        "您想要創建何種貼圖包?",
                                        reply_markup=inline_kb_ASK_TYPE)
+
+
+def print_sticker_full(update):
+    update.effective_chat.send_message("WARN: Sticker set is full. Limit is 120. Sticker(s) exceeded this limit is discarded.\n"
+                                       "警示: 貼圖包已滿. 貼圖包上限為120張. 超過此數量的貼圖已丟棄.\n"
+                                       "スタンプセットがいっぱいになりました。リミットは１２０枚です。すぎた分は廃棄されました。")
