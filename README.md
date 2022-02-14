@@ -66,6 +66,12 @@ $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
 
 ## CHANGELOG
+5.0 RC-6 (20220215)
+  * Fix python-telegram-bot WebHook problem.
+  * Fix emoji assign.
+  * Fix black background video sticker.
+  * Fix "Sticker too big" when uploading video sticker.
+
 5.0 RC-5 (20220214)
   * Allow using WebHook for better performance.
   * Code refactors.
