@@ -485,18 +485,6 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
 
 def command_import_line_sticker(update: Update, ctx: CallbackContext):
     initialize_user_data(update, ctx)
-    if 'last_user_message_timestamp' in ctx.user_data and int(time.time()) - ctx.user_data['last_user_message_timestamp'] < 60:
-        if ctx.user_data['user_sent_line_link'] is True:
-            last_user_message = ctx.user_data['last_user_message']
-            ctx.user_data['user_sent_line_link'] = False
-            ctx.user_data['last_user_message'] = ''
-            try:
-                get_line_sticker_detail(last_user_message, ctx)
-            except Exception as e:
-                print_wrong_LINE_STORE_URL(update, str(e))
-                return LINE_URL
-            print_ask_emoji(update)
-            return EMOJI_SELECT
     print_ask_line_store_link(update)
     return LINE_URL
 
@@ -812,17 +800,12 @@ def handle_text_message(update: Update, ctx: CallbackContext):
     # At least some workarounds.
     if update.message.text == "done":
         update.effective_chat.send_message(
-            'Please send "done" again. 請再傳送一次 done')
+            'Please send "done" again. 請再傳送一次 done', reply_markup=reply_kb_DONE)
         return
     if 'in_command' in ctx.user_data:
         print_in_conv_warning(update, ctx)
     else:
         print_use_start_command(update)
-        ctx.user_data['last_user_message'] = update.message.text
-        ctx.user_data['last_user_message_timestamp'] = int(time.time())
-        if update.message.text.startswith("https://store.line.me") or update.message.text.startswith("https://line.me"):
-            ctx.user_data['user_sent_line_link'] = True
-            print_suggest_import(update)
 
 
 def handle_sticker_message(update: Update, ctx: CallbackContext):
@@ -854,7 +837,9 @@ def handle_error(update: object, context: CallbackContext):
     if context.error == telegram.error.Unauthorized:
         return ConversationHandler.END
     else:
+        print("####################################\n")
         print(context.error.__traceback__)
+        return ConversationHandler.END
 
 
 def main() -> None:
