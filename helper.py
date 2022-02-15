@@ -188,7 +188,7 @@ def ff_convert_to_webm(f: str, unsharp=False):
 
 
 def verify_user_sticker_message(update: Update):
-    supported_types = ('document', 'photo', 'video')
+    supported_types = ('document', 'photo', 'video', 'sticker')
     if update.message is None:
         return False
     elif not supported_types in update.message:
