@@ -70,6 +70,8 @@ $ENV:BOT_TOKEN=your_bot_token ; python main.py
   * Fix exception if user sent nothing during USER_STICKER
   * Fix a bug where /import_line_sticker may have no response.
   * Corrected file download limit.
+  * Fix animated sticon
+  * Fix import hang due to missing ffmpeg '-y' param.
 
 5.0 RC-6 (20220215)
   * Fix python-telegram-bot WebHook problem.
