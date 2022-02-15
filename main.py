@@ -278,9 +278,8 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                     print_fatal_error(update, traceback.format_exc())
             else:
                 print_fatal_error(update, traceback.format_exc())
-        clean_userdata(update, ctx)
-        return ConversationHandler.END
-
+            clean_userdata(update, ctx)
+            return ConversationHandler.END
 
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == len(ctx.user_data['telegram_sticker_files']) - 1:
         print_sticker_done(update, ctx)
