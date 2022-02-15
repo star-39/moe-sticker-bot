@@ -632,7 +632,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if update.message.media_group_id is not None:
             print_do_not_send_media_group(update, ctx)
             return USER_STICKER
-        if update.message.document.file_size > 50 * 1024 * 1024:
+        if update.message.document.file_size > 20 * 1024 * 1000:
             print_file_too_big(update)
         if guess_file_is_archive(update.message.document.file_name):
             # libarchive is smart enough to recognize actual archive format.
@@ -660,7 +660,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         return USER_STICKER
 
     elif update.message.video is not None:
-        if update.message.video.file_size > 20 * 1024 * 1024:
+        if update.message.video.file_size > 20 * 1024 * 1000:
             print_file_too_big(update)
             return USER_STICKER
         queued_download(update.message.video.get_file(), media_file_path, ctx)
