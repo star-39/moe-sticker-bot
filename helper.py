@@ -171,7 +171,7 @@ def ff_convert_to_webm(f: str, unsharp=False):
     ret = subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                              "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                              "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
-                                             "-to", "00:00:02.800", "-an",
+                                             "-to", "00:00:02.800", "-an", "-y",
                                              f + '.webm'], capture_output=True)
 
     if ret.returncode != 0:
@@ -180,8 +180,8 @@ def ff_convert_to_webm(f: str, unsharp=False):
         if os.path.getsize(f + '.webm') > 255000:
             return subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                              "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-                                             "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "250k", "-maxrate", "300k",
-                                             "-to", "00:00:02.800", "-an",
+                                             "-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
+                                             "-to", "00:00:02.800", "-an", "-y",
                                              f + '.webm'], capture_output=True)
         else:
             return ret

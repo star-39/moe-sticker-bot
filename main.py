@@ -192,12 +192,14 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
                         # workaround for sticker orders.
                         shutil.move(f, os.path.join(work_dir, os.path.basename(
                             f)[:os.path.basename(f).index('.png')] + '@99x.png'))
-                else:
+                elif ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
                     work_dir = os.path.join(work_dir, "animation@2x")
+                else:
+                     pass
                 for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
                     ff_convert_to_webm(f)
 
-                images = sorted([f for f in glob.glob(os.path.join(work_dir, "*.webm"))])
+                images = sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webm"), recursive=True)])
 
     if len(images) == 0:
         raise Exception("No image available! Try again.")
@@ -836,15 +838,6 @@ def handle_timeout(update: Update, ctx: CallbackContext):
     print_timeout_message(update)
 
 
-def handle_error(update: object, context: CallbackContext):
-    if context.error == telegram.error.Unauthorized:
-        return ConversationHandler.END
-    else:
-        print("####################################\n")
-        print(context.error.__traceback__)
-        return ConversationHandler.END
-
-
 def main() -> None:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
@@ -952,7 +945,6 @@ def main() -> None:
         Filters.text & ~Filters.command, handle_text_message))
     dispatcher.add_handler(MessageHandler(
         Filters.sticker, handle_sticker_message))
-    dispatcher.add_error_handler(handle_error)
 
     start_timer_userdata_gc()
 
