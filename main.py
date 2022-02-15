@@ -241,16 +241,6 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                                   png_sticker=get_png_sticker(
                                                                       ctx.user_data['telegram_sticker_files'][0])
                                                                   ), lambda: False)
-        if err is not None:
-            if err is telegram.error.BadRequest:
-                if "Stickers_too_much" in err.message:
-                    print_sticker_full(update)
-                else:
-                    print_fatal_error(update, traceback.format_exc())
-            else:
-                print_fatal_error(update, traceback.format_exc())
-        clean_userdata(update, ctx)
-        return ConversationHandler.END
     else:
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
             err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
@@ -270,16 +260,17 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                               ),
                            lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == ctx.bot.get_sticker_set(
                                name=ctx.user_data['telegram_sticker_id']).stickers))
-        if err is not None:
-            if err is telegram.error.BadRequest:
-                if "Stickers_too_much" in err.message:
-                    print_sticker_full(update)
-                else:
-                    print_fatal_error(update, traceback.format_exc())
+    if err is not None:
+        if err is telegram.error.BadRequest:
+            if "Stickers_too_much" in err.message:
+                print_sticker_full(update)
+                print_sticker_done(update, ctx)
             else:
                 print_fatal_error(update, traceback.format_exc())
-            clean_userdata(update, ctx)
-            return ConversationHandler.END
+        else:
+            print_fatal_error(update, traceback.format_exc())
+        clean_userdata(update, ctx)
+        return ConversationHandler.END
 
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == len(ctx.user_data['telegram_sticker_files']) - 1:
         print_sticker_done(update, ctx)
