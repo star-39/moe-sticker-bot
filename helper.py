@@ -127,6 +127,8 @@ def get_webm_sticker(f: str):
 def guess_file_is_archive(f: str):
     archive_exts = ('.rar', '.7z', '.zip', '.tar',
                     '.gz', '.bz2', '.zst', '.rar5')
+    if f is None:
+        return False
     if f.lower().endswith(archive_exts):
         return True
     else:
