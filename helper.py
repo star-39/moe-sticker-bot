@@ -187,6 +187,16 @@ def ff_convert_to_webm(f: str, unsharp=False):
             return ret
 
 
+def verify_user_sticker_message(update: Update):
+    supported_types = ('document', 'photo', 'video')
+    if update.message is None:
+        return False
+    elif not supported_types in update.message:
+        return False
+    else: 
+        return True
+
+
 def initialize_user_data(update: Update, ctx):
     if not os.path.exists(main.DATA_DIR):
         os.makedirs(main.DATA_DIR)

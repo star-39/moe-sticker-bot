@@ -625,6 +625,9 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
     os.makedirs(work_dir, exist_ok=True)
     media_file_path = os.path.join(
         work_dir, secrets.token_hex(nbytes=4) + ".media")
+    if not verify_user_sticker_message(update):
+        print_ask_user_sticker(update, ctx)
+        return USER_STICKER
     if update.message.document is not None:
         if update.message.media_group_id is not None:
             print_do_not_send_media_group(update, ctx)
