@@ -456,7 +456,7 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
             t = LINE_STICKER_NAME
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/sticker_name_base@2x.zip"
-        elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoFlash_b' in webpage.text or 'MdIcoEffectSticker_b' in webpage.text:
+        elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoFlash_b' in webpage.text or 'MdIcoEffectSticker_b' in webpage.text or 'MdIcoFlashAni_b' in webpage.text:
             t = LINE_STICKER_POPUP
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/stickerpack@2x.zip"
