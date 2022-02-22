@@ -21,6 +21,7 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 * requests
 * bs4
 * emoji
+* mariadb
 
 ### System Dependencies
 * python 3.9+
@@ -29,6 +30,7 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 * bsdtar (libarchive-tools)
 * ffmpeg
 * curl
+* mariadb-server
 
 Specify `BOT_TOKEN` environment variable and run:
 ```
@@ -60,10 +62,23 @@ BOT_TOKEN=your_bot_token python3 main.py
 Please install scoop(https://scoop.sh) first, using Windows Powershell:
 ```
 scoop install python3 ffmpeg imagemagick python
-git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+git clone https://github.com/star-39/moe-sticker-bot ; cd moe-sticker-bot
 pip install -r requirements.txt
 $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
+
+#### mariadb
+Bot supports saving user imported line stickers into a database.
+
+This could save some time for new users if someone has already imported a pretty good one.
+
+The bot will notify user that a already imported one is available.
+
+To deploy this feature. Set up mariadb and set the following env variables:
+
+`DB_USER DB_PASS DB_NAME DB_HOST DB_PORT`
+
+`USE_DB=1`
 
 ## CHANGELOG
 5.0 RC-8 (20220222)
