@@ -36,12 +36,14 @@ import threading
 from notifications import *
 from helper import *
 
-
 BOT_VERSION = "5.0 RC-8"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
+HAS_DB = False
+
+from database import *
 
 # Stages of conversations
 GET_TG_STICKER, TYPE_SELECT, LINE_URL, TITLE, ID, EDIT_CHOICE, SET_EDIT, EMOJI_SELECT, USER_STICKER, EMOJI_ASSIGN = range(10)
@@ -275,6 +277,8 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
         return ConversationHandler.END
 
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == len(ctx.user_data['telegram_sticker_files']) - 1:
+        if ctx.user_data['in_command'].startswith("/import_line_sticker"):
+            insert_line_and_tg_id(ctx.user_data['line_sticker_id'], ctx.user_data['telegram_sticker_id'], ctx.user_data['telegram_sticker_title'])
         print_sticker_done(update, ctx)
         print_command_done(update, ctx)
         clean_userdata(update, ctx)
@@ -419,14 +423,19 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         update.message.reply_text(ctx.user_data['line_sticker_download_url'])
         clean_userdata(update, ctx)
         return ConversationHandler.END
-    else:
-        # Generate auto title with bot name as suffix.
-        ctx.user_data['telegram_sticker_title'] = BeautifulSoup(ctx.user_data['line_store_webpage'].text, 'html.parser')\
-            .find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
-            f" @{BOT_NAME}"
-        ctx.user_data['telegram_sticker_is_animated'] = ctx.user_data['line_sticker_is_animated']
-        print_ask_title(update, ctx.user_data['telegram_sticker_title'])
-        return TITLE
+
+    # Generate auto title with bot name as suffix.
+    ctx.user_data['telegram_sticker_title'] = BeautifulSoup(ctx.user_data['line_store_webpage'].text, 'html.parser')\
+        .find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
+        f" @{BOT_NAME}"
+    ctx.user_data['telegram_sticker_is_animated'] = ctx.user_data['line_sticker_is_animated']
+
+    queried_tg_id = query_tg_id_by_line_id(ctx.user_data['line_sticker_id'])
+    if queried_tg_id is not None:
+        print_notify_line_sticker_set_exists(update, ctx, queried_tg_id)
+        
+    print_ask_title(update, ctx.user_data['telegram_sticker_title'])
+    return TITLE
 
 
 def get_line_sticker_detail(message, ctx: CallbackContext):
@@ -947,6 +956,9 @@ def main() -> None:
         Filters.sticker, handle_sticker_message))
 
     start_timer_userdata_gc()
+    if attempt_connect_to_mariadb():
+        global HAS_DB
+        HAS_DB = True
 
     if WEBHOOK_URL is not None:
         threading.Timer(10, delayed_set_webhook).start()

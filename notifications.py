@@ -221,7 +221,7 @@ def print_sticker_done(update: Update, ctx: CallbackContext):
                                        "貼圖包已經成功創建!\n"
                                        "ステッカーセットの作成が成功しました！\n\n"
                                        "https://t.me/addstickers/" + ctx.user_data['telegram_sticker_id'])
-    ctx.bot.send_sticker(update.effective_chat.id, ctx.bot.get_sticker_set(
+    update.effective_chat.send_sticker(ctx.bot.get_sticker_set(
         ctx.user_data['telegram_sticker_id']).stickers[0])
 
 
@@ -479,3 +479,15 @@ def print_sticker_full(update):
     update.effective_chat.send_message("WARN: Sticker set is full. Limit is 120. Sticker(s) exceeded this limit is discarded.\n"
                                        "警示: 貼圖包已滿. 貼圖包上限為120張. 超過此數量的貼圖已丟棄.\n"
                                        "スタンプセットがいっぱいになりました。リミットは１２０枚です。すぎた分は廃棄されました。")
+
+
+def print_notify_line_sticker_set_exists(update: Update, ctx, tg_id):
+    update.effective_chat.send_message("Lucky! It seems someone has already imported this sticker set.\n"
+                                        "If it looks good to you, you can just use it. Send /cancel to abort import.\n"
+                                        "看來已經有人用此bot匯入過這款貼圖包.\n"
+                                        "如果看起來還不錯的話可以直接使用了喔, 傳送 /cancel 來中斷此會話.\n"
+                                        "このスタンプセットは誰かにインポートされているみたいだぞ\n"
+                                        "これが結構だと思ったら、どうぞ使ってください、 /cancel を送信して会話を終了できます\n\n"
+                                        "https://t.me/addstickers/" + tg_id)
+
+    update.effective_chat.send_sticker(ctx.bot.get_sticker_set(tg_id).stickers[0])
