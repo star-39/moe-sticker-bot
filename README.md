@@ -66,6 +66,10 @@ $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
 
 ## CHANGELOG
+5.0 RC-8 (20220222)
+  * Fix user sticker parsing.
+  * Add support for MdIcoFlashAni_b
+
 5.0 RC-7 (20220215)
   * Fix exception if user sent nothing during USER_STICKER
   * Fix a bug where /import_line_sticker may have no response.
