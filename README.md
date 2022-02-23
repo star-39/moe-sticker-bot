@@ -30,7 +30,7 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 * bsdtar (libarchive-tools)
 * ffmpeg
 * curl
-* mariadb-server
+* mariadb-server (optional)
 
 Specify `BOT_TOKEN` environment variable and run:
 ```
@@ -68,19 +68,20 @@ $ENV:BOT_TOKEN=your_bot_token ; python main.py
 ```
 
 #### mariadb
-Bot supports saving user imported line stickers into a database.
+Bot supports saving some imported line stickers into a database and will notify user that a already imported set is available.
 
-This could save some time for new users if someone has already imported a pretty good one.
-
-The bot will notify user that a already imported one is available.
-
-To deploy this feature. Set up mariadb and set the following env variables:
+To deploy this feature. Set up mariadb-server and set the following env variables:
 
 `DB_USER DB_PASS DB_NAME DB_HOST DB_PORT`
 
 `USE_DB=1`
 
 ## CHANGELOG
+5.0 RC-9 (20220223)
+  * Splitted line popups to two categories, one keeping animated only.
+  * Bot now has a database stroing "good" imported sticker sets.
+  * Fix duplicated stickers in sticker set.
+
 5.0 RC-8 (20220222)
   * Fix user sticker parsing.
   * Add support for MdIcoFlashAni_b
