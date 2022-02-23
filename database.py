@@ -84,6 +84,8 @@ def initialize_mariadb_table():
 
 
 def query_tg_id_by_line_id(line_id: str):
+        if CONN is None:
+                return None
         try:
                 cur = CONN.cursor()
                 cur.execute(
@@ -98,6 +100,8 @@ def query_tg_id_by_line_id(line_id: str):
 
 
 def insert_line_and_tg_id(line_id, tg_id, tg_title):
+        if CONN is None:
+                return
         try:
                 cur = CONN.cursor()
                 cur.execute(

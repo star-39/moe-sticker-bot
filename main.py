@@ -116,6 +116,7 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
 
 
 def prepare_sticker_files(update: Update, ctx: CallbackContext):
+    time_start = time.time()
     images = []
     # User stickers
     if ctx.user_data['in_command'].startswith("/create_sticker_set") or ctx.user_data['in_command'].startswith("/manage_sticker_set"):
@@ -209,6 +210,9 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
     if len(images) == 0:
         raise Exception("No image available! Try again.")
     ctx.user_data['telegram_sticker_files'] = images
+
+    time_end = time.time()
+    print(f"Prepared {str(len(images))} stickers in {str(time_end - time_start)} seconds.")
 
 
 def initialize_emoji_assign(update: Update, ctx: CallbackContext):
