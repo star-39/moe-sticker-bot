@@ -51,7 +51,8 @@ GET_TG_STICKER, TYPE_SELECT, LINE_URL, TITLE, ID, EDIT_CHOICE, SET_EDIT, EMOJI_S
 # Line sticker types
 LINE_STICKER_STATIC = "line_s"
 LINE_STICKER_ANIMATION = "line_s_ani"
-LINE_STICKER_POPUP = "line_s_popup"  #背景が動く
+LINE_STICKER_POPUP = "line_s_popup"  #全螢幕
+LINE_STICKER_POPUP_EFFECT = "line_s_eff" #特效
 LINE_EMOJI_STATIC = "line_e"
 LINE_EMOJI_ANIMATION = "line_e_ani"
 LINE_STICKER_MESSAGE = "line_s_msg"  #訊息
@@ -99,14 +100,14 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
                                                               emojis=ctx.user_data['telegram_sticker_emoji'],
                                                               webm_sticker=get_webm_sticker(img)),
                            lambda: (
-                           index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
+                           index + 1 == len(ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers)))
         else:
             err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                               name=ctx.user_data['telegram_sticker_id'],
                                                               emojis=ctx.user_data['telegram_sticker_emoji'],
                                                               png_sticker=get_png_sticker(img)),
                            lambda: (
-                           index + 1 == ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
+                           index + 1 == len(ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers)))
         if err is not None:
             raise(err)
 
@@ -194,6 +195,8 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
                         # workaround for sticker orders.
                         shutil.move(f, os.path.join(work_dir, os.path.basename(
                             f)[:os.path.basename(f).index('.png')] + '@99x.png'))
+                elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP_EFFECT:
+                    work_dir = os.path.join(work_dir, "popup")
                 elif ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
                     work_dir = os.path.join(work_dir, "animation@2x")
                 else:
@@ -218,7 +221,6 @@ def initialize_emoji_assign(update: Update, ctx: CallbackContext):
 
 # EMOJI_ASSIGN
 def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
-
     # Verify emoji.
     em = ''.join(e for e in re.findall(
         emoji.get_emoji_regexp(), update.message.text))
@@ -253,8 +255,8 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                               webm_sticker=get_webm_sticker(
                                                                   ctx.user_data['telegram_sticker_files'][ctx.user_data['telegram_sticker_emoji_assign_index']])
                                                               ),
-                           lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == ctx.bot.get_sticker_set(
-                               name=ctx.user_data['telegram_sticker_id']).stickers))
+                           lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == len(ctx.bot.get_sticker_set(
+                               name=ctx.user_data['telegram_sticker_id']).stickers)))
         else:
             err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                               name=ctx.user_data['telegram_sticker_id'],
@@ -262,8 +264,8 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                               png_sticker=get_png_sticker(
                                                                   ctx.user_data['telegram_sticker_files'][ctx.user_data['telegram_sticker_emoji_assign_index']])
                                                               ),
-                           lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == ctx.bot.get_sticker_set(
-                               name=ctx.user_data['telegram_sticker_id']).stickers))
+                           lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == len(ctx.bot.get_sticker_set(
+                               name=ctx.user_data['telegram_sticker_id']).stickers)))
     if err is not None:
         if err is telegram.error.BadRequest:
             if "Stickers_too_much" in err.message:
@@ -465,8 +467,13 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
             t = LINE_STICKER_NAME
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/sticker_name_base@2x.zip"
-        elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoFlash_b' in webpage.text or 'MdIcoEffectSticker_b' in webpage.text or 'MdIcoFlashAni_b' in webpage.text:
+        elif 'MdIcoFlash_b' in webpage.text or 'MdIcoFlashAni_b' in webpage.text:
             t = LINE_STICKER_POPUP
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
+                i + "/iphone/stickerpack@2x.zip"
+            is_animated = True
+        elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoEffectSticker_b' in webpage.text:
+            t = LINE_STICKER_POPUP_EFFECT
             u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
                 i + "/iphone/stickerpack@2x.zip"
             is_animated = True
