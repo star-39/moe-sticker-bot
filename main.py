@@ -191,12 +191,13 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
                 images = sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webp"), recursive=True)])
             # is animated line stickers/emojis.
             else:
-                if ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP:
+                # For LINE Effect stickers, keep static and animated popups.
+                if ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP_EFFECT:
                     for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
                         # workaround for sticker orders.
                         shutil.move(f, os.path.join(work_dir, os.path.basename(
                             f)[:os.path.basename(f).index('.png')] + '@99x.png'))
-                elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP_EFFECT:
+                elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP:
                     work_dir = os.path.join(work_dir, "popup")
                 elif ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
                     work_dir = os.path.join(work_dir, "animation@2x")
