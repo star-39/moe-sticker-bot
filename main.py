@@ -568,6 +568,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             archive_file_path = media_file_path.replace(".media", ".archive")
             queued_download(update.message.document.get_file(), archive_file_path, ctx)
             ctx.user_data['user_sticker_archive'] = archive_file_path
+            print_sticker_archive_received(update, ctx)
             print_ask_emoji(update)
             return EMOJI_SELECT
         else:

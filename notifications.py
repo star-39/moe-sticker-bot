@@ -74,7 +74,7 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 <b>/cancel</b><code>
   Interrupt conversation. 中斷指令. キャンセル 
 </code>
-""", parse_mode="HTML")
+""", parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
 
 
 def print_about_message(update: Update, BOT_NAME, BOT_VERSION):
@@ -466,6 +466,12 @@ def print_no_user_sticker_received(update):
 def print_user_sticker_done(update, ctx):
     update.effective_chat.send_message(f"Done. {len(ctx.user_data['user_sticker_files'])} stickers received.\n"
                                        f"成功收到 {len(ctx.user_data['user_sticker_files'])} 張貼圖",
+                                       reply_markup=ReplyKeyboardRemove())
+
+
+def print_sticker_archive_received(update, ctx):
+    update.effective_chat.send_message(f"Done. One archive received.\n"
+                                       f"成功收到 1 歸檔",
                                        reply_markup=ReplyKeyboardRemove())
 
 
