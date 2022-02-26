@@ -33,17 +33,12 @@ import shutil
 import glob
 import threading
 
-from notifications import *
-from helper import *
-
 BOT_VERSION = "5.0 RC-9"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
 DATA_DIR = os.path.join(BOT_NAME + "_data", "data")
 HAS_DB = False
-
-from database import *
 
 # Stages of conversations
 GET_TG_STICKER, TYPE_SELECT, LINE_URL, TITLE, ID, EDIT_CHOICE, SET_EDIT, EMOJI_SELECT, USER_STICKER, EMOJI_ASSIGN = range(10)
@@ -57,6 +52,11 @@ LINE_EMOJI_STATIC = "line_e"
 LINE_EMOJI_ANIMATION = "line_e_ani"
 LINE_STICKER_MESSAGE = "line_s_msg"  #訊息
 LINE_STICKER_NAME = "line_s_name"  #隨你填
+
+# Load other files
+from database import *
+from notifications import *
+from helper import *
 
 # Binary names for cross-platform purpose
 FFMPEG_BIN = get_ffmpeg_bin()
@@ -113,107 +113,6 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
 
     edit_message_progress(message_progress, ctx, 1, 0)
     print_sticker_done(update, ctx)
-
-
-def prepare_sticker_files(update: Update, ctx: CallbackContext):
-    time_start = time.time()
-    images = []
-    # User stickers
-    if ctx.user_data['in_command'].startswith("/create_sticker_set") or ctx.user_data['in_command'].startswith("/manage_sticker_set"):
-        # User sent sticker archive
-        if ctx.user_data['user_sticker_archive']:
-            archive_path = ctx.user_data['user_sticker_archive']
-            work_dir = os.path.dirname(archive_path)
-            ret = subprocess.run(['bsdtar', '-xf', archive_path, '-C', work_dir], capture_output=True)
-            if ret.returncode != 0:
-                raise Exception("Unable to extract image from archive!")
-            os.remove(archive_path)
-            for f in glob.glob(os.path.join(work_dir, "**"), recursive=True):
-                if os.path.isfile(f):
-                    shutil.move(f, f + ".media")
-                    ctx.user_data['user_sticker_files'].append(f + ".media")
-
-        for f in ctx.user_data['user_sticker_files']:
-            if f.endswith('.media'):
-                if ctx.user_data['telegram_sticker_is_animated']:
-                    ret = ff_convert_to_webm(f)
-                else:
-                    ret = im_convert_to_webp(f)
-                    # Skip errored conversion. Don't panic.
-                if ret.returncode == 0:
-                    images.append(f + '.webm' if ctx.user_data['telegram_sticker_is_animated'] else f + '.webp')
-                else:
-                    update.effective_chat.send_message(
-                        "WARN: failed processing one media.\n\n" + str(ret.stderr))
-            else:
-                images.append(f)
-    # Line stickers.
-    else:
-        work_dir = os.path.join(
-            DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
-        os.makedirs(work_dir, exist_ok=True)
-        # Special line "message" stickers
-        if ctx.user_data['line_sticker_type'] == LINE_STICKER_MESSAGE:
-            for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
-                json_text = element.get('data-preview')
-                if json_text is not None:
-                    json_data = json.loads(json_text)
-                    base_image = json_data['staticUrl'].split(';')[0]
-                    overlay_image = json_data['customOverlayUrl'].split(';')[0]
-                    base_image_link_split = base_image.split('/')
-                    image_id = base_image_link_split[base_image_link_split.index(
-                        'sticker') + 1]
-                    subprocess.run(
-                        ["curl", "-Lo", f"{work_dir}{image_id}.base.png", base_image])
-                    subprocess.run(
-                        ["curl", "-Lo", f"{work_dir}{image_id}.overlay.png", overlay_image])
-                    subprocess.run(CONVERT_BIN + [f"{work_dir}{image_id}.base.png", f"{work_dir}{image_id}.overlay.png",
-                                    "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
-                                    "-define", "webp:lossless=true",
-                                    f"{work_dir}{image_id}.webp"])
-            images = sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webp"), recursive=True)])
-        else:
-            zip_file_path = os.path.join(
-                work_dir, ctx.user_data['line_sticker_id'] + ".zip")
-            subprocess.run(["curl", "-Lo", zip_file_path,
-                            ctx.user_data['line_sticker_download_url']])
-            subprocess.run(BSDTAR_BIN + ["-xf", zip_file_path, "-C", work_dir])
-            for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "productInfo.meta")):
-                os.remove(f)
-            # standard static line stickers.
-            if not ctx.user_data['line_sticker_is_animated']:
-                for f in glob.glob(os.path.join(work_dir, "*")):
-                    if ctx.user_data['line_sticker_type'] == LINE_EMOJI_STATIC:
-                        # LINE sticon is too small, unsharp a little bit.
-                        im_convert_to_webp(f, unsharp=True)
-                    else:
-                        im_convert_to_webp(f)
-                images = sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webp"), recursive=True)])
-            # is animated line stickers/emojis.
-            else:
-                # For LINE Effect stickers, keep static and animated popups.
-                if ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP_EFFECT:
-                    for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
-                        # workaround for sticker orders.
-                        shutil.move(f, os.path.join(work_dir, os.path.basename(
-                            f)[:os.path.basename(f).index('.png')] + '@99x.png'))
-                elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP:
-                    work_dir = os.path.join(work_dir, "popup")
-                elif ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
-                    work_dir = os.path.join(work_dir, "animation@2x")
-                else:
-                     pass
-                for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
-                    ff_convert_to_webm(f)
-
-                images = sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webm"), recursive=True)])
-
-    if len(images) == 0:
-        raise Exception("No image available! Try again.")
-    ctx.user_data['telegram_sticker_files'] = images
-
-    time_end = time.time()
-    print(f"Prepared {str(len(images))} stickers in {str(time_end - time_start)} seconds.")
 
 
 def initialize_emoji_assign(update: Update, ctx: CallbackContext):
