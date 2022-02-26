@@ -1,8 +1,11 @@
-import mariadb
 import sys
 import os
 import traceback
 import main
+try:
+        import mariadb
+except:
+        pass
 
 DB_USER = os.getenv('DB_USER', 'user')
 DB_PASS = os.getenv('DB_PASS', 'pass')
