@@ -21,7 +21,7 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 * requests
 * bs4
 * emoji
-* mariadb
+* mariadb (optional)
 
 ### System Dependencies
 * python 3.9+
@@ -77,6 +77,11 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+5.0 RC-10 (20220226)
+  * Performance is now significantly improved.
+  * Fix issue converting Line message stickers.
+  * mariadb is now optional.
+
 5.0 RC-9 (20220223)
   * Splitted line popups to two categories, one keeping animated only.
   * Bot now has a database stroing "good" imported sticker sets.

@@ -33,7 +33,7 @@ import shutil
 import glob
 import threading
 
-BOT_VERSION = "5.0 RC-9"
+BOT_VERSION = "5.0 RC-10"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
