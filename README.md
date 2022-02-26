@@ -26,7 +26,6 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 ### System Dependencies
 * python 3.9+
 * ImageMagick
-* libwebp
 * bsdtar (libarchive-tools)
 * ffmpeg
 * curl
@@ -38,8 +37,6 @@ BOT_TOKEN=your_bot_token python3 main.py
 ```
 
 This software supports all platforms python supports, including Linux, Windows and Mac.
-
-However, it's tested on Linux only.
 
 ### Manual deployment
 #### Linux/macOS
@@ -80,7 +77,7 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 5.0 RC-10 (20220226)
   * Performance is now significantly improved.
   * Fix issue converting Line message stickers.
-  * mariadb is now optional.
+  * Bypass some regional block by LINE.
 
 5.0 RC-9 (20220223)
   * Splitted line popups to two categories, one keeping animated only.
