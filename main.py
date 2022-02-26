@@ -350,7 +350,8 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
 def get_line_sticker_detail(message, ctx: CallbackContext):
     message_url = re.findall(r'\b(?:https?):[\w/#~:.?+=&%@!\-.:?\\-]+?(?=[.:?\-]*(?:[^\w/#~:.?+=&%@!\-.:?\-]|$))',
                              message)[0]
-    webpage = requests.get(message_url)
+    request_header = {'User-Agent': "curl/7.61.1"}
+    webpage = requests.get(message_url, headers=request_header)
     ctx.user_data['line_store_webpage'] = webpage
     if not webpage.url.startswith("https://store.line.me"):
         raise Exception("Not a LINE Store link! 不是LINE商店連結!")
