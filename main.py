@@ -126,10 +126,13 @@ def initialize_emoji_assign(update: Update, ctx: CallbackContext):
 # EMOJI_ASSIGN
 def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
     # Verify emoji.
+    if not hasattr(update.message, 'text'):
+        update.effective_chat.send_message("Please send emoji! Try again")
+        return EMOJI_ASSIGN
     em = ''.join(e for e in re.findall(
         emoji.get_emoji_regexp(), update.message.text))
     if em == '':
-        update.message.reply_text("Please send emoji! Try again")
+        update.effective_chat.send_message("Please send emoji! Try again")
         return EMOJI_ASSIGN
 
     # First sticker to create new set.
