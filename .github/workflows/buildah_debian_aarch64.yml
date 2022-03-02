@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: uraimo/run-on-arch-action@v2.1.1
+      - uses: star-39/run-on-arch-action@v99.0
         name: Build aarch64 container
         id: build_aarch64
         with:
