@@ -42,7 +42,7 @@ jobs:
           run: |
             cat /proc/cpuinfo
             chmod +x buildah_debian_aarch64.sh
-            ./buildah_debian_aarch64.sh ${GITHUB_TOKEN}
+            ./buildah_debian_aarch64.sh ${{ github.token }}
             
           
       - name: Get output
