@@ -35,12 +35,11 @@ jobs:
             --volume "${PWD}/fake_cpuinfo:/proc/cpuinfo" \
             --security-opt seccomp=unconfined \
             --privileged
-            --device /dev/fuse
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
             apt update -y
-            apt install buildah curl fuse -y
+            apt install buildah curl -y
           run: |
             cat /proc/cpuinfo
             chmod +x buildah_debian_aarch64.sh
