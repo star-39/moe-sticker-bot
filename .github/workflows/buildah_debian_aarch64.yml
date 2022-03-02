@@ -30,7 +30,7 @@ jobs:
           distro: bullseye
           githubToken: ${{ github.token }}
           setup: |
-            cat "CPU architecture: 8" > "${PWD}/fake_cpuinfo"
+            echo "CPU architecture: 8" > "${PWD}/fake_cpuinfo"
           dockerRunArgs: |
             --volume "${PWD}/fake_cpuinfo:/proc/cpuinfo"
           env: | 
