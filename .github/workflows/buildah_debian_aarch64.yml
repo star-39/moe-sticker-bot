@@ -36,11 +36,12 @@ jobs:
             --security-opt seccomp=unconfined \
             --privileged
             --device /dev/fuse
+            --volume /var/lib/containers/:/var/lib/containers
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
             apt update -y
-            apt install buildah curl -y
+            apt install buildah curl fuse -y
           run: |
             cat /proc/cpuinfo
             chmod +x buildah_debian_aarch64.sh
