@@ -29,14 +29,13 @@ jobs:
           arch: aarch64
           distro: bullseye
           githubToken: ${{ github.token }}
-          dockerRunArgs: |
-            --volume "/proc:/proc"
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
             apt update -y
             apt install buildah curl -y
           run: |
+            cat /proc/cpuinfo
             chmod +x buildah_debian_aarch64.sh
             ./buildah_debian_aarch64.sh ${GITHUB_TOKEN}
             
