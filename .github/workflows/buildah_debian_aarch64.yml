@@ -32,7 +32,9 @@ jobs:
           setup: |
             echo "CPU architecture: 8" > "${PWD}/fake_cpuinfo"
           dockerRunArgs: |
-            --volume "${PWD}/fake_cpuinfo:/proc/cpuinfo"
+            --volume "${PWD}/fake_cpuinfo:/proc/cpuinfo" \
+            --security-opt seccomp=unconfined \
+            --privileged
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
