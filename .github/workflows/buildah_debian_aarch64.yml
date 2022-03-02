@@ -27,13 +27,13 @@ jobs:
         id: build_aarch64
         with:
           arch: aarch64
-          distro: fedora_latest
+          distro: bullseye
           githubToken: ${{ github.token }}
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
-            dnf update -y
-            dnf install buildah curl git -y
+            apt update -y
+            apt install buildah curl -y
           run: |
             chmod +x buildah_debian_aarch64.sh
             ./buildah_debian_aarch64.sh ${GITHUB_TOKEN}
