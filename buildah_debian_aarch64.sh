@@ -29,7 +29,7 @@ buildah config --env COLUMNS=80 $c1
 
 buildah commit $c1 moe-sticker-bot:base_aarch64
 
-buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:base_aarch64
+buildah push moe-sticker-bot:base_aarch64 ghcr.io/star-39/moe-sticker-bot:base_aarch64
 
 #################################
 
