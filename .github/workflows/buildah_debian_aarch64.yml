@@ -35,6 +35,7 @@ jobs:
             --volume "${PWD}/fake_cpuinfo:/proc/cpuinfo" \
             --security-opt seccomp=unconfined \
             --privileged
+            --device /dev/fuse
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
