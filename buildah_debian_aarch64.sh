@@ -6,7 +6,7 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 #################################
 
-c1=$(buildah from hub.docker.com/r/arm64v8/debian:sid)
+c1=$(buildah from docker://arm64v8/debian:sid)
 
 buildah run $c1 -- apt update -y
 buildah run $c1 -- apt install ffmpeg python3 python3-pip imagemagick curl libarchive-tools libmariadb-dev -y
