@@ -29,6 +29,8 @@ jobs:
           arch: aarch64
           distro: bullseye
           githubToken: ${{ github.token }}
+          dockerRunArgs: |
+            --volume "/proc:/proc"
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
