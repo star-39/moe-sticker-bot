@@ -36,7 +36,6 @@ jobs:
             --security-opt seccomp=unconfined \
             --privileged
             --device /dev/fuse
-            --volume /var/lib/containers/:/var/lib/containers
           env: | 
             GITHUB_TOKEN: ${{ github.token }}
           install: |
