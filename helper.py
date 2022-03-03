@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 from telegram.ext import messagequeue as mq
 from telegram import Update, File
 from telegram.ext import CallbackContext
+import asyncio
 
 # Names of binaries that we depend on vary across different OSes.
 # To make the code truely cross-platform, this problem should be sloved in code,
@@ -124,26 +125,21 @@ def guess_file_is_archive(f: str):
 
 
 def queued_download(f: File, save_path: str, ctx: CallbackContext):
-    # ctx.user_data['user_sticker_download_queue'].append(save_path)
-    # print("start")
-    f.download(save_path)
-    # print("end")
-    # ctx.user_data['user_sticker_download_queue'].remove(save_path)
+    item = [f, save_path]
+    ctx.user_data['user_sticker_download_queue'].append(item)
 
 
 def wait_download_queue(update, ctx):
-    time.sleep(5)
-    # if len(ctx.user_data['user_sticker_download_queue']) > 0:
-    #     for _ in range(12):
-    #         if len(ctx.user_data['user_sticker_download_queue']) == 0:
-    #             return
-    #         else:
-    #             time.sleep(5)
-    # else:
-    #     return
+    if len(ctx.user_data['user_sticker_download_queue']) == 0:
+        raise Exception("No image found!")
+    items_count = str(len(ctx.user_data['user_sticker_download_queue']))
+    update.effective_chat.send_message(f"Gathering {items_count} images/videos, please wait...\n正在取得 {items_count} 份圖片/短片, 請稍後...\n")
+    time.sleep(1)
 
-    # update.effective_chat.send_message(
-    #     "unknown error! try sending done again or /cancel")
+    for f, save_path in ctx.user_data['user_sticker_download_queue']:
+        f.download(save_path)
+        ctx.user_data['user_sticker_files'].append(save_path)
+
 
 
 def prepare_sticker_files(update: Update, ctx: CallbackContext):

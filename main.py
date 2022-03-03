@@ -567,15 +567,13 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
                     "Do not send archive after sending images! skipping...")
                 return USER_STICKER
             archive_file_path = media_file_path.replace(".media", ".archive")
-            queued_download(update.message.document.get_file(), archive_file_path, ctx)
+            update.message.document.get_file()
             ctx.user_data['user_sticker_archive'] = archive_file_path
             print_sticker_archive_received(update, ctx)
             print_ask_emoji(update)
             return EMOJI_SELECT
         else:
-            # ImageMagick and ffmpeg are smart enough to recognize actual image format.
             queued_download(update.message.document.get_file(), media_file_path, ctx)
-            ctx.user_data['user_sticker_files'].append(media_file_path)
             return USER_STICKER
     # Compressed image.
     elif len(update.message.photo) > 0:
@@ -583,7 +581,6 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             print_do_not_send_media_group(update, ctx)
             return USER_STICKER
         queued_download(update.message.photo[-1].get_file(), media_file_path, ctx)
-        ctx.user_data['user_sticker_files'].append(media_file_path)
         return USER_STICKER
 
     elif update.message.video is not None:
@@ -591,7 +588,6 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             print_file_too_big(update)
             return USER_STICKER
         queued_download(update.message.video.get_file(), media_file_path, ctx)
-        ctx.user_data['user_sticker_files'].append(media_file_path)
         return USER_STICKER
     # Telegram sticker.
     elif update.message.sticker is not None:
@@ -600,7 +596,6 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             # However, that "sticker" may not fufill requirements.
             if (update.message.sticker.width != 512 and update.message.sticker.height != 512):
                 queued_download(update.message.sticker.get_file(), media_file_path, ctx)
-                ctx.user_data['user_sticker_files'].append(media_file_path)
             else:
                 sticker_file_id = update.message.sticker.file_id
                 ctx.user_data['user_sticker_files'].append(sticker_file_id)
@@ -610,11 +605,14 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         return USER_STICKER
 
     elif "done" in update.message.text.lower():
-        if len(ctx.user_data['user_sticker_files']) == 0:
-            print_no_user_sticker_received(update)
-            return USER_STICKER
-
-        wait_download_queue(update, ctx)
+        # if len(ctx.user_data['user_sticker_files']) == 0:
+        #     print_no_user_sticker_received(update)
+        #     return USER_STICKER
+        try:
+            wait_download_queue(update, ctx)
+        except:
+            print_fatal_error(update, traceback.format_exc())
+            return ConversationHandler.END
         print_user_sticker_done(update, ctx)
         print_ask_emoji(update)
         return EMOJI_SELECT
@@ -836,6 +834,7 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
             Filters.command, print_in_conv_warning)],
         conversation_timeout=43200,
+        
         run_async=True
     )
     conv_manage_sticker_set = ConversationHandler(
