@@ -1,3 +1,4 @@
+import pathlib
 import main
 import subprocess
 from threading import Timer
@@ -132,8 +133,6 @@ def queued_download(f: File, save_path: str, ctx: CallbackContext):
 def wait_download_queue(update, ctx):
     if len(ctx.user_data['user_sticker_download_queue']) == 0:
         return
-    if len(ctx.user_data['user_sticker_files']) == 0:
-        raise Exception("No image available!")
     items_count = str(len(ctx.user_data['user_sticker_download_queue']))
     update.effective_chat.send_message(f"Gathering {items_count} images/videos, please wait...\n正在取得 {items_count} 份圖片/短片, 請稍後...\n")
     time.sleep(1)
@@ -160,11 +159,13 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
             os.remove(archive_path)
             for f in glob.glob(os.path.join(work_dir, "**"), recursive=True):
                 if os.path.isfile(f):
-                    shutil.move(f, f + ".media")
-                    ctx.user_data['user_sticker_files'].append(f + ".media")
+                    #workaround preserving suffix
+                    ext = pathlib.Path(f).suffix
+                    shutil.move(f, f + ".media" + ext)
+                    ctx.user_data['user_sticker_files'].append(f + ".media" + ext)
 
         for f in ctx.user_data['user_sticker_files']:
-            if f.endswith('.media'):
+            if '.media' in f:
                 if ctx.user_data['telegram_sticker_is_animated']:
                     ret = ff_convert_to_webm(f)
                 else:

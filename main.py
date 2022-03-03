@@ -33,6 +33,7 @@ import shlex
 import shutil
 import glob
 import threading
+import pathlib
 
 BOT_VERSION = "5.0 RC-11"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -577,12 +578,14 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
                     "Do not send archive after sending images! skipping...")
                 return USER_STICKER
             archive_file_path = media_file_path.replace(".media", ".archive")
-            update.message.document.get_file()
+            update.message.document.get_file().download(archive_file_path)
             ctx.user_data['user_sticker_archive'] = archive_file_path
             print_sticker_archive_received(update, ctx)
             print_ask_emoji(update)
             return EMOJI_SELECT
         else:
+            #workaround for dumb ImageMagick
+            media_file_path += pathlib.Path(update.message.document.file_name).suffix
             queued_download(update.message.document.get_file(), media_file_path, ctx)
             return USER_STICKER
     # Compressed image.
@@ -592,11 +595,12 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
             return USER_STICKER
         queued_download(update.message.photo[-1].get_file(), media_file_path, ctx)
         return USER_STICKER
-
+    # Video with sound.
     elif update.message.video is not None:
         if update.message.video.file_size > 20 * 1024 * 1000:
             print_file_too_big(update)
             return USER_STICKER
+        media_file_path += pathlib.Path(update.message.video.file_name).suffix
         queued_download(update.message.video.get_file(), media_file_path, ctx)
         return USER_STICKER
     # Telegram sticker.
@@ -615,14 +619,16 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         return USER_STICKER
 
     elif "done" in update.message.text.lower():
-        # if len(ctx.user_data['user_sticker_files']) == 0:
-        #     print_no_user_sticker_received(update)
-        #     return USER_STICKER
+
         try:
             wait_download_queue(update, ctx)
         except:
             print_fatal_error(update, traceback.format_exc())
+            clean_userdata(update, ctx)
             return ConversationHandler.END
+        if len(ctx.user_data['user_sticker_files']) == 0:
+            print_no_user_sticker_received(update)
+            return USER_STICKER
         print_user_sticker_done(update, ctx)
         print_ask_emoji(update)
         return EMOJI_SELECT
