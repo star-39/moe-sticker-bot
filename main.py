@@ -73,13 +73,13 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
     if not ctx.user_data['in_command'].startswith("/manage_sticker_set"):
         # Create a new sticker set using the first image.
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
-            err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                   name=ctx.user_data['telegram_sticker_id'],
                                                                   title=ctx.user_data['telegram_sticker_title'],
                                                                   emojis=ctx.user_data['telegram_sticker_emoji'],
                                                                   webm_sticker=get_webm_sticker(ctx.user_data['telegram_sticker_files'][0])), lambda: False)
         else:
-            err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                   name=ctx.user_data['telegram_sticker_id'],
                                                                   title=ctx.user_data['telegram_sticker_title'],
                                                                   emojis=ctx.user_data['telegram_sticker_emoji'],
@@ -95,14 +95,14 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
                 continue
         
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
-            err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                               name=ctx.user_data['telegram_sticker_id'],
                                                               emojis=ctx.user_data['telegram_sticker_emoji'],
                                                               webm_sticker=get_webm_sticker(img)),
                            lambda: (
                            index + 1 == len(ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers)))
         else:
-            err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                               name=ctx.user_data['telegram_sticker_id'],
                                                               emojis=ctx.user_data['telegram_sticker_emoji'],
                                                               png_sticker=get_png_sticker(img)),
@@ -139,7 +139,7 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == 0 and not ctx.user_data['in_command'].startswith("/manage_sticker_set"):
         # Create a new sticker set using the first image.:
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
-            err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                   name=ctx.user_data['telegram_sticker_id'],
                                                                   title=ctx.user_data['telegram_sticker_title'],
                                                                   emojis=em,
@@ -147,7 +147,7 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                                       ctx.user_data['telegram_sticker_files'][0])
                                                                   ), lambda: False)
         else:
-            err = retry_do(lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.create_new_sticker_set(user_id=update.effective_user.id,
                                                                   name=ctx.user_data['telegram_sticker_id'],
                                                                   title=ctx.user_data['telegram_sticker_title'],
                                                                   emojis=em,
@@ -156,7 +156,7 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                                   ), lambda: False)
     else:
         if ctx.user_data['line_sticker_is_animated'] is True or ctx.user_data['telegram_sticker_is_animated'] is True:
-            err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                               name=ctx.user_data['telegram_sticker_id'],
                                                               emojis=em,
                                                               webm_sticker=get_webm_sticker(
@@ -165,7 +165,7 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                            lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == len(ctx.bot.get_sticker_set(
                                name=ctx.user_data['telegram_sticker_id']).stickers)))
         else:
-            err = retry_do(lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
+            err = retry_do(update, ctx, lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                               name=ctx.user_data['telegram_sticker_id'],
                                                               emojis=em,
                                                               png_sticker=get_png_sticker(

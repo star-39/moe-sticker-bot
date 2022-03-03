@@ -66,10 +66,16 @@ def check_bin(bin: str):
 # Uploading sticker could easily trigger Telegram's flood limit,
 # however, documentation never specified this limit,
 # hence, we should at least retry after triggering the limit.
-def retry_do(func, lambda_check_fake_ra):
+def retry_do(update: Update, ctx: CallbackContext, func, lambda_check_fake_ra):
     for index in range(5):
         try:
             func()
+        except telegram.error.BadRequest as br:
+            if br.message == 'Sticker_video_long':
+                update.effective_chat.send_message("Failed uploading one sticker, skipped.")
+                break
+            else:
+                return br
         except telegram.error.RetryAfter as ra:
             if index == 4:
                 return ra
@@ -84,7 +90,6 @@ def retry_do(func, lambda_check_fake_ra):
             if index == 4:
                 print(traceback.format_exc())
                 return e
-            # It could probably be a network problem, sleep for a while and try again.
             time.sleep(5)
         else:
             break
