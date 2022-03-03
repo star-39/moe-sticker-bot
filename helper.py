@@ -297,7 +297,7 @@ def initialize_user_data(update: Update, ctx):
     if not os.path.exists(main.DATA_DIR):
         os.makedirs(main.DATA_DIR)
     clean_userdata(update, ctx)
-    ctx.user_data['in_command'] = update.message.text.strip().split(' ')[0]
+    ctx.user_data['in_command'] = update.message.text[update.message.text.index('/'):]
     ctx.user_data['manual_emoji'] = False
     ctx.user_data['line_sticker_url'] = ""
     ctx.user_data['line_store_webpage'] = None

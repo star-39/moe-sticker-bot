@@ -209,11 +209,15 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
 def parse_id(update: Update, ctx: CallbackContext) -> int:
     # /create_sticker_set
     if str(ctx.user_data['in_command']).startswith("/create_sticker_set"):
-        if update.callback_query is not None and update.callback_query.data == "auto":
-            ctx.user_data['telegram_sticker_id'] = f"sticker_" + \
-                f"{secrets.token_hex(nbytes=4)}_by_{BOT_NAME}"
-            update.callback_query.answer()
-            edit_inline_kb_auto_selected(update.callback_query)
+        if update.callback_query is not None:
+            if update.callback_query.data == "auto":
+                ctx.user_data['telegram_sticker_id'] = f"sticker_" + \
+                    f"{secrets.token_hex(nbytes=4)}_by_{BOT_NAME}"
+                update.callback_query.answer()
+                edit_inline_kb_auto_selected(update.callback_query)
+            else:
+                update.effective_chat.send_message("Please send ID! try again.")
+                return ID
         elif update.message.text is not None:
             ctx.user_data['telegram_sticker_id'] = update.message.text.strip(
             ) + "_by_" + BOT_NAME
@@ -232,7 +236,7 @@ def parse_id(update: Update, ctx: CallbackContext) -> int:
                     "set already exists! try again")
                 return ID
         else:
-            update.effective_chat.send_message("Please send ID.")
+            update.effective_chat.send_message("Please send ID! try again.")
             return ID
         print_ask_user_sticker(update, ctx)
         return USER_STICKER
