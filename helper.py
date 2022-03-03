@@ -131,7 +131,9 @@ def queued_download(f: File, save_path: str, ctx: CallbackContext):
 
 def wait_download_queue(update, ctx):
     if len(ctx.user_data['user_sticker_download_queue']) == 0:
-        raise Exception("No image found!")
+        return
+    if len(ctx.user_data['user_sticker_files']) == 0:
+        raise Exception("No image available!")
     items_count = str(len(ctx.user_data['user_sticker_download_queue']))
     update.effective_chat.send_message(f"Gathering {items_count} images/videos, please wait...\n正在取得 {items_count} 份圖片/短片, 請稍後...\n")
     time.sleep(1)
