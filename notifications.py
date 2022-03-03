@@ -255,7 +255,7 @@ def print_show_user_stickers(update: Update, ctx, stickers):
         return
     if len(stickers) == 0:
         return
-    message = 'You currently have following sticker sets:\n您當前有如下貼圖包:\n\n'
+    message = 'You own following sticker sets:\n您擁有有如下貼圖包:\n\n'
     for tg_id, tg_title, timestamp in stickers:
         id = tg_id[:tg_id.index("_by_")]
         title = tg_title[:tg_title.index(main.BOT_NAME)-2] if tg_title.find(main.BOT_NAME) != -1 else tg_title
