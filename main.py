@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import json
 import time
 # import logging
@@ -113,6 +114,8 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
 
     edit_message_progress(message_progress, ctx, 1, 0)
     print_sticker_done(update, ctx)
+    if not ctx.user_data['in_command'].startswith("/manage_sticker_set"):
+        insert_user_sticker(update.effective_user.id, ctx.user_data['telegram_sticker_id'], ctx.user_data['telegram_sticker_title'], int(time.time()))
 
 
 def initialize_emoji_assign(update: Update, ctx: CallbackContext):
@@ -185,9 +188,12 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
         clean_userdata(update, ctx)
         return ConversationHandler.END
 
+    # Done.
     if ctx.user_data['telegram_sticker_emoji_assign_index'] == len(ctx.user_data['telegram_sticker_files']) - 1:
         if ctx.user_data['in_command'].startswith("/import_line_sticker"):
             insert_line_and_tg_id(ctx.user_data['line_sticker_id'], ctx.user_data['telegram_sticker_id'], ctx.user_data['telegram_sticker_title'])
+        if not ctx.user_data['in_command'].startswith("/manage_sticker_set"):
+            insert_user_sticker(update.effective_user.id, ctx.user_data['telegram_sticker_id'], ctx.user_data['telegram_sticker_title'], int(time.time()))
         print_sticker_done(update, ctx)
         print_command_done(update, ctx)
         clean_userdata(update, ctx)
@@ -638,7 +644,7 @@ def parse_type(update: Update, ctx: CallbackContext):
 
 def parse_edit_choice(update: Update, ctx: CallbackContext):
     if update.callback_query is None:
-        update.effective_chat.send_message("Please select command above.")
+        update.effective_chat.send_message("Please select action above.")
         return EDIT_CHOICE
     elif update.callback_query.data == "add":
         ctx.user_data['telegram_sticker_edit_choice'] = "add"
@@ -655,6 +661,16 @@ def parse_edit_choice(update: Update, ctx: CallbackContext):
         update.callback_query.answer()
         print_ask_which_to_move(update)
         return SET_EDIT
+    elif update.callback_query.data == "delset":
+        ctx.user_data['telegram_sticker_edit_choice'] = "delset"
+        update.callback_query.answer()
+        print_ask_which_set_to_delete(update)
+        return SET_EDIT
+    elif update.callback_query.data == "exit":
+        update.callback_query.answer()
+        update.effective_chat.send_message("Bye.  /manage_sticker_set  /start")
+        clean_userdata(update, ctx)
+        return ConversationHandler.END
     else:
         return EDIT_CHOICE
 
@@ -664,12 +680,24 @@ def parse_set_edit(update: Update, ctx: CallbackContext):
         update.effective_chat.send_message("please send sticker!")
         return SET_EDIT
     s = update.message.sticker
+    sticker_set = ctx.bot.get_sticker_set(s.set_name)
     if s.set_name != ctx.user_data['telegram_sticker_id']:
         update.effective_chat.send_message("sticker from wrong set! try again.")
         return SET_EDIT
     if ctx.user_data['telegram_sticker_edit_choice'] == "del":
         try:
             ctx.bot.delete_sticker_from_set(s.file_id)
+        except Exception as e:
+            update.effective_chat.send_message("Failed to delete! Try again.\n" + str(e))
+            return SET_EDIT
+    elif ctx.user_data['telegram_sticker_edit_choice'] == "delset":
+        try:
+            delete_user_sticker(s.set_name)
+            for ss in sticker_set.stickers:
+                ctx.bot.delete_sticker_from_set(ss.file_id)
+            print_command_done(update, ctx)
+            clean_userdata(update, ctx)
+            return ConversationHandler.END
         except Exception as e:
             update.effective_chat.send_message("Failed to delete! Try again.\n" + str(e))
             return SET_EDIT
@@ -682,9 +710,9 @@ def parse_set_edit(update: Update, ctx: CallbackContext):
         # Receiving SECOND sticker.
         else:
             try:
-                sticker_set = ctx.bot.get_sticker_set(s.set_name)
                 dest = sticker_set.stickers.index(s)
                 ctx.bot.set_sticker_position_in_set(ctx.user_data['telegram_sticker_edit_mov_prev'].file_id, dest)
+                ctx.user_data['telegram_sticker_edit_mov_prev'] = None
             except Exception as e:
                 update.effective_chat.send_message("Failed to move! Try again.\n" + str(e))
                 ctx.user_data['telegram_sticker_edit_mov_prev'] = None
@@ -692,9 +720,12 @@ def parse_set_edit(update: Update, ctx: CallbackContext):
                 return SET_EDIT
     else:
         pass
-    print_command_done(update, ctx)
-    clean_userdata(update, ctx)
-    return ConversationHandler.END
+    print_edit_done(update, ctx)
+    print_ask_what_to_edit(update)
+    return EDIT_CHOICE
+    # print_command_done(update, ctx)
+    # clean_userdata(update, ctx)
+    # return ConversationHandler.END
 
 
 def command_download_telegram_sticker(update: Update, ctx: CallbackContext):
@@ -711,6 +742,7 @@ def command_create_sticker_set(update: Update, ctx: CallbackContext) -> int:
 
 def command_manage_sticker_set(update: Update, ctx: CallbackContext) -> int:
     initialize_user_data(update, ctx)
+    print_show_user_stickers(update, ctx, query_user_sticker(update.effective_user.id))
     print_ask_sticker_set(update)
     return ID
 

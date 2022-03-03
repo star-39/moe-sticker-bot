@@ -14,6 +14,8 @@ DB_HOST = os.getenv('DB_HOST', '127.0.0.1')
 DB_PORT = os.getenv('DB_PORT', '3306')
 USE_DB = os.getenv('USE_DB', '0')
 
+DB_VER = 0
+
 
 CONN = None
 
@@ -42,7 +44,7 @@ def attempt_connect_to_mariadb():
                         host = DB_HOST,
                         port = int(DB_PORT),
                         database = DB_NAME,
-                ) 
+                )
         except:
                 print(f"UNABLE TO CONNECT TO MARIADB ->{DB_NAME}<-, SKIPPING...")
                 return False
@@ -52,9 +54,8 @@ def attempt_connect_to_mariadb():
         cur = CONN.cursor()
 
         try:
-                cur.execute("DESCRIBE line;")
-        except mariadb.ProgrammingError:
                 initialize_mariadb_table()
+                check_mariadb_records()
         except:
                 return False
 
@@ -76,7 +77,14 @@ def initialize_mariadb_database():
 def initialize_mariadb_table():
         try:
                 cur = CONN.cursor()
-                cur.execute("CREATE TABLE line (line_id VARCHAR(128) PRIMARY KEY, tg_id VARCHAR(128), tg_title VARCHAR(255));")
+                cur.execute(f"SHOW TABLES;")
+                tables = cur.fetchall()
+                if ('line',) not in tables:
+                        cur.execute("CREATE TABLE line (line_id VARCHAR(128) PRIMARY KEY, tg_id VARCHAR(128), tg_title VARCHAR(255));")
+                if ('properties',) not in tables:
+                        cur.execute("CREATE TABLE properties (name VARCHAR(128) PRIMARY KEY, value VARCHAR(128));")
+                if ('stickers',) not in tables:
+                        cur.execute("CREATE TABLE stickers (user_id BIGINT, tg_id VARCHAR(128), tg_title VARCHAR(255), timestamp BIGINT);")
                 CONN.commit()
                 cur.close()
                 print("DATABASE TABLE INITIALIZED.")
@@ -84,6 +92,22 @@ def initialize_mariadb_table():
                 print("ERROR INITIALIZING MARIADB TABLE! EXITING...")
                 print(traceback.format_exc())
                 exit(1)
+
+
+def check_mariadb_records():
+        cur = CONN.cursor()
+        try:
+                cur.execute("SELECT value FROM properties WHERE name=?", ('DB_VER',))
+                db_version = cur.fetchone()[0]
+                if db_version < DB_VER:
+                        #Reserved.
+                        pass
+        except:
+                cur.execute("INSERT INTO properties (name, value) VALUES (?, ?)", ('DB_VER', DB_VER))
+
+        CONN.commit()
+        cur.close()
+
 
 
 def query_tg_id_by_line_id(line_id: str):
@@ -116,3 +140,50 @@ def insert_line_and_tg_id(line_id, tg_id, tg_title):
         except Exception as e:
                 print("FAILED TO INSERT, SKIPPING...\n" + str(e))
         cur.close()
+
+
+def insert_user_sticker(user_id, tg_id, tg_title, timestamp):
+        if CONN is None:
+                return
+        try:
+                cur = CONN.cursor()
+                cur.execute(
+                        "INSERT INTO stickers (user_id, tg_id, tg_title, timestamp) VALUES (?, ?, ?, ?)", (user_id, tg_id, tg_title, timestamp)
+                )
+                CONN.commit()
+                print(f"INSERT OK -> {user_id} | {tg_id} | {tg_title} | {str(timestamp)}")
+                
+        except Exception as e:
+                print("FAILED TO INSERT, SKIPPING...\n" + str(e))
+        cur.close()
+
+
+def query_user_sticker(user_id):
+        if CONN is None:
+                return None
+        try:
+                cur = CONN.cursor()
+                cur.execute(
+                        "SELECT tg_id, tg_title, timestamp FROM stickers WHERE user_id=?", (user_id,)
+                )
+                stickers = cur.fetchall()
+                cur.close()
+                return stickers
+        except:
+                cur.close()
+                return None
+
+
+def delete_user_sticker(tg_id):
+        if CONN is None:
+                return None
+        try:
+                cur = CONN.cursor()
+                cur.execute(
+                        "DELETE FROM stickers WHERE tg_id=?", (tg_id,)
+                )
+                CONN.commit()
+                cur.close()
+        except:
+                cur.close()
+                return None

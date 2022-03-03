@@ -18,6 +18,7 @@ from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, I
 from telegram.callbackquery import CallbackQuery, Message
 from telegram.ext.callbackcontext import CallbackContext
 import main
+import datetime
 
 inline_kb_ASK_EMOJI = InlineKeyboardMarkup([[InlineKeyboardButton(
     "⭐️Random/隨機", callback_data="random"), InlineKeyboardButton("Manual/手動", callback_data="manual")]])
@@ -40,7 +41,10 @@ inline_kb_RANDOM_SELECTED = InlineKeyboardMarkup(
 inline_kb_MANAGE_SET = InlineKeyboardMarkup([
     [InlineKeyboardButton("Add sticker/增添貼圖", callback_data="add")],
     [InlineKeyboardButton("Delete sticker/刪除貼圖", callback_data="del")],
-    [InlineKeyboardButton("Change order/調整順序", callback_data="mov")]])
+    [InlineKeyboardButton("Delete whole sticker set/刪除整個貼圖包", callback_data="delset")],
+    [InlineKeyboardButton("Change order/調整順序", callback_data="mov")],
+    [InlineKeyboardButton("Exit/退出", callback_data="exit")]],
+    )
 
 reply_kb_DONE = ReplyKeyboardMarkup([['done']], one_time_keyboard=True)
 
@@ -249,6 +253,25 @@ def print_ask_sticker_set(update):
         "或者是它的分享連結或ID.")
 
 
+def print_show_user_stickers(update: Update, ctx, stickers):
+    if stickers is None:
+        return
+    if len(stickers) == 0:
+        return
+    message = 'You currently have following sticker sets:\n您當前有如下貼圖包:\n\n'
+    for tg_id, tg_title, timestamp in stickers:
+        id = tg_id[:tg_id.index("_by_")]
+        title = tg_title[:tg_title.index(main.BOT_NAME)-2] if tg_title.find(main.BOT_NAME) != -1 else tg_title
+        title = title.replace('<', '＜').replace('>', '＞')
+        date = str(datetime.datetime.fromtimestamp(timestamp))[:-3]  #truncate seconds.
+        message += f'<a href="https://t.me/addstickers/{tg_id}">{id}</a> | {title} | {date}\n'
+    try:
+        update.effective_chat.send_message(message, parse_mode='HTML')
+    except:
+        print("Failed to print_show_user_stickers, skipped")
+        print(traceback.format_exc())
+
+
 def print_ask_what_to_edit(update: Update):
     update.effective_chat.send_message(
         "What do you want to edit? Please select below:\n"
@@ -261,6 +284,15 @@ def print_ask_which_to_delete(update: Update):
     update.effective_chat.send_message(
         "Which sticker do you want to delete? Please send it.\n"
         "您想要刪除哪一個貼圖? 請傳送那個貼圖"
+    )
+
+
+def print_ask_which_set_to_delete(update: Update):
+    update.effective_chat.send_message(
+        "WARNING: You are now attempting to completely delete a sticker set!\n"
+        "Send the sticker in this set again to confirm.\n"
+        "警示: 您選擇的指令是將整個貼圖包完整刪除!\n"
+        "請再次傳送貼圖包內的貼圖來確認."
     )
 
 
@@ -422,6 +454,13 @@ def print_do_not_send_media_group(update: Update, ctx: CallbackContext):
 def print_command_done(update, ctx):
     update.effective_chat.send_message(
         ctx.user_data['in_command'] + "  /start \nCommand success. 成功完成指令.")
+
+
+def print_edit_done(update, ctx):
+    update.effective_chat.send_message(
+        "Success! Note: It might take some time for your client to fetch the edited sticker set.\n"
+        "作業完成! 請知悉: 您的客戶端可能需要一段時間才會更新修改後的貼圖包.\n"
+    )
 
 
 def print_in_conv_warning(update, ctx):
