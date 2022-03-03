@@ -70,7 +70,7 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 </code>
 <b>/manage_sticker_set</b><code>
   管理Telegram貼圖包(增添/刪除/排序).
-  Telegramステッカーセットの管理(追加/削除/順番)
+  Telegramスタンプセットの管理(追加/削除/順番)
 </code>
 <b>/faq  /about</b><code>
    常見問題/關於. よくある質問/について
@@ -90,11 +90,8 @@ Thank you @StickerGroup for feedbacks and advices!
 <code>
 This free(as in freedom) software is released under the GPLv3 License.
 Comes with ABSOLUTELY NO WARRANTY! All rights reserved.
-PRIVACY NOTICE:
-  This software does not collect or save any kind of your personal information.
-本BOT為免費提供的自由軟體, 您可以自由使用/分發, 惟無任何保用服務(warranty)!
-本軟體授權於通用公共許可證(GPL)v3, 保留所有權利.
-私隱聲明: 本軟體不會採集或存儲任何用戶數據.
+本BOT為免費提供的自由軟體, 您可以自由使用/分發, 惟無任何保用(warranty)!
+本軟體授權於通用公眾授權條款(GPL)v3, 保留所有權利.
 </code><b>
 Please send /start to start using
 請傳送 /start 來開始
@@ -134,9 +131,9 @@ A:  The sticker set is multilingual, you should paste LINE store link with langu
 <b>
 Q:  Can I add video sticker to static sticker set or vice versa?
     我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
-A:  Of course you can! Video will be static in static set
+A:  Of course. Video will be static in static set
     and static sticker will remain static in video set.
-    當然可以! 動態貼圖在靜態貼圖包裡會變成靜態, 靜態貼圖在動態貼圖包裡依然會是靜態.
+    當然. 動態貼圖在靜態貼圖包裡會變成靜態, 靜態貼圖在動態貼圖包裡依然會是靜態.
 <b>
 Q:  Who owns the sticker sets the bot created?
     BOT創造的貼圖包由誰所有?</b>
