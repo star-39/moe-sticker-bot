@@ -62,11 +62,11 @@ Hello! I'm moe_sticker_bot doing sticker stuffs! Please select command below:
 </code>
 <b>/download_telegram_sticker</b><code>
   下載Telegram的貼圖包
-  Telegramステッカーセットをダウンロード
+  Telegramスタンプセッをダウンロード
 </code>
 <b>/create_sticker_set</b><code>
   創建新的Telegram的貼圖包.
-  Telegramステッカーセットの新規作成
+  Telegramスタンプセッの新規作成
 </code>
 <b>/manage_sticker_set</b><code>
   管理Telegram貼圖包(增添/刪除/排序).
