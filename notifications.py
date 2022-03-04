@@ -48,6 +48,13 @@ inline_kb_MANAGE_SET = InlineKeyboardMarkup([
 
 reply_kb_DONE = ReplyKeyboardMarkup([['done']], one_time_keyboard=True)
 
+def escape_tag_mark(text):
+    return text.replace('<', '＜').replace('>', '＞')
+
+
+def truncate_message(text):
+    return text[:4090]
+
 
 def print_start_message(update: Update):
     update.effective_chat.send_message(
@@ -157,7 +164,7 @@ def print_import_processing(update: Update, ctx):
                                                   f"LINE TYPE: {ctx.user_data['line_sticker_type']}\n"
                                                   f"LINE ID: {ctx.user_data['line_sticker_id']}\n"
                                                   f"TG ID: {ctx.user_data['telegram_sticker_id']}\n"
-                                                  f"TG TITLE: {ctx.user_data['telegram_sticker_title']}\n"
+                                                  f"TG TITLE: {escape_tag_mark(ctx.user_data['telegram_sticker_title'])}\n"
                                                   f"TG LINK: </code>https://t.me/addstickers/{ctx.user_data['telegram_sticker_id']}\n\n"
                                                   "<b>Progress / 進度</b>\n"
                                                   "<code>Preparing stickers...</code>\n",
@@ -255,13 +262,14 @@ def print_show_user_stickers(update: Update, ctx, stickers):
         return
     if len(stickers) == 0:
         return
-    message = 'You own following sticker sets:\n您擁有有如下貼圖包:\n\n'
+    message = 'You own following sticker sets:\n您擁有如下貼圖包:\n\n'
     for tg_id, tg_title, timestamp in stickers:
         id = tg_id[:tg_id.index("_by_")]
         title = tg_title[:tg_title.index(main.BOT_NAME)-2] if tg_title.find(main.BOT_NAME) != -1 else tg_title
-        title = title.replace('<', '＜').replace('>', '＞')
+        title = escape_tag_mark(title)
         date = str(datetime.datetime.fromtimestamp(timestamp))[:-3]  #truncate seconds.
         message += f'<a href="https://t.me/addstickers/{tg_id}">{id}</a> | {title} | {date}\n'
+    message = truncate_message(message)
     try:
         update.effective_chat.send_message(message, parse_mode='HTML')
     except:
@@ -360,7 +368,7 @@ def print_ask_title(update: Update, title: str):
             "Please set a title for this sticker set. Press Auto button to set title from LINE Store as shown below:\n"
             "請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中的標題如下:\n"
             "スタンプのタイトルを送信してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。" + "\n\n" +
-            "<code>" + title + "</code>",
+            "<code>" + escape_tag_mark(title) + "</code>",
             reply_markup=inline_kb_AUTO,
             parse_mode="HTML")
     else:
@@ -391,12 +399,13 @@ def print_ask_line_store_link(update):
 
 
 def print_fatal_error(update, err_msg):
-    update.effective_chat.send_message("<b>"
+    message = truncate_message("<b>"
                                        "Fatal error! Please try again. /start\n"
                                        "發生致命錯誤! 請您從頭再試一次. /start\n"
                                        "致命的なエラーが発生しました！もう一度やり直してください /start\n\n"
                                        "</b>"
-                                       "<code>" + err_msg.replace('<', '＜').replace('>', '＞') + "</code>", parse_mode="HTML")
+                                       "<code>" + escape_tag_mark(err_msg) + "</code>")
+    update.effective_chat.send_message(message, parse_mode="HTML")
 
 
 def print_use_start_command(update):
