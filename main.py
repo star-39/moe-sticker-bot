@@ -523,7 +523,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if update.message.video.file_size > 20 * 1024 * 1000:
             print_file_too_big(update)
             return USER_STICKER
-        media_file_path += pathlib.Path(update.message.video.file_name).suffix
+        media_file_path += pathlib.Path(str(update.message.video.file_name)).suffix
         queued_download(update.message.video.get_file(), media_file_path, ctx)
         return USER_STICKER
     # Telegram sticker.
