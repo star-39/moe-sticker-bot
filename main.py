@@ -439,7 +439,7 @@ def get_tg_sticker(update: Update, ctx: CallbackContext) -> int:
             edit_message_progress(message_progress, ctx, index+1, len(sticker_set.stickers))
             ctx.bot.get_file(sticker.file_id).download(os.path.join(sticker_dir,
                                                                     sticker.set_name +
-                                                                    "_" + str(index).zfill(3) + "_" +
+                                                                    "_" + str(index+1).zfill(3) + "_" +
                                                                     emoji.demojize(sticker.emoji)[1:-1] +
                                                                     sticker_suffix))
         except Exception as e:
