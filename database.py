@@ -28,9 +28,10 @@ def attempt_connect_to_mariadb():
                         password = DB_PASS,
                         host = DB_HOST,
                         port = int(DB_PORT),
+                        autocommit = True
                 )
                 cur = CONN.cursor()
-                cur.execute("SHOW DATABASES;")
+                cur.execute("SHOW DATABASES")
                 dbs = cur.fetchall()
                 if (DB_NAME,) not in dbs:
                         initialize_mariadb_database()
@@ -43,6 +44,7 @@ def attempt_connect_to_mariadb():
                         host = DB_HOST,
                         port = int(DB_PORT),
                         database = DB_NAME,
+                        autocommit = True
                 )
         except:
                 print(f"UNABLE TO CONNECT TO MARIADB ->{DB_NAME}<-, SKIPPING...")
@@ -64,8 +66,7 @@ def attempt_connect_to_mariadb():
 def initialize_mariadb_database():
         try:
                 cur = CONN.cursor()
-                cur.execute(f"CREATE DATABASE {DB_NAME} CHARACTER SET utf8mb4;")
-                CONN.commit()
+                cur.execute(f"CREATE DATABASE {DB_NAME} CHARACTER SET utf8mb4")
                 cur.close()
                 print("DATABASE INITIALIZED.")
         except:
@@ -76,16 +77,15 @@ def initialize_mariadb_database():
 def initialize_mariadb_table():
         try:
                 cur = CONN.cursor()
-                cur.execute(f"SHOW TABLES;")
+                cur.execute(f"SHOW TABLES")
                 tables = cur.fetchall()
                 if ('line',) not in tables:
-                        cur.execute("CREATE TABLE line (line_id VARCHAR(128), tg_id VARCHAR(128), tg_title VARCHAR(255), line_link VARCHAR(512), auto_emoji BOOL);")
+                        cur.execute("CREATE TABLE line (line_id VARCHAR(128), tg_id VARCHAR(128), tg_title VARCHAR(255), line_link VARCHAR(512), auto_emoji BOOL)")
                 if ('properties',) not in tables:
-                        cur.execute("CREATE TABLE properties (name VARCHAR(128) PRIMARY KEY, value VARCHAR(128));")
-                        cur.execute("INSERT properties (name, value) VALUES (?, ?);", ('DB_VER', DB_VER))
+                        cur.execute("CREATE TABLE properties (name VARCHAR(128) PRIMARY KEY, value VARCHAR(128))")
+                        cur.execute("INSERT properties (name, value) VALUES (?, ?)", ('DB_VER', DB_VER))
                 if ('stickers',) not in tables:
-                        cur.execute("CREATE TABLE stickers (user_id BIGINT, tg_id VARCHAR(128), tg_title VARCHAR(255), timestamp BIGINT);")
-                CONN.commit()
+                        cur.execute("CREATE TABLE stickers (user_id BIGINT, tg_id VARCHAR(128), tg_title VARCHAR(255), timestamp BIGINT)")
                 cur.close()
         except:
                 print("ERROR INITIALIZING MARIADB TABLE! EXITING...")
@@ -96,15 +96,14 @@ def initialize_mariadb_table():
 def check_mariadb_records():
         cur = CONN.cursor()
         try:
-                cur.execute("SELECT value FROM properties WHERE name=?;", ('DB_VER',))
-                selected_db_ver = cur.fetchone()[0]
+                cur.execute("SELECT value FROM properties WHERE name=?", ('DB_VER',))
+                selected_db_ver = int(cur.fetchone()[0])
                 # Upgrade tables, ONE minor revision.
-                if selected_db_ver == '0':
-                        cur.execute("ALTER TABLE line DROP PRIMARY KEY;")
-                        cur.execute("ALTER TABLE line ADD (line_link VARCHAR(512), auto_emoji BOOL);")
-                        cur.execute("UPDATE line SET auto_emoji=? WHERE auto_emoji IS NULL;", (False,))
-                        cur.execute("UPDATE properties SET value=? WHERE name=?;", (1, 'DB_VER'))
-                        CONN.commit()
+                if selected_db_ver == 0:
+                        cur.execute("ALTER TABLE line DROP PRIMARY KEY")
+                        cur.execute("ALTER TABLE line ADD (line_link VARCHAR(512), auto_emoji BOOL)")
+                        cur.execute("UPDATE line SET auto_emoji=? WHERE auto_emoji IS NULL", (False,))
+                        cur.execute("UPDATE properties SET value=? WHERE name=?", (1, 'DB_VER'))
                         print("UPGRADED DATABASE 1 MINOR REVISION.")
         except Exception as e:
                 print("ERROR SANITIZING TABLE! CHECK MARIADB NOW! EXITING...\n" + str(e))
@@ -119,7 +118,7 @@ def query_line_sticker(line_id: str):
         try:
                 cur = CONN.cursor()
                 cur.execute(
-                        "SELECT tg_id, auto_emoji FROM line WHERE line_id=?;", (line_id,)
+                        "SELECT tg_id, auto_emoji FROM line WHERE line_id=?", (line_id,)
                 )
                 tg_id = cur.fetchall()
                 cur.close()
@@ -133,14 +132,10 @@ def insert_line_sticker(line_id, line_link, tg_id, tg_title, is_auto_emoji):
         if CONN is None:
                 return
         try:
-                print("attempting insert...")
                 cur = CONN.cursor()
-                print("cursor ok")
                 cur.execute(
-                        "INSERT line (line_id, line_link, tg_id, tg_title, auto_emoji) VALUES (?, ?, ?, ?, ?);", (line_id, line_link, tg_id, tg_title, is_auto_emoji)
+                        "INSERT line (line_id, line_link, tg_id, tg_title, auto_emoji) VALUES (?, ?, ?, ?, ?)", (line_id, line_link, tg_id, tg_title, is_auto_emoji)
                 )
-                print("execute ok")
-                CONN.commit()
                 print(f"INSERT OK -> {line_id} | {tg_id} | {tg_title} | {str(is_auto_emoji)}")
                 
         except Exception as e:
@@ -154,9 +149,8 @@ def insert_user_sticker(user_id, tg_id, tg_title, timestamp):
         try:
                 cur = CONN.cursor()
                 cur.execute(
-                        "INSERT stickers (user_id, tg_id, tg_title, timestamp) VALUES (?, ?, ?, ?);", (user_id, tg_id, tg_title, timestamp)
+                        "INSERT stickers (user_id, tg_id, tg_title, timestamp) VALUES (?, ?, ?, ?)", (user_id, tg_id, tg_title, timestamp)
                 )
-                CONN.commit()
                 print(f"INSERT OK -> {user_id} | {tg_id} | {tg_title} | {str(timestamp)}")
                 
         except Exception as e:
@@ -170,7 +164,7 @@ def query_user_sticker(user_id):
         try:
                 cur = CONN.cursor()
                 cur.execute(
-                        "SELECT tg_id, tg_title, timestamp FROM stickers WHERE user_id=?;", (user_id,)
+                        "SELECT tg_id, tg_title, timestamp FROM stickers WHERE user_id=?", (user_id,)
                 )
                 stickers = cur.fetchall()
                 cur.close()
@@ -188,7 +182,6 @@ def delete_user_sticker(tg_id):
                 cur.execute(
                         "DELETE FROM stickers WHERE tg_id=?", (tg_id,)
                 )
-                CONN.commit()
                 cur.close()
         except:
                 cur.close()
