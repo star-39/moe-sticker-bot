@@ -13,6 +13,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+from posixpath import basename
 import traceback
 from telegram import Update, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, Video
 from telegram.callbackquery import CallbackQuery, Message
@@ -41,12 +42,14 @@ inline_kb_RANDOM_SELECTED = InlineKeyboardMarkup(
 inline_kb_MANAGE_SET = InlineKeyboardMarkup([
     [InlineKeyboardButton("Add sticker/增添貼圖", callback_data="add")],
     [InlineKeyboardButton("Delete sticker/刪除貼圖", callback_data="del")],
-    [InlineKeyboardButton("Delete whole sticker set/刪除整個貼圖包", callback_data="delset")],
+    [InlineKeyboardButton(
+        "Delete whole sticker set/刪除整個貼圖包", callback_data="delset")],
     [InlineKeyboardButton("Change order/調整順序", callback_data="mov")],
     [InlineKeyboardButton("Exit/退出", callback_data="exit")]],
-    )
+)
 
 reply_kb_DONE = ReplyKeyboardMarkup([['done']], one_time_keyboard=True)
+
 
 def escape_tag_mark(text):
     return text.replace('<', '＜').replace('>', '＞')
@@ -265,9 +268,11 @@ def print_show_user_stickers(update: Update, ctx, stickers):
     message = 'You own following sticker sets:\n您擁有如下貼圖包:\n\n'
     for tg_id, tg_title, timestamp in stickers:
         id = tg_id[:tg_id.index("_by_")]
-        title = tg_title[:tg_title.index(main.BOT_NAME)-2] if tg_title.find(main.BOT_NAME) != -1 else tg_title
+        title = tg_title[:tg_title.index(
+            main.BOT_NAME)-2] if tg_title.find(main.BOT_NAME) != -1 else tg_title
         title = escape_tag_mark(title)
-        date = str(datetime.datetime.fromtimestamp(timestamp))[:-3]  #truncate seconds.
+        # truncate seconds.
+        date = str(datetime.datetime.fromtimestamp(timestamp))[:-3]
         message += f'<a href="https://t.me/addstickers/{tg_id}">{id}</a> | {title} | {date}\n'
     message = truncate_message(message)
     try:
@@ -400,11 +405,11 @@ def print_ask_line_store_link(update):
 
 def print_fatal_error(update, err_msg):
     message = truncate_message("<b>"
-                                       "Fatal error! Please try again. /start\n"
-                                       "發生致命錯誤! 請您從頭再試一次. /start\n"
-                                       "致命的なエラーが発生しました！もう一度やり直してください /start\n\n"
-                                       "</b>"
-                                       "<code>" + escape_tag_mark(err_msg) + "</code>")
+                               "Fatal error! Please try again. /start\n"
+                               "發生致命錯誤! 請您從頭再試一次. /start\n"
+                               "致命的なエラーが発生しました！もう一度やり直してください /start\n\n"
+                               "</b>"
+                               "<code>" + escape_tag_mark(err_msg) + "</code>")
     update.effective_chat.send_message(message, parse_mode="HTML")
 
 
@@ -532,13 +537,25 @@ def print_sticker_full(update):
                                        "スタンプセットがいっぱいになりました。リミットは１２０枚です。すぎた分は廃棄されました。")
 
 
-def print_notify_line_sticker_set_exists(update: Update, ctx, tg_id):
-    update.effective_chat.send_message("Lucky! It seems someone has already imported this sticker set.\n"
-                                        "If it looks good to you, you can just use it. Send /cancel to abort import.\n"
-                                        "看來已經有人用此bot匯入過這款貼圖包.\n"
-                                        "如果看起來還不錯的話可以直接使用了喔, 傳送 /cancel 來中斷此會話.\n"
-                                        "このスタンプセットは誰かにインポートされているみたいだぞ\n"
-                                        "これが結構だと思ったら、どうぞ使ってください、 /cancel を送信して会話を終了できます\n\n"
-                                        "https://t.me/addstickers/" + tg_id)
+def print_notify_line_sticker_set_exists(update: Update, ctx, db_queries):
+    try:
+        tg_links = []
+        for tg_id, auto_emoji in db_queries:
+            if auto_emoji is True:
+                tg_links.insert(0, f"https://t.me/addstickers/{tg_id}")
+            else:
+                tg_links.append(f"https://t.me/addstickers/{tg_id}")
 
-    update.effective_chat.send_sticker(ctx.bot.get_sticker_set(tg_id).stickers[0])
+        message = ("Lucky! It seems someone has already imported this sticker set.\n"
+                   "If it looks good to you, you can just use it. Send /cancel to abort import.\n"
+                   "看來已經有人用此bot匯入過這款貼圖包.\n"
+                   "如果看起來還不錯的話, 那就可以直接使用了喔, 傳送 /cancel 來中斷此會話.\n"
+                   "このスタンプセットは誰かにインポートされているみたいだぞ\n"
+                   "これが結構だと思ったら、どうぞ使ってください、 /cancel を送信して会話を終了できます\n\n") + '\n'.join(tg_links[:3])
+
+        update.effective_chat.send_message(message)
+        for tg_link in tg_links[:3]:
+            update.effective_chat.send_sticker(
+                ctx.bot.get_sticker_set(basename(tg_link)).stickers[0])
+    except:
+        pass
