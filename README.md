@@ -74,6 +74,12 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+5.0 RC-12 (20220305)
+  * Database now records line link and emoji settings.
+  * Fix issue when line name has <> marks.
+  * Fix issue adding video to static set.
+  * Fix hang handling CallbackQuery.
+  * 
 5.0 RC-11 (20220303)
   * You can now delete a sticker set.
   * /manage_sticker_set will show sets you created.

@@ -82,7 +82,7 @@ def initialize_mariadb_table():
                         cur.execute("CREATE TABLE line (line_id VARCHAR(128), tg_id VARCHAR(128), tg_title VARCHAR(255), line_link VARCHAR(512), auto_emoji BOOL);")
                 if ('properties',) not in tables:
                         cur.execute("CREATE TABLE properties (name VARCHAR(128) PRIMARY KEY, value VARCHAR(128));")
-                        cur.execute("INSERT properties (name, value) VALUES (?, ?)", ('DB_VER', DB_VER))
+                        cur.execute("INSERT properties (name, value) VALUES (?, ?);", ('DB_VER', DB_VER))
                 if ('stickers',) not in tables:
                         cur.execute("CREATE TABLE stickers (user_id BIGINT, tg_id VARCHAR(128), tg_title VARCHAR(255), timestamp BIGINT);")
                 CONN.commit()
@@ -96,20 +96,20 @@ def initialize_mariadb_table():
 def check_mariadb_records():
         cur = CONN.cursor()
         try:
-                cur.execute("SELECT value FROM properties WHERE name=?", ('DB_VER',))
+                cur.execute("SELECT value FROM properties WHERE name=?;", ('DB_VER',))
                 selected_db_ver = cur.fetchone()[0]
                 # Upgrade tables, ONE minor revision.
                 if selected_db_ver == '0':
                         cur.execute("ALTER TABLE line DROP PRIMARY KEY;")
-                        cur.execute("ALTER TABLE line ADD (line_link VARCHAR(512), auto_emoji BOOL)")
+                        cur.execute("ALTER TABLE line ADD (line_link VARCHAR(512), auto_emoji BOOL);")
                         cur.execute("UPDATE line SET auto_emoji=? WHERE auto_emoji IS NULL;", (False,))
-                        cur.execute("UPDATE properties SET value=? WHERE name=?", (1, 'DB_VER'))
+                        cur.execute("UPDATE properties SET value=? WHERE name=?;", (1, 'DB_VER'))
+                        CONN.commit()
                         print("UPGRADED DATABASE 1 MINOR REVISION.")
         except Exception as e:
                 print("ERROR SANITIZING TABLE! CHECK MARIADB NOW! EXITING...\n" + str(e))
                 sys.exit()
 
-        CONN.commit()
         cur.close()
 
 
@@ -119,7 +119,7 @@ def query_line_sticker(line_id: str):
         try:
                 cur = CONN.cursor()
                 cur.execute(
-                        "SELECT tg_id, auto_emoji FROM line WHERE line_id=?", (line_id,)
+                        "SELECT tg_id, auto_emoji FROM line WHERE line_id=?;", (line_id,)
                 )
                 tg_id = cur.fetchall()
                 cur.close()
@@ -133,10 +133,13 @@ def insert_line_sticker(line_id, line_link, tg_id, tg_title, is_auto_emoji):
         if CONN is None:
                 return
         try:
+                print("attempting insert...")
                 cur = CONN.cursor()
+                print("cursor ok")
                 cur.execute(
-                        "INSERT line (line_id, line_link, tg_id, tg_title, auto_emoji) VALUES (?, ?, ?, ?, ?)", (line_id, line_link, tg_id, tg_title, is_auto_emoji)
+                        "INSERT line (line_id, line_link, tg_id, tg_title, auto_emoji) VALUES (?, ?, ?, ?, ?);", (line_id, line_link, tg_id, tg_title, is_auto_emoji)
                 )
+                print("execute ok")
                 CONN.commit()
                 print(f"INSERT OK -> {line_id} | {tg_id} | {tg_title} | {str(is_auto_emoji)}")
                 
@@ -151,7 +154,7 @@ def insert_user_sticker(user_id, tg_id, tg_title, timestamp):
         try:
                 cur = CONN.cursor()
                 cur.execute(
-                        "INSERT stickers (user_id, tg_id, tg_title, timestamp) VALUES (?, ?, ?, ?)", (user_id, tg_id, tg_title, timestamp)
+                        "INSERT stickers (user_id, tg_id, tg_title, timestamp) VALUES (?, ?, ?, ?);", (user_id, tg_id, tg_title, timestamp)
                 )
                 CONN.commit()
                 print(f"INSERT OK -> {user_id} | {tg_id} | {tg_title} | {str(timestamp)}")
@@ -167,7 +170,7 @@ def query_user_sticker(user_id):
         try:
                 cur = CONN.cursor()
                 cur.execute(
-                        "SELECT tg_id, tg_title, timestamp FROM stickers WHERE user_id=?", (user_id,)
+                        "SELECT tg_id, tg_title, timestamp FROM stickers WHERE user_id=?;", (user_id,)
                 )
                 stickers = cur.fetchall()
                 cur.close()

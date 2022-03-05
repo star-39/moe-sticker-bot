@@ -43,7 +43,7 @@ inline_kb_MANAGE_SET = InlineKeyboardMarkup([
     [InlineKeyboardButton("Add sticker/增添貼圖", callback_data="add")],
     [InlineKeyboardButton("Delete sticker/刪除貼圖", callback_data="del")],
     [InlineKeyboardButton(
-        "Delete whole sticker set/刪除整個貼圖包", callback_data="delset")],
+        "Delete sticker set/刪除整個貼圖包", callback_data="delset")],
     [InlineKeyboardButton("Change order/調整順序", callback_data="mov")],
     [InlineKeyboardButton("Exit/退出", callback_data="exit")]],
 )
