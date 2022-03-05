@@ -538,6 +538,10 @@ def print_sticker_full(update):
 
 
 def print_notify_line_sticker_set_exists(update: Update, ctx, db_queries):
+    if db_queries is None:
+        return
+    if len(db_queries) == 0:
+        return
     try:
         tg_links = []
         for tg_id, auto_emoji in db_queries:

@@ -349,10 +349,7 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         f" @{BOT_NAME}"
     ctx.user_data['telegram_sticker_is_animated'] = ctx.user_data['line_sticker_is_animated']
 
-    queried_sticker = query_line_sticker(ctx.user_data['line_sticker_id'])
-    if queried_sticker is not None:
-        print_notify_line_sticker_set_exists(update, ctx, queried_sticker)
-        
+    print_notify_line_sticker_set_exists(update, ctx, query_line_sticker(ctx.user_data['line_sticker_id']))
     print_ask_title(update, ctx.user_data['telegram_sticker_title'])
     return TITLE
 
