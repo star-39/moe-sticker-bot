@@ -55,8 +55,13 @@ def escape_tag_mark(text):
     return text.replace('<', '＜').replace('>', '＞')
 
 
-def truncate_message(text):
-    return text[:4090]
+def truncate_message(text: str):
+    text = text[:4050]
+    if '<code>' in text:
+        tail = text.split('<code>')[-1]
+        if '</code>' not in tail:
+            text += '</code>'
+    return text
 
 
 def print_start_message(update: Update):
