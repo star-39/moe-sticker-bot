@@ -1,4 +1,5 @@
 import pathlib
+from urllib.parse import urlparse
 import main
 import subprocess
 from threading import Timer
@@ -7,16 +8,17 @@ import os
 import time
 import shutil
 import traceback
-from typing import List
 import telegram.bot
 import platform
 import telegram
 import json
 from bs4 import BeautifulSoup
-from telegram.ext import messagequeue as mq
 from telegram import Update, File
 from telegram.ext import CallbackContext
-import asyncio
+import requests
+import re
+
+from macros import *
 
 # Names of binaries that we depend on vary across different OSes.
 # To make the code truely cross-platform, this problem should be sloved in code,
@@ -142,6 +144,93 @@ def wait_download_queue(update, ctx):
         ctx.user_data['user_sticker_files'].append(save_path)
 
 
+def get_kakao_emoticon_detail(url, ctx: CallbackContext):
+    kakao_id = urlparse(url).path.split('/')[-1]
+    api_url = 'https://e.kakao.com/api/v1/items/t/' + kakao_id
+
+    json_data = requests.get(api_url).text
+    json_details = json.loads(json_data)
+    thumbnailUrls = json_details['result']['thumbnailUrls']
+    title = json_details['result']['title']
+
+    ctx.user_data['line_sticker_title'] = title
+    ctx.user_data['line_sticker_image_sources'] = thumbnailUrls
+    ctx.user_data['line_sticker_url'] = url
+    ctx.user_data['line_sticker_type'] = KAKAO_EMOTICON
+    ctx.user_data['line_sticker_id'] = kakao_id.replace('-', '_')
+    ctx.user_data['line_sticker_is_animated'] = False
+
+
+def get_line_sticker_detail(message, ctx: CallbackContext):
+    message_url: str = re.findall(r'\b(?:https?):[\w/#~:.?+=&%@!\-.:?\\-]+?(?=[.:?\-]*(?:[^\w/#~:.?+=&%@!\-.:?\-]|$))',
+                             message)[0]
+    # redirect to kakao ones (workaround)
+    if message_url.startswith("https://e.kakao.com/"):
+        get_kakao_emoticon_detail(message_url, ctx)
+        return
+
+    request_header = {'User-Agent': "curl/7.61.1"}
+    webpage = requests.get(message_url, headers=request_header)
+    ctx.user_data['line_store_webpage'] = webpage
+    if not webpage.url.startswith("https://store.line.me"):
+        raise Exception("Not a LINE Store link! 不是LINE商店連結!")
+    json_details = json.loads(BeautifulSoup(
+        webpage.text, "html.parser").find_all('script')[0].contents[0])
+    i = json_details['sku']
+    url = json_details['url']
+    url_comps = urlparse(url).path[1:].split('/')
+    is_animated = False
+    if url_comps[0] == "stickershop":
+        # First one matches AnimatedSticker with NO sound and second one with sound.
+        if 'MdIcoPlay_b' in webpage.text or 'MdIcoAni_b' in webpage.text:
+            t = LINE_STICKER_ANIMATION
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
+                i + "/iphone/stickerpack@2x.zip"
+            is_animated = True
+        elif 'MdIcoMessageSticker_b' in webpage.text:
+            t = LINE_STICKER_MESSAGE
+            u = webpage.url
+        elif 'MdIcoNameSticker_b' in webpage.text:
+            t = LINE_STICKER_NAME
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
+                i + "/iphone/sticker_name_base@2x.zip"
+        elif 'MdIcoFlash_b' in webpage.text or 'MdIcoFlashAni_b' in webpage.text:
+            t = LINE_STICKER_POPUP
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
+                i + "/iphone/stickerpack@2x.zip"
+            is_animated = True
+        elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoEffectSticker_b' in webpage.text:
+            t = LINE_STICKER_POPUP_EFFECT
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
+                i + "/iphone/stickerpack@2x.zip"
+            is_animated = True
+        else:
+            t = LINE_STICKER_STATIC
+            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
+                i + "/iphone/stickers@2x.zip"
+    elif url_comps[0] == "emojishop":
+        if 'MdIcoPlay_b' in webpage.text:
+            t = LINE_EMOJI_ANIMATION
+            u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
+                i + "/iphone/package_animation.zip"
+            is_animated = True
+        else:
+            t = LINE_EMOJI_STATIC
+            u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
+                i + "/iphone/package.zip"
+    else:
+        raise Exception("Not a supported sticker type!\nLink is: " + url)
+
+    title = BeautifulSoup(webpage.text, 'html.parser').find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3]
+
+    ctx.user_data['line_sticker_url'] = url
+    ctx.user_data['line_sticker_type'] = t
+    ctx.user_data['line_sticker_id'] = i
+    ctx.user_data['line_sticker_download_url'] = u
+    ctx.user_data['line_sticker_title'] = title
+    ctx.user_data['line_sticker_is_animated'] = is_animated
+
+
 
 def prepare_sticker_files(update: Update, ctx: CallbackContext):
     time_start = time.time()
@@ -185,7 +274,7 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
             main.DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
         os.makedirs(work_dir, exist_ok=True)
         # Special line "message" stickers
-        if ctx.user_data['line_sticker_type'] == main.LINE_STICKER_MESSAGE:
+        if ctx.user_data['line_sticker_type'] == LINE_STICKER_MESSAGE:
             for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
                 json_text = element.get('data-preview')
                 if json_text is not None:
@@ -205,6 +294,13 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
                                                        "-define", "webp:lossless=true",
                                                        f"{image_name}.webp"])
             images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
+        # kakao emoticons
+        elif ctx.user_data['line_sticker_type'] == KAKAO_EMOTICON:
+            for index, src in enumerate(ctx.user_data['line_sticker_image_sources']):
+                subprocess.run(['curl', '-o', f'{os.path.join(work_dir, str(index))}.png', src])
+            im_mogrify_to_webp(glob.glob(os.path.join(work_dir, "*.png")))
+            images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
+
         else:
             zip_file_path = os.path.join(
                 work_dir, ctx.user_data['line_sticker_id'] + ".zip")
@@ -283,6 +379,9 @@ def ff_convert_to_webm(f: str, unsharp=False):
         else:
             return ret
 
+def verify_sticker_id_availability(sticker_id, update, ctx):
+    pass
+
 
 def verify_user_sticker_message(update: Update):
     supported_types = ['document', 'photo', 'video', 'sticker']
@@ -303,6 +402,7 @@ def initialize_user_data(in_command, update: Update, ctx):
     ctx.user_data['line_sticker_url'] = ""
     ctx.user_data['line_store_webpage'] = None
     ctx.user_data['line_sticker_download_url'] = ""
+    ctx.user_data['line_sticker_image_sources'] = []
     ctx.user_data['line_sticker_type'] = None
     ctx.user_data['line_sticker_is_animated'] = False
     ctx.user_data['line_sticker_id'] = ""

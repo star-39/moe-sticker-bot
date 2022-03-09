@@ -1,7 +1,7 @@
 # [@moe_sticker_bot](https://t.me/moe_sticker_bot)
-A Telegram bot doing sticker stuffs, it imports LINE sticker set to Telegram, downloads LINE and Telegram stickers, creates and manages Telegram sticker set. 
+A Telegram bot doing sticker stuffs, it imports LINE and kakaotalk sticker set to Telegram, downloads LINE and Telegram stickers, creates and manages Telegram sticker set. 
 
-Telegram用萌萌貼圖BOT, 可以從LINE Store匯入貼圖包到Telegram, 可以下載LINE和telegram的貼圖包, 可以創建和管理Telegram貼圖包.
+Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, 可以下載LINE和telegram的貼圖包, 可以創建和管理Telegram貼圖包.
 
 Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
 
@@ -74,6 +74,10 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+5.1 RC-1 (20220309)
+  * Support kakaotalk emoticon.
+  * Add more check for telegram sticker id.
+
 5.0 RC-12 (20220305)
   * Database now records line link and emoji settings.
   * Fix issue when line name has <> marks.

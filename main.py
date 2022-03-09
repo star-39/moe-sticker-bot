@@ -12,17 +12,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
-import json
 import time
-# import logging
-from urllib.parse import urlparse
-# import telegram.error
-from telegram import Update, Bot, error
+from telegram import Update, Bot
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
-from bs4 import BeautifulSoup
 import emoji
-import requests
 import re
 import os
 import subprocess
@@ -32,7 +25,9 @@ import glob
 import threading
 import pathlib
 
-BOT_VERSION = "5.0 RC-12"
+from macros import *
+
+BOT_VERSION = "5.1 RC-1"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
@@ -41,16 +36,6 @@ HAS_DB = False
 
 # Stages of conversations
 GET_TG_STICKER, TYPE_SELECT, LINE_URL, TITLE, ID, EDIT_CHOICE, SET_EDIT, EMOJI_SELECT, USER_STICKER, EMOJI_ASSIGN = range(10)
-
-# Line sticker types
-LINE_STICKER_STATIC = "line_s"
-LINE_STICKER_ANIMATION = "line_s_ani"
-LINE_STICKER_POPUP = "line_s_popup"  #全螢幕
-LINE_STICKER_POPUP_EFFECT = "line_s_eff" #特效
-LINE_EMOJI_STATIC = "line_e"
-LINE_EMOJI_ANIMATION = "line_e_ani"
-LINE_STICKER_MESSAGE = "line_s_msg"  #訊息
-LINE_STICKER_NAME = "line_s_name"  #隨你填
 
 # Load other files
 from database import *
@@ -219,10 +204,11 @@ def parse_id(update: Update, ctx: CallbackContext) -> int:
                 update.effective_chat.send_message("Please send ID! try again.")
                 return ID
         elif update.message.text is not None:
-            ctx.user_data['telegram_sticker_id'] = update.message.text.strip(
-            ) + "_by_" + BOT_NAME
-            if not re.match(r'^[a-zA-Z0-9_]+$', ctx.user_data['telegram_sticker_id']) or \
-                    len(ctx.user_data['telegram_sticker_id']) > 64:
+            sticker_id = update.message.text.strip() + "_by_" + BOT_NAME
+            ctx.user_data['telegram_sticker_id'] = sticker_id
+            if not re.match(r'^[a-zA-Z0-9_]+$', sticker_id) or \
+                    len(sticker_id) > 64 or \
+                    sticker_id[0].isdigit():
                 print_wrong_id_syntax(update)
                 return ID
 
@@ -344,76 +330,12 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
         return ConversationHandler.END
 
     # Generate auto title with bot name as suffix.
-    ctx.user_data['telegram_sticker_title'] = BeautifulSoup(ctx.user_data['line_store_webpage'].text, 'html.parser')\
-        .find("title").get_text().split('|')[0].strip().split('LINE')[0][:-3] + \
-        f" @{BOT_NAME}"
+    ctx.user_data['telegram_sticker_title'] = ctx.user_data['line_sticker_title'] + f" @{BOT_NAME}"
     ctx.user_data['telegram_sticker_is_animated'] = ctx.user_data['line_sticker_is_animated']
 
     print_notify_line_sticker_set_exists(update, ctx, query_line_sticker(ctx.user_data['line_sticker_id']))
     print_ask_title(update, ctx.user_data['telegram_sticker_title'])
     return TITLE
-
-
-def get_line_sticker_detail(message, ctx: CallbackContext):
-    message_url = re.findall(r'\b(?:https?):[\w/#~:.?+=&%@!\-.:?\\-]+?(?=[.:?\-]*(?:[^\w/#~:.?+=&%@!\-.:?\-]|$))',
-                             message)[0]
-    request_header = {'User-Agent': "curl/7.61.1"}
-    webpage = requests.get(message_url, headers=request_header)
-    ctx.user_data['line_store_webpage'] = webpage
-    if not webpage.url.startswith("https://store.line.me"):
-        raise Exception("Not a LINE Store link! 不是LINE商店連結!")
-    json_details = json.loads(BeautifulSoup(
-        webpage.text, "html.parser").find_all('script')[0].contents[0])
-    i = json_details['sku']
-    url = json_details['url']
-    url_comps = urlparse(url).path[1:].split('/')
-    is_animated = False
-    if url_comps[0] == "stickershop":
-        # First one matches AnimatedSticker with NO sound and second one with sound.
-        if 'MdIcoPlay_b' in webpage.text or 'MdIcoAni_b' in webpage.text:
-            t = LINE_STICKER_ANIMATION
-            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
-                i + "/iphone/stickerpack@2x.zip"
-            is_animated = True
-        elif 'MdIcoMessageSticker_b' in webpage.text:
-            t = LINE_STICKER_MESSAGE
-            u = webpage.url
-        elif 'MdIcoNameSticker_b' in webpage.text:
-            t = LINE_STICKER_NAME
-            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
-                i + "/iphone/sticker_name_base@2x.zip"
-        elif 'MdIcoFlash_b' in webpage.text or 'MdIcoFlashAni_b' in webpage.text:
-            t = LINE_STICKER_POPUP
-            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
-                i + "/iphone/stickerpack@2x.zip"
-            is_animated = True
-        elif 'MdIcoEffectSoundSticker_b' in webpage.text or 'MdIcoEffectSticker_b' in webpage.text:
-            t = LINE_STICKER_POPUP_EFFECT
-            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
-                i + "/iphone/stickerpack@2x.zip"
-            is_animated = True
-        else:
-            t = LINE_STICKER_STATIC
-            u = "https://stickershop.line-scdn.net/stickershop/v1/product/" + \
-                i + "/iphone/stickers@2x.zip"
-    elif url_comps[0] == "emojishop":
-        if 'MdIcoPlay_b' in webpage.text:
-            t = LINE_EMOJI_ANIMATION
-            u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
-                i + "/iphone/package_animation.zip"
-            is_animated = True
-        else:
-            t = LINE_EMOJI_STATIC
-            u = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + \
-                i + "/iphone/package.zip"
-    else:
-        raise Exception("Not a supported sticker type!\nLink is: " + url)
-
-    ctx.user_data['line_sticker_url'] = url
-    ctx.user_data['line_sticker_type'] = t
-    ctx.user_data['line_sticker_id'] = i
-    ctx.user_data['line_sticker_download_url'] = u
-    ctx.user_data['line_sticker_is_animated'] = is_animated
 
 
 # GET_TG_STICKER
@@ -531,7 +453,7 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if ctx.user_data['telegram_sticker_is_animated'] is False and update.message.sticker.is_video is False and update.message.sticker.is_animated is False:
             # If you send .webp image on PC, API will recognize it as a sticker
             # However, that "sticker" may not fufill requirements.
-            if (update.message.sticker.width != 512 and update.message.sticker.height != 512):
+            if update.message.sticker.width != 512 and update.message.sticker.height != 512:
                 queued_download(update.message.sticker.get_file(), media_file_path, ctx)
             else:
                 sticker_file_id = update.message.sticker.file_id
