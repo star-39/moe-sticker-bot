@@ -396,8 +396,8 @@ def edit_inline_kb_random_selected(query: CallbackQuery):
 
 
 def print_ask_line_store_link(update):
-    update.effective_chat.send_message("Please enter LINE store URL of the sticker set\n"
-                                       "請傳送貼圖包的LINE STORE連結\n"
+    update.effective_chat.send_message("Please send LINE store link of the sticker set\n"
+                                       "請傳送貼圖包的LINE STORE連結.\n"
                                        "スタンプのLINE STOREリンクを送信してください\n\n"
                                        "<code>eg. https://store.line.me/stickershop/product/9961437/ja</code>",
                                        parse_mode="HTML")
