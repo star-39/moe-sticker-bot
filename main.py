@@ -25,6 +25,8 @@ import glob
 import threading
 import pathlib
 
+import multiprocessing
+
 from macros import *
 
 BOT_VERSION = "5.1 RC-1"
@@ -51,8 +53,9 @@ BSDTAR_BIN = get_bsdtar_bin()
 
 def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
     message_progress = print_import_processing(update, ctx)
-
-    prepare_sticker_files(update, ctx)
+    #debug
+    # prepare_sticker_files(update, ctx)0
+    ctx.user_data['telegram_sticker_files'] = ctx.user_data['line_queue'].get(timeout=300)
 
     if not ctx.user_data['in_command'].startswith("/manage_sticker_set"):
         # Create a new sticker set using the first image.
@@ -105,7 +108,8 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
 
 def initialize_emoji_assign(update: Update, ctx: CallbackContext):
     print_import_processing(update, ctx)
-    prepare_sticker_files(update, ctx)
+    ctx.user_data['telegram_sticker_files'] = ctx.user_data['line_queue'].get(timeout=300)
+    # prepare_sticker_files(update, ctx)
     # This is the FIRST sticker.
     ctx.user_data['telegram_sticker_emoji_assign_index'] = 0
     print_ask_emoji_for_single_sticker(update, ctx)
@@ -321,6 +325,9 @@ def parse_emoji(update: Update, ctx: CallbackContext) -> int:
 def parse_line_url(update: Update, ctx: CallbackContext) -> int:
     try:
         get_line_sticker_detail(update.message.text, ctx)
+        ctx.user_data['line_queue'] = multiprocessing.Queue()
+        ctx.user_data['line_process'] = multiprocessing.Process(target=prepare_sticker_files, args=(update, ctx, ctx.user_data['line_queue']))
+        ctx.user_data['line_process'].start()
     except Exception as e:
         print_wrong_LINE_STORE_URL(update, str(e))
         return LINE_URL
@@ -474,6 +481,10 @@ def parse_user_sticker(update: Update, ctx: CallbackContext) -> int:
         if len(ctx.user_data['user_sticker_files']) == 0:
             print_no_user_sticker_received(update)
             return USER_STICKER
+            
+        ctx.user_data['line_queue'] = multiprocessing.Queue()
+        ctx.user_data['line_process'] = multiprocessing.Process(target=prepare_sticker_files, args=(update, ctx, ctx.user_data['line_queue']))
+        ctx.user_data['line_process'].start()
         print_user_sticker_done(update, ctx)
         print_ask_emoji(update)
         return EMOJI_SELECT

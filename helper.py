@@ -20,10 +20,6 @@ import re
 
 from macros import *
 
-# Names of binaries that we depend on vary across different OSes.
-# To make the code truely cross-platform, this problem should be sloved in code,
-# but not in environment.
-
 
 def get_ffmpeg_bin():
     b = ['ffmpeg']
@@ -232,7 +228,7 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
 
 
 
-def prepare_sticker_files(update: Update, ctx: CallbackContext):
+def prepare_sticker_files(update: Update, ctx: CallbackContext, q):
     time_start = time.time()
     images = []
     # User stickers
@@ -333,10 +329,8 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
 
                 images = sorted([f for f in glob.glob(
                     os.path.join(work_dir, "**", "*.webm"), recursive=True)])
-
-    if len(images) == 0:
-        raise Exception("No image available! Try again.")
-    ctx.user_data['telegram_sticker_files'] = images
+    #debug
+    q.put(images)
 
     time_end = time.time()
     print(
@@ -399,6 +393,8 @@ def initialize_user_data(in_command, update: Update, ctx):
     clean_userdata(update, ctx)
     ctx.user_data['in_command'] = in_command
     ctx.user_data['manual_emoji'] = False
+    ctx.user_data['line_process'] = None
+    ctx.user_data['line_queue'] = None
     ctx.user_data['line_sticker_url'] = ""
     ctx.user_data['line_store_webpage'] = None
     ctx.user_data['line_sticker_download_url'] = ""
@@ -420,6 +416,9 @@ def initialize_user_data(in_command, update: Update, ctx):
 
 # Clean temparary user data after each conversasion.
 def clean_userdata(update: Update, ctx: CallbackContext):
+    if 'line_process' in ctx.user_data:
+        if ctx.user_data['line_process'] is not None:
+            ctx.user_data['line_process'].kill()
     ctx.user_data.clear()
     userdata_dir = os.path.join(main.DATA_DIR, str(update.effective_user.id))
     if os.path.exists(userdata_dir):
