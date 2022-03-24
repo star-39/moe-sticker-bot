@@ -153,6 +153,10 @@ def get_kakao_emoticon_detail(url, ctx: CallbackContext):
     thumbnailUrls = json_details['result']['thumbnailUrls']
     title = json_details['result']['title']
 
+    kakao_id = kakao_id.replace('-', '_')
+    if kakao_id.startswith('_'):
+        #pop starting _ mark to avoid double _ after concat.
+        kakao_id = kakao_id[1:]
     ctx.user_data['line_sticker_title'] = title
     ctx.user_data['line_sticker_image_sources'] = thumbnailUrls
     ctx.user_data['line_sticker_url'] = url
