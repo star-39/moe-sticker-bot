@@ -5,7 +5,9 @@ Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, �
 
 Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
 
-![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png)
+<!-- ![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png) -->
+<img width="513" alt="スクリーンショット 2022-03-24 19 56 20" src="https://user-images.githubusercontent.com/75669297/159901802-cefd038b-9c18-4bbd-873c-a33b3a12d8aa.png">
+
 
 ## Deployment
 ### Deploy with pre-built containers
