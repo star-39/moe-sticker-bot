@@ -36,12 +36,11 @@ HAS_DB = False
 GET_TG_STICKER, TYPE_SELECT, LINE_URL, TITLE, ID, EDIT_CHOICE, SET_EDIT, EMOJI_SELECT, USER_STICKER, EMOJI_ASSIGN = range(
     10)
 
+# keep order!
 from macros import *
-from helper import *
-from notifications import *
 from database import *
-
-# Load other files
+from notifications import *
+from helper import *
 
 # Binary names for cross-platform purpose
 FFMPEG_BIN = get_ffmpeg_bin()
