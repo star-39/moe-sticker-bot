@@ -12,9 +12,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from helper import *
-from notifications import *
-from database import *
 import time
 from telegram import Update, Bot
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters, CallbackQueryHandler
@@ -28,8 +25,6 @@ import glob
 import threading
 import pathlib
 
-from macros import *
-
 BOT_VERSION = "5.1 RC-1"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -40,6 +35,11 @@ HAS_DB = False
 # Stages of conversations
 GET_TG_STICKER, TYPE_SELECT, LINE_URL, TITLE, ID, EDIT_CHOICE, SET_EDIT, EMOJI_SELECT, USER_STICKER, EMOJI_ASSIGN = range(
     10)
+
+from macros import *
+from helper import *
+from notifications import *
+from database import *
 
 # Load other files
 
