@@ -3,3 +3,4 @@ emoji
 requests
 beautifulsoup4
 mariadb
+joblib

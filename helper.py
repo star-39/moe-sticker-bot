@@ -17,6 +17,7 @@ from telegram import Update, File
 from telegram.ext import CallbackContext
 import requests
 import re
+from joblib import Parallel, delayed
 
 from macros import *
 
@@ -332,8 +333,8 @@ def prepare_sticker_files(update: Update, ctx: CallbackContext):
                     work_dir = os.path.join(work_dir, "animation@2x")
                 else:
                     pass
-                for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
-                    ff_convert_to_webm(f)
+                # Boost perf by executing in parallel.
+                Parallel(n_jobs=4)(delayed(ff_convert_to_webm)(f) for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True))
 
                 images = sorted([f for f in glob.glob(
                     os.path.join(work_dir, "**", "*.webm"), recursive=True)])
