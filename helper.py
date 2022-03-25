@@ -1,6 +1,6 @@
 import pathlib
 from urllib.parse import urlparse
-import main
+from joblib import Parallel, delayed
 import subprocess
 from threading import Timer
 import glob
@@ -17,9 +17,10 @@ from telegram import Update, File
 from telegram.ext import CallbackContext
 import requests
 import re
-from joblib import Parallel, delayed
+
 
 from macros import *
+import main
 
 # Names of binaries that we depend on vary across different OSes.
 # To make the code truely cross-platform, this problem should be sloved in code,
