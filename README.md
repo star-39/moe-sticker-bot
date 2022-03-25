@@ -77,6 +77,10 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+5.1 RC-2 (20220326)
+  * Significantly improved perf by using parallel loop.
+  * Sanitize kakao id starting with -
+
 5.1 RC-1 (20220309)
   * Support kakaotalk emoticon.
   * Add more check for telegram sticker id.

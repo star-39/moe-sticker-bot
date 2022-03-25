@@ -25,7 +25,7 @@ import glob
 import threading
 import pathlib
 
-BOT_VERSION = "5.1 RC-1"
+BOT_VERSION = "5.1 RC-2"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
