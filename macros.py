@@ -1,3 +1,5 @@
+import platform
+
 # Line sticker types
 LINE_STICKER_STATIC = "line_s"
 LINE_STICKER_ANIMATION = "line_s_ani"
@@ -8,3 +10,8 @@ LINE_EMOJI_ANIMATION = "line_e_ani"
 LINE_STICKER_MESSAGE = "line_s_msg"  #訊息
 LINE_STICKER_NAME = "line_s_name"  #隨你填
 KAKAO_EMOTICON = "kakao_e"
+
+FFMPEG_BIN = ['ffmpeg']
+MOGRIFY_BIN = ['mogrify'] if platform.system() == "Linux" else ['magick', 'mogrify']
+CONVERT_BIN = ['convert'] if platform.system() == "Linux" else ['magick', 'convert']
+BSDTAR_BIN = ['bsdtar'] if platform.system() == "Linux" else ['tar']

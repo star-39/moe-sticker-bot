@@ -42,12 +42,6 @@ from database import *
 from notifications import *
 from helper import *
 
-# Binary names for cross-platform purpose
-FFMPEG_BIN = get_ffmpeg_bin()
-MOGRIFY_BIN = get_mogrify_bin()
-CONVERT_BIN = get_convert_bin()
-BSDTAR_BIN = get_bsdtar_bin()
-
 
 def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
     message_progress = print_import_processing(update, ctx)
