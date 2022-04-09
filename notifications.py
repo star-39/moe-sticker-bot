@@ -157,6 +157,12 @@ A:  It's you of course! Albeit compulsory suffix in ID, you are the owner of the
     當然是您! 雖然ID末尾強制有BOT的名字, 但是貼圖包的擁有人是您本人.
     您可以通過Telegram官方的 @Stickers BOT管理您創進的貼圖包.
 <b>
+Q:  How do the bot name telegram stricker id when importing?
+    匯入貼圖時Telegra貼圖ID的命名規則是甚麼?</b>
+A:  [STORE]_[TYPE][ID][HEX]_by_[BOT]
+    TYPE has 1 char, HEX has 4 chars.
+    See https://github.com/star-39/moe-sticker-bot/blob/master/macros.py for types.
+<b>
 Q: No response? 沒有反應?</b>
 A:  The bot might encountered an error, please try sending /cancel
     BOT可能遇到了問題, 請嘗試傳送 /cancel

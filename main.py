@@ -262,8 +262,8 @@ def parse_title(update: Update, ctx: CallbackContext) -> int:
     # importing LINE stickers.
     # Auto ID generation.
     ctx.user_data['telegram_sticker_id'] = ctx.user_data['line_sticker_type'] + \
-        f"_{ctx.user_data['line_sticker_id']}_" \
-        f"{secrets.token_hex(nbytes=3)}_by_{BOT_NAME}"
+        f"{ctx.user_data['line_sticker_id']}" \
+        f"{secrets.token_hex(nbytes=2)}_by_{BOT_NAME}"
 
     if update.callback_query is None:
         ctx.user_data['telegram_sticker_title'] = update.message.text.strip()
