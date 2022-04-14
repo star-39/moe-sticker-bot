@@ -373,6 +373,7 @@ def get_tg_sticker(update: Update, ctx: CallbackContext) -> int:
             print_fatal_error(update, traceback.format_exc())
             clean_userdata(update, ctx)
             return ConversationHandler.END
+    gif_zip = os.path.join(sticker_dir, sticker_set.name + "_gif.zip")
     webp_zip = os.path.join(sticker_dir, sticker_set.name + "_webp.zip")
     webm_zip = os.path.join(sticker_dir, sticker_set.name + "_webm.zip")
     tgs_zip = os.path.join(sticker_dir, sticker_set.name + "_tgs.zip")
@@ -385,7 +386,12 @@ def get_tg_sticker(update: Update, ctx: CallbackContext) -> int:
         elif sticker_set.is_video:
             subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", webm_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.webm")))
+            subprocess.run(MOGRIFY_BIN + ["-format", "gif"] +
+                            glob.glob(os.path.join(sticker_dir, "*.webm")))
+            subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", gif_zip] +
+                           glob.glob(os.path.join(sticker_dir, "*.gif")))   
             update.effective_chat.send_document(open(webm_zip, 'rb'))
+            update.effective_chat.send_document(open(gif_zip, 'rb'))
         else:
             subprocess.run(MOGRIFY_BIN + ["-format", "png"] +
                            glob.glob(os.path.join(sticker_dir, "*.webp")))

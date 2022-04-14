@@ -9,7 +9,6 @@ import time
 import shutil
 import traceback
 import telegram.bot
-import platform
 import telegram
 import json
 from bs4 import BeautifulSoup
