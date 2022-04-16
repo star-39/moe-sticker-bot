@@ -77,6 +77,10 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+5.1 RC-3 (20220416)
+  * Do not use joblib due to their bugs.
+  * /download_telegram_sticker now converts to standard GIFs.
+
 5.1 RC-2 (20220326)
   * Significantly improved perf by using parallel loop.
   * Sanitize kakao id starting with -

@@ -25,7 +25,7 @@ import glob
 import threading
 import pathlib
 
-BOT_VERSION = "5.1 RC-2"
+BOT_VERSION = "5.1 RC-3"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_NAME = Bot(BOT_TOKEN).get_me().username
@@ -386,10 +386,11 @@ def get_tg_sticker(update: Update, ctx: CallbackContext) -> int:
         elif sticker_set.is_video:
             subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", webm_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.webm")))
-            subprocess.run(MOGRIFY_BIN + ["-format", "gif"] +
+            # standard GIF is too huge, we need to compromise canvas size.
+            subprocess.run(MOGRIFY_BIN + ["-format", "gif", "-resize", "50%"] +
                             glob.glob(os.path.join(sticker_dir, "*.webm")))
             subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", gif_zip] +
-                           glob.glob(os.path.join(sticker_dir, "*.gif")))   
+                           glob.glob(os.path.join(sticker_dir, "*.gif")))
             update.effective_chat.send_document(open(webm_zip, 'rb'))
             update.effective_chat.send_document(open(gif_zip, 'rb'))
         else:

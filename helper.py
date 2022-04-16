@@ -188,108 +188,120 @@ def get_line_sticker_detail(message, ctx: CallbackContext):
     ctx.user_data['line_sticker_is_animated'] = is_animated
 
 
+def prepare_user_stickers(update: Update, ctx: CallbackContext):
+    images = []
+    # User sent sticker archive
+    if ctx.user_data['user_sticker_archive']:
+        archive_path = ctx.user_data['user_sticker_archive']
+        work_dir = os.path.dirname(archive_path)
+        ret = subprocess.run(
+            ['bsdtar', '-xf', archive_path, '-C', work_dir], capture_output=True)
+        if ret.returncode != 0:
+            raise Exception("Unable to extract image from archive!")
+        os.remove(archive_path)
+        for f in glob.glob(os.path.join(work_dir, "**"), recursive=True):
+            if os.path.isfile(f):
+                #workaround preserving suffix
+                ext = pathlib.Path(f).suffix
+                shutil.move(f, f + ".media" + ext)
+                ctx.user_data['user_sticker_files'].append(f + ".media" + ext)
+
+    for f in ctx.user_data['user_sticker_files']:
+        if '.media' in f:
+            if ctx.user_data['telegram_sticker_is_animated']:
+                ret = ff_convert_to_webm(f)
+            else:
+                ret = im_convert_to_webp(f)
+                # Skip errored conversion. Don't panic.
+            if ret.returncode == 0:
+                images.append(
+                    f + '.webm' if ctx.user_data['telegram_sticker_is_animated'] else f + '.webp')
+            else:
+                update.effective_chat.send_message(
+                    "WARN: failed processing one media.\n\n" + str(ret.stderr))
+        else:
+            images.append(f)
+    return images
+
+
+def prepare_line_zip(work_dir, update: Update, ctx: CallbackContext):
+    zip_file_path = os.path.join(work_dir, ctx.user_data['line_sticker_id'] + ".zip")
+    subprocess.run(["curl", "-Lo", zip_file_path, ctx.user_data['line_sticker_download_url']])
+    subprocess.run(main.BSDTAR_BIN + ["-xf", zip_file_path, "-C", work_dir])
+    for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")):
+        os.remove(f)
+    # For LINE Effect stickers, keep static and animated popups.
+    if ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP_EFFECT:
+        for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
+            # workaround for sticker orders.
+            shutil.move(f, os.path.join(work_dir, os.path.basename(
+                f)[:os.path.basename(f).index('.png')] + '@99x.png'))
+    elif ctx.user_data['line_sticker_type'] == LINE_STICKER_POPUP:
+        work_dir = os.path.join(work_dir, "popup")
+    elif ctx.user_data['line_sticker_type'] == LINE_STICKER_ANIMATION:
+        work_dir = os.path.join(work_dir, "animation@2x")
+    else:
+        pass
+    return work_dir
+
+
+def prepare_line_stickers(update: Update, ctx: CallbackContext):
+    images = []
+    work_dir = os.path.join(
+        main.DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
+    os.makedirs(work_dir, exist_ok=True)
+    # Special line "message" stickers
+    if ctx.user_data['line_sticker_type'] == LINE_STICKER_MESSAGE:
+        for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
+            json_text = element.get('data-preview')
+            if json_text is not None:
+                json_data = json.loads(json_text)
+                base_image = json_data['staticUrl'].split(';')[0]
+                overlay_image = json_data['customOverlayUrl'].split(';')[0]
+                base_image_link_split = base_image.split('/')
+                image_id = base_image_link_split[base_image_link_split.index(
+                    'sticker') + 1]
+                image_name = os.path.join(work_dir, image_id)
+                subprocess.run(
+                    ["curl", "-Lo", f"{image_name}.base.png", base_image])
+                subprocess.run(
+                    ["curl", "-Lo", f"{image_name}.overlay.png", overlay_image])
+                subprocess.run(main.CONVERT_BIN + [f"{image_name}.base.png", f"{image_name}.overlay.png",
+                                                    "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
+                                                    "-define", "webp:lossless=true",
+                                                    f"{image_name}.webp"])
+        images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
+    # kakao emoticons
+    elif ctx.user_data['line_sticker_type'] == KAKAO_EMOTICON:
+        for index, src in enumerate(ctx.user_data['line_sticker_image_sources']):
+            subprocess.run(['curl', '-o', f'{os.path.join(work_dir, str(index))}.png', src])
+        im_mogrify_to_webp(glob.glob(os.path.join(work_dir, "*.png")))
+        images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
+
+    else:
+        work_dir = prepare_line_zip(work_dir, update, ctx)
+        # standard static line stickers.
+        if not ctx.user_data['line_sticker_is_animated']:
+            im_mogrify_to_webp(glob.glob(os.path.join(work_dir, "*.png")))
+            images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
+        # is animated line stickers/emojis.
+        else:
+            #Parallel(n_jobs=4)(delayed(ff_convert_to_webm)(f) for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True))
+            for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True):
+                ff_convert_to_webm(f)
+            images = sorted([f for f in glob.glob(os.path.join(work_dir, "**", "*.webm"), recursive=True)])
+    return images
+
 
 def prepare_sticker_files(update: Update, ctx: CallbackContext):
     time_start = time.time()
     images = []
     # User stickers
     if ctx.user_data['in_command'].startswith("/create_sticker_set") or ctx.user_data['in_command'].startswith("/manage_sticker_set"):
-        # User sent sticker archive
-        if ctx.user_data['user_sticker_archive']:
-            archive_path = ctx.user_data['user_sticker_archive']
-            work_dir = os.path.dirname(archive_path)
-            ret = subprocess.run(
-                ['bsdtar', '-xf', archive_path, '-C', work_dir], capture_output=True)
-            if ret.returncode != 0:
-                raise Exception("Unable to extract image from archive!")
-            os.remove(archive_path)
-            for f in glob.glob(os.path.join(work_dir, "**"), recursive=True):
-                if os.path.isfile(f):
-                    #workaround preserving suffix
-                    ext = pathlib.Path(f).suffix
-                    shutil.move(f, f + ".media" + ext)
-                    ctx.user_data['user_sticker_files'].append(f + ".media" + ext)
-
-        for f in ctx.user_data['user_sticker_files']:
-            if '.media' in f:
-                if ctx.user_data['telegram_sticker_is_animated']:
-                    ret = ff_convert_to_webm(f)
-                else:
-                    ret = im_convert_to_webp(f)
-                    # Skip errored conversion. Don't panic.
-                if ret.returncode == 0:
-                    images.append(
-                        f + '.webm' if ctx.user_data['telegram_sticker_is_animated'] else f + '.webp')
-                else:
-                    update.effective_chat.send_message(
-                        "WARN: failed processing one media.\n\n" + str(ret.stderr))
-            else:
-                images.append(f)
+        images = prepare_user_stickers(update, ctx)
     # Line stickers.
     else:
-        work_dir = os.path.join(
-            main.DATA_DIR, str(update.effective_user.id), ctx.user_data['line_sticker_id'])
-        os.makedirs(work_dir, exist_ok=True)
-        # Special line "message" stickers
-        if ctx.user_data['line_sticker_type'] == LINE_STICKER_MESSAGE:
-            for element in BeautifulSoup(ctx.user_data['line_store_webpage'].text, "html.parser").find_all('li'):
-                json_text = element.get('data-preview')
-                if json_text is not None:
-                    json_data = json.loads(json_text)
-                    base_image = json_data['staticUrl'].split(';')[0]
-                    overlay_image = json_data['customOverlayUrl'].split(';')[0]
-                    base_image_link_split = base_image.split('/')
-                    image_id = base_image_link_split[base_image_link_split.index(
-                        'sticker') + 1]
-                    image_name = os.path.join(work_dir, image_id)
-                    subprocess.run(
-                        ["curl", "-Lo", f"{image_name}.base.png", base_image])
-                    subprocess.run(
-                        ["curl", "-Lo", f"{image_name}.overlay.png", overlay_image])
-                    subprocess.run(main.CONVERT_BIN + [f"{image_name}.base.png", f"{image_name}.overlay.png",
-                                                       "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
-                                                       "-define", "webp:lossless=true",
-                                                       f"{image_name}.webp"])
-            images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
-        # kakao emoticons
-        elif ctx.user_data['line_sticker_type'] == KAKAO_EMOTICON:
-            for index, src in enumerate(ctx.user_data['line_sticker_image_sources']):
-                subprocess.run(['curl', '-o', f'{os.path.join(work_dir, str(index))}.png', src])
-            im_mogrify_to_webp(glob.glob(os.path.join(work_dir, "*.png")))
-            images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
-
-        else:
-            zip_file_path = os.path.join(
-                work_dir, ctx.user_data['line_sticker_id'] + ".zip")
-            subprocess.run(["curl", "-Lo", zip_file_path,
-                            ctx.user_data['line_sticker_download_url']])
-            subprocess.run(main.BSDTAR_BIN +
-                           ["-xf", zip_file_path, "-C", work_dir])
-            for f in glob.glob(os.path.join(work_dir, "*key*")) + glob.glob(os.path.join(work_dir, "tab*")) + glob.glob(os.path.join(work_dir, "*meta*")):
-                os.remove(f)
-            # standard static line stickers.
-            if not ctx.user_data['line_sticker_is_animated']:
-                im_mogrify_to_webp(glob.glob(os.path.join(work_dir, "*.png")))
-                images = sorted(glob.glob(os.path.join(work_dir, "*.webp")))
-            # is animated line stickers/emojis.
-            else:
-                # For LINE Effect stickers, keep static and animated popups.
-                if ctx.user_data['line_sticker_type'] == main.LINE_STICKER_POPUP_EFFECT:
-                    for f in glob.glob(os.path.join(work_dir, "popup", "*.png")):
-                        # workaround for sticker orders.
-                        shutil.move(f, os.path.join(work_dir, os.path.basename(
-                            f)[:os.path.basename(f).index('.png')] + '@99x.png'))
-                elif ctx.user_data['line_sticker_type'] == main.LINE_STICKER_POPUP:
-                    work_dir = os.path.join(work_dir, "popup")
-                elif ctx.user_data['line_sticker_type'] == main.LINE_STICKER_ANIMATION:
-                    work_dir = os.path.join(work_dir, "animation@2x")
-                else:
-                    pass
-                # Boost perf by executing in parallel.
-                Parallel(n_jobs=4)(delayed(ff_convert_to_webm)(f) for f in glob.glob(os.path.join(work_dir, "**", "*.png"), recursive=True))
-
-                images = sorted([f for f in glob.glob(
-                    os.path.join(work_dir, "**", "*.webm"), recursive=True)])
+        images = prepare_line_stickers(update, ctx)
 
     if len(images) == 0:
         raise Exception("No image available! Try again.")
