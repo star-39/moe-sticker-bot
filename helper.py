@@ -317,7 +317,7 @@ def im_mogrify_to_webp(flist: list):
     # Lanczos resizing produces much sharper image.
     flist = [f + '[0]' for f in flist]
     params = []
-    return subprocess.run(main.MOGRIFY_BIN + ["-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-format", "webp",
+    return subprocess.run(MOGRIFY_BIN + ["-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-format", "webp",
                                               "-define", "webp:lossless=true", "-define", "webp:method=0"] + params + flist, capture_output=True)
 
 
@@ -325,12 +325,12 @@ def im_convert_to_webp(f: str):
     # Resize to fulfill telegram's requirement, AR is automatically retained
     # Lanczos resizing produces much sharper image.
     params = []
-    return subprocess.run(main.CONVERT_BIN + ["-background", "none", "-filter", "Lanczos", "-resize", "512x512",
+    return subprocess.run(CONVERT_BIN + ["-background", "none", "-filter", "Lanczos", "-resize", "512x512",
                                               "-define", "webp:lossless=true", "-define", "webp:method=0"] + params + [f + "[0]", f + ".webp"], capture_output=True)
 
 
 def ff_convert_to_webm(f: str, unsharp=False):
-    ret = subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
+    ret = subprocess.run(FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                             "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                             "-c:v", "libvpx-vp9", "-cpu-used", "8", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
                                             "-to", "00:00:02.800", "-an", "-y",
@@ -340,13 +340,21 @@ def ff_convert_to_webm(f: str, unsharp=False):
         return ret
     else:
         if os.path.getsize(f + '.webm') > 255000:
-            return subprocess.run(main.FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
+            return subprocess.run(FFMPEG_BIN + ["-hide_banner", "-loglevel", "error", "-i", f,
                                                      "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
                                                      "-c:v", "libvpx-vp9", "-cpu-used", "8", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
                                                      "-to", "00:00:02.800", "-an", "-y",
                                                      f + '.webm'], capture_output=True)
         else:
             return ret
+
+
+def ff_batch_to_gif(flist: list):
+    for f in flist:
+        # Magic!
+        # Also, the cavas needs to be shrink to reduce size.
+        subprocess.run(['ffmpeg', '-c:v', 'libvpx-vp9', '-i', f, '-hide_banner', '-lavfi', 'scale=300:300:force_original_aspect_ratio=decrease,split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse', '-loglevel', 'error', f+'.gif'])
+
 
 def verify_sticker_id_availability(sticker_id, update, ctx):
     pass

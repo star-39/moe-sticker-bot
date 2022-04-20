@@ -386,9 +386,7 @@ def get_tg_sticker(update: Update, ctx: CallbackContext) -> int:
         elif sticker_set.is_video:
             subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", webm_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.webm")))
-            # standard GIF is too huge, we need to compromise canvas size.
-            subprocess.run(MOGRIFY_BIN + ["-format", "gif", "-resize", "50%"] +
-                            glob.glob(os.path.join(sticker_dir, "*.webm")))
+            ff_batch_to_gif(glob.glob(os.path.join(sticker_dir, "*.webm")))
             subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", gif_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.gif")))
             update.effective_chat.send_document(open(webm_zip, 'rb'))
