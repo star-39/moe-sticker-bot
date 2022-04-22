@@ -344,42 +344,62 @@ def parse_line_url(update: Update, ctx: CallbackContext) -> int:
 
 # GET_TG_STICKER
 def get_tg_sticker(update: Update, ctx: CallbackContext) -> int:
-    sticker_set = ctx.bot.get_sticker_set(name=update.message.sticker.set_name)
-    ctx.user_data['telegram_sticker_id'] = sticker_set.name
-    ctx.user_data['telegram_sticker_title'] = sticker_set.title
-    sticker_dir = os.path.join(
-        DATA_DIR, str(update.effective_user.id), sticker_set.name)
-    os.makedirs(sticker_dir, exist_ok=True)
-
-    message_progress = print_import_processing(update, ctx)
-
-    if sticker_set.is_animated:
-        sticker_suffix = ".tgs"
-    elif sticker_set.is_video:
-        sticker_suffix = ".webm"
-    else:
-        sticker_suffix = ".webp"
-
-    for index, sticker in enumerate(sticker_set.stickers):
-        try:
-            edit_message_progress(message_progress, ctx,
-                                  index+1, len(sticker_set.stickers))
-            ctx.bot.get_file(sticker.file_id).download(os.path.join(sticker_dir,
-                                                                    sticker.set_name +
-                                                                    "_" + str(index+1).zfill(3) + "_" +
-                                                                    emoji.demojize(sticker.emoji)[1:-1] +
-                                                                    sticker_suffix))
-        except Exception as e:
+    is_gif = False
+    if update.message.animation is not None:
+        if update.message.animation.duration <= 20:
+            sticker_dir = os.path.join(DATA_DIR, str(update.effective_user.id))
+            os.makedirs(sticker_dir, exist_ok=True)
+            update.message.animation.get_file().download(os.path.join(sticker_dir, "a.mp4"))
+            gif_zip = os.path.join(sticker_dir + "_gif.zip")
+            is_gif = True
+        else:
             print_fatal_error(update, traceback.format_exc())
             clean_userdata(update, ctx)
             return ConversationHandler.END
-    gif_zip = os.path.join(sticker_dir, sticker_set.name + "_gif.zip")
-    webp_zip = os.path.join(sticker_dir, sticker_set.name + "_webp.zip")
-    webm_zip = os.path.join(sticker_dir, sticker_set.name + "_webm.zip")
-    tgs_zip = os.path.join(sticker_dir, sticker_set.name + "_tgs.zip")
-    png_zip = os.path.join(sticker_dir, sticker_set.name + "_png.zip")
-    try:
+    else: 
+        sticker_set = ctx.bot.get_sticker_set(name=update.message.sticker.set_name)
+        ctx.user_data['telegram_sticker_id'] = sticker_set.name
+        ctx.user_data['telegram_sticker_title'] = sticker_set.title
+        sticker_dir = os.path.join(
+            DATA_DIR, str(update.effective_user.id), sticker_set.name)
+        os.makedirs(sticker_dir, exist_ok=True)
+
+        message_progress = print_import_processing(update, ctx)
+
         if sticker_set.is_animated:
+            sticker_suffix = ".tgs"
+        elif sticker_set.is_video:
+            sticker_suffix = ".webm"
+        else:
+            sticker_suffix = ".webp"
+
+        for index, sticker in enumerate(sticker_set.stickers):
+            try:
+                edit_message_progress(message_progress, ctx,
+                                    index+1, len(sticker_set.stickers))
+                ctx.bot.get_file(sticker.file_id).download(os.path.join(sticker_dir,
+                                                                        sticker.set_name +
+                                                                        "_" + str(index+1).zfill(3) + "_" +
+                                                                        emoji.demojize(sticker.emoji)[1:-1] +
+                                                                        sticker_suffix))
+            except Exception as e:
+                print_fatal_error(update, traceback.format_exc())
+                clean_userdata(update, ctx)
+                return ConversationHandler.END
+        gif_zip = os.path.join(sticker_dir, sticker_set.name + "_gif.zip")
+        webp_zip = os.path.join(sticker_dir, sticker_set.name + "_webp.zip")
+        webm_zip = os.path.join(sticker_dir, sticker_set.name + "_webm.zip")
+        tgs_zip = os.path.join(sticker_dir, sticker_set.name + "_tgs.zip")
+        png_zip = os.path.join(sticker_dir, sticker_set.name + "_png.zip")
+    try:
+        if is_gif:
+            ff_batch_to_gif(glob.glob(os.path.join(sticker_dir, "*.mp4")))
+            subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", gif_zip] +
+                           glob.glob(os.path.join(sticker_dir, "*.gif")))
+            update.effective_chat.send_document(open(gif_zip, 'rb'))
+            clean_userdata(update, ctx)
+            return ConversationHandler.END
+        elif sticker_set.is_animated:
             subprocess.run(BSDTAR_BIN + ["--strip-components", "3", "-acvf", tgs_zip] +
                            glob.glob(os.path.join(sticker_dir, "*.tgs")))
             update.effective_chat.send_document(open(tgs_zip, 'rb'))
@@ -716,7 +736,7 @@ def main() -> None:
         entry_points=[CommandHandler(
             'download_telegram_sticker', command_download_telegram_sticker)],
         states={
-            GET_TG_STICKER: [MessageHandler(Filters.sticker, get_tg_sticker)],
+            GET_TG_STICKER: [MessageHandler(Filters.all, get_tg_sticker)],
             ConversationHandler.TIMEOUT: [MessageHandler(None, handle_timeout)]
         },
         fallbacks=[CommandHandler('cancel', command_cancel), MessageHandler(
@@ -779,14 +799,8 @@ def main() -> None:
         global HAS_DB
         HAS_DB = True
 
-    if WEBHOOK_URL is not None:
-        threading.Timer(10, delayed_set_webhook).start()
-        updater.start_webhook(listen='0.0.0.0', port=443, url_path=BOT_TOKEN,
-                              key='/privkey.pem', cert='/fullchain.pem', webhook_url=WEBHOOK_URL + BOT_TOKEN)
-        # Fix PTB's weired SSL: TLSV1_ALERT_UNKNOWN_CA problem.
-    else:
-        updater.start_polling()
 
+    updater.start_polling()
     updater.idle()
 
 

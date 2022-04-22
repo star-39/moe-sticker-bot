@@ -351,9 +351,10 @@ def ff_convert_to_webm(f: str, unsharp=False):
 
 def ff_batch_to_gif(flist: list):
     for f in flist:
+        decoder = ['-c:v', 'libvpx-vp9'] if '.webm' in f else []
         # Magic!
         # Also, the cavas needs to be shrink to reduce size.
-        subprocess.run(['ffmpeg', '-c:v', 'libvpx-vp9', '-i', f, '-hide_banner', '-lavfi', 'scale=300:300:force_original_aspect_ratio=decrease,split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse', '-loglevel', 'error', f+'.gif'])
+        subprocess.run(['ffmpeg'] + decoder + ['-i', f, '-hide_banner', '-lavfi', 'scale=256:256:force_original_aspect_ratio=decrease,split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse', '-loglevel', 'error', f+'.gif'])
 
 
 def verify_sticker_id_availability(sticker_id, update, ctx):
@@ -419,8 +420,3 @@ def start_timer_userdata_gc():
         nowtime = time.time()
         if nowtime - mtime > 43200:
             shutil.rmtree(d, ignore_errors=True)
-
-
-def delayed_set_webhook():
-    subprocess.run(['curl', '-F', 'url=' + main.WEBHOOK_URL + main.BOT_TOKEN,
-                   'https://api.telegram.org/bot' + main.BOT_TOKEN + '/setWebhook'])
