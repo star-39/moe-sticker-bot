@@ -34,18 +34,20 @@ def retry_do(update: Update, ctx: CallbackContext, func, lambda_check_fake_ra):
             else:
                 return br
         except telegram.error.RetryAfter as ra:
+            print(traceback.format_exc())
             if index == 4:
                 return ra
             time.sleep(ra.retry_after)
 
             if lambda_check_fake_ra():
+                print("oops! fake retry_after!")
                 break
             else:
                 continue
 
         except Exception as e:
+            print(traceback.format_exc())
             if index == 4:
-                print(traceback.format_exc())
                 return e
             time.sleep(5)
         else:
