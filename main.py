@@ -78,15 +78,15 @@ def do_auto_create_sticker_set(update: Update, ctx: CallbackContext):
                                                                            name=ctx.user_data['telegram_sticker_id'],
                                                                            emojis=ctx.user_data['telegram_sticker_emoji'],
                                                                            webm_sticker=get_webm_sticker(img)),
-                           lambda: (
-                           index + 1 == len(ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers)))
+                           lambda: 
+                           index + 1 == len(ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
         else:
             err = retry_do(update, ctx, lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                                            name=ctx.user_data['telegram_sticker_id'],
                                                                            emojis=ctx.user_data['telegram_sticker_emoji'],
                                                                            png_sticker=get_png_sticker(img)),
-                           lambda: (
-                           index + 1 == len(ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers)))
+                           lambda: 
+                           index + 1 == len(ctx.bot.get_sticker_set(name=ctx.user_data['telegram_sticker_id']).stickers))
         if err is not None:
             raise(err)
 
@@ -147,8 +147,8 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                                            webm_sticker=get_webm_sticker(
                                                                                ctx.user_data['telegram_sticker_files'][ctx.user_data['telegram_sticker_emoji_assign_index']])
                                                                            ),
-                           lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == len(ctx.bot.get_sticker_set(
-                               name=ctx.user_data['telegram_sticker_id']).stickers)))
+                           lambda: ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == len(ctx.bot.get_sticker_set(
+                               name=ctx.user_data['telegram_sticker_id']).stickers))
         else:
             err = retry_do(update, ctx, lambda: ctx.bot.add_sticker_to_set(user_id=update.effective_user.id,
                                                                            name=ctx.user_data['telegram_sticker_id'],
@@ -156,8 +156,8 @@ def parse_emoji_assign(update: Update, ctx: CallbackContext) -> int:
                                                                            png_sticker=get_png_sticker(
                                                                                ctx.user_data['telegram_sticker_files'][ctx.user_data['telegram_sticker_emoji_assign_index']])
                                                                            ),
-                           lambda: (ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == len(ctx.bot.get_sticker_set(
-                               name=ctx.user_data['telegram_sticker_id']).stickers)))
+                           lambda: ctx.user_data['telegram_sticker_emoji_assign_index'] + 1 == len(ctx.bot.get_sticker_set(
+                               name=ctx.user_data['telegram_sticker_id']).stickers))
     if err is not None:
         if err is telegram.error.BadRequest:
             if "Stickers_too_much" in err.message:
