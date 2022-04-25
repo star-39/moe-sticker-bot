@@ -8,7 +8,7 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 <!-- ![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png) -->
 <img width="511" alt="スクリーンショット 2022-03-24 19 58 09" src="https://user-images.githubusercontent.com/75669297/159902095-fefbcbbf-1c5e-4c3e-9e55-eb28b48567e0.png">
 
-
+> This project is undergoing a complete rewrite to golang due to python-telegram-bot's countless problems. No new python code will be commited. Completion date is unknown, probably before June. This python version will be re-branched after go version is published to master brach.
 
 ## Deployment
 ### Deploy with pre-built containers
