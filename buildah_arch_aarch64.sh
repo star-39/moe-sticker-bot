@@ -9,7 +9,7 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 c1=$(buildah from docker://arm64v8/archlinux:latest)
 
 buildah run $c1 -- pacman -Sy
-buildah run $c1 -- pacman --noconfirm -S install ffmpeg imagemagick curl libarchive 
+buildah run $c1 -- pacman --noconfirm -S libheif ffmpeg imagemagick curl libarchive 
 
 buildah config --cmd '/moe-sticker-bot' $c1
 
