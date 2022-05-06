@@ -19,15 +19,7 @@ Simply run:
 docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:latest
 ```
 
-### Python Dependencies
-* [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
-* requests
-* bs4
-* emoji
-* mariadb (optional)
-
 ### System Dependencies
-* python 3.9+
 * ImageMagick
 * bsdtar (libarchive-tools)
 * ffmpeg
@@ -43,40 +35,45 @@ This software supports all platforms python supports, including Linux, Windows a
 
 ### Manual deployment
 #### Linux/macOS
-For better performance on Linux, it's recommended to use my custom build of FFMpeg:
-
-https://github.com/star-39/ffmpeg-nano-static
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl ffmpeg python3
+dnf install git ImageMagick libwebp bsdtar curl ffmpeg go
 # For Debian / Ubuntu etc.
-apt install git imagemagick libwebp6 libarchive-tools curl ffmpeg python3
+apt install git imagemagick libarchive-tools curl ffmpeg go
+# For Arch
+pacman -S install ffmpeg imagemagick curl libarchive go
 # For macOS
-brew install git imagemagick ffmpeg curl python3
+brew install git imagemagick ffmpeg curl go
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
-pip3 install -r requirements.txt
-BOT_TOKEN=your_bot_token python3 main.py
+go build
+BOT_TOKEN=your_bot_token ./moe-sticker-bot
 ```
 #### Windows
 Please install scoop(https://scoop.sh) first, using Windows Powershell:
 ```
-scoop install python3 ffmpeg imagemagick python
+scoop install ffmpeg imagemagick python go
 git clone https://github.com/star-39/moe-sticker-bot ; cd moe-sticker-bot
-pip install -r requirements.txt
-$ENV:BOT_TOKEN=your_bot_token ; python main.py
+go build
+$ENV:BOT_TOKEN=your_bot_token ; .\moe-sticker-bot
 ```
 
 #### mariadb
-Bot supports saving some imported line stickers into a database and will notify user that a already imported set is available.
+Bot supports saving imported line stickers into a database and will notify user that a already imported set is available.
 
 To deploy this feature. Set up mariadb-server and set the following env variables:
 
-`DB_USER DB_PASS DB_NAME DB_HOST DB_PORT`
+`DB_USER DB_PASS DB_NAME DB_ADDR`
 
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-1 GO(20220506)
+  * Completely rewritten whole project to golang
+  * Countless bug fixes.
+  * You can send sticker or link without a command now.
+  * Performance gained by a lot thanks to goroutine and worker pool.
+
 5.1 RC-4 (20220423)
   * Fix duplicated sticker.
   * Fix alpha channel converting GIF.

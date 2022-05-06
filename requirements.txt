@@ -1,5 +1,0 @@
-python-telegram-bot
-emoji
-requests
-beautifulsoup4
-mariadb

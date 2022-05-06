@@ -15,13 +15,14 @@ import (
 // complex operations are done in other files.
 
 func main() {
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:            true,
-		DisableLevelTruncation: true,
-	})
-	log.SetLevel(log.TraceLevel)
+	initLogrus()
+
 	log.Debug("Warn: Log level below DEBUG might print sensitive information, including passwords. Use with care.")
 	token := os.Getenv("BOT_TOKEN")
+	if token == "" {
+		log.Fatal("Please set BOT_TOKEN environment variable!! Exiting...")
+		return
+	}
 	pref := tele.Settings{
 		Token:       token,
 		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},

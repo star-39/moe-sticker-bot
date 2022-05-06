@@ -1,4 +1,4 @@
-module moe_sticker_bot
+module moe-sticker-bot
 
 go 1.17
 

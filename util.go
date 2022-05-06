@@ -128,3 +128,22 @@ func escapeTagMark(s string) string {
 	s = strings.ReplaceAll(s, ">", "＞")
 	return s
 }
+
+func initLogrus() {
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:            true,
+		DisableLevelTruncation: true,
+	})
+
+	level := os.Getenv("LOG_LEVEL")
+	switch level {
+	case "INFO":
+		log.SetLevel(log.InfoLevel)
+	case "WARNING":
+		log.SetLevel(log.WarnLevel)
+	case "ERROR":
+		log.SetLevel(log.ErrorLevel)
+	default:
+		log.SetLevel(log.TraceLevel)
+	}
+}
