@@ -129,14 +129,20 @@ func lsFiles(dir string, mustHave []string, mustNotHave []string) []string {
 }
 
 func fCompress(f string, flist []string) error {
-	dir := path.Dir(f)
+	dir := filepath.Dir(f)
 	// strip data dir in zip.
-	comps := strconv.Itoa(len(strings.Split(dir, string(os.PathSeparator))) + 1)
+	comps := strconv.Itoa(len(strings.Split(dir, string(os.PathSeparator))) - 1)
 
 	args := []string{"--strip-components", comps, "-avcf", f}
+	// args := []string{"-avcf", f}
 	args = append(args, flist...)
 
-	cmd := exec.Command(BSDTAR_BIN, args...)
-	cmd.Dir = dir
-	return cmd.Run()
+	log.Debugf("Compressing strip-comps:%s to file:%s for these files:%v", comps, f, flist)
+	out, err := exec.Command(BSDTAR_BIN, args...).CombinedOutput()
+	log.Debugln(string(out))
+	if err != nil {
+		log.Error("Compress error!")
+		log.Errorln(string(out))
+	}
+	return err
 }

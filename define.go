@@ -80,4 +80,7 @@ var LINE_STICKER_MESSAGE = "line_m"      //訊息
 var LINE_STICKER_NAME = "line_n"         //隨你填
 var KAKAO_EMOTICON = "kakao_e"           //KAKAOTALK普通貼圖
 
+var LINK_TG = "t.me"
+var LINK_LINE = "line.me"
+
 var BSDTAR_BIN string

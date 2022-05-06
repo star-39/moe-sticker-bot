@@ -168,7 +168,7 @@ func stateRecvSManage(c tele.Context) error {
 		ud.stickerData.id = c.Message().Sticker.SetName
 	} else {
 		link, tp := findLinkWithType(c.Message().Text)
-		if tp != "t.me" {
+		if tp != LINK_TG {
 			return c.Send("Send correct telegram sticker link!")
 		}
 		ud.stickerData.id = path.Base(link)
@@ -261,38 +261,34 @@ func handleNoState(c tele.Context) error {
 	log.Debugf("user %d entered nostate with message: %s", c.Sender().ID, c.Message().Text)
 
 	if c.Message().Sticker != nil {
-		initUserData(c, "nostate", "recvCbSChoice")
-		users.data[c.Sender().ID].stickerData.sticker = c.Message().Sticker
+		ud := initUserData(c, "nostate", "recvCbSChoice")
+		ud.stickerData.sticker = c.Message().Sticker
 		sendAskSDownloadChoice(c)
 		return nil
 	}
 
 	// bare message, we expect a link.
 	link, tp := findLinkWithType(c.Message().Text)
-	if link == "" {
-		return sendNoStateWarning(c)
-	}
-	initUserData(c, "nostate", "recvCbImport")
-	ud := users.data[c.Sender().ID]
-	if tp == "t.me" {
+	switch tp {
+	case LINK_TG:
+
 		ss, err := c.Bot().StickerSet(path.Base(link))
 		if err != nil {
 			return nil
 		}
+		ud := initUserData(c, "nostate", "recvCbSLinkD")
 		ud.stickerData.sticker = &ss.Stickers[0]
-		setState(c, "recvCbSLinkD")
 		sendAskWantSDown(c)
-
-	} else if strings.Contains(tp, "line.me") {
+	case LINK_LINE:
+		ud := initUserData(c, "nostate", "recvCbImport")
 		if err := parseImportLink(link, ud.lineData); err != nil {
+			terminateSession(c)
 			return nil
 		}
 		sendNotifySExist(c)
-		setState(c, "recvCbImport")
 		sendAskWantImport(c)
-	} else {
+	default:
 		log.Debug("bad link sent barely, purging ud.")
-		cleanUserData(c.Sender().ID)
 		return sendNoStateWarning(c)
 	}
 	return nil
@@ -320,7 +316,7 @@ func stateRecvCbImport(c tele.Context) error {
 		setState(c, "recvTitle")
 		sendAskTitle_Import(c)
 
-		go prepLineStickers(users.data[c.Sender().ID])
+		return prepLineStickers(users.data[c.Sender().ID])
 	}
 	return nil
 }
@@ -409,7 +405,7 @@ func stateRecvSticker(c tele.Context) error {
 		return sendAskSDownloadChoice(c)
 	}
 
-	if link, tp := findLinkWithType(c.Message().Text); tp == "t.me" {
+	if link, tp := findLinkWithType(c.Message().Text); tp == LINK_TG {
 		ud.stickerData.id = path.Base(link)
 		ss, err := c.Bot().StickerSet(ud.stickerData.id)
 		if err != nil {
@@ -432,7 +428,7 @@ func cmdImport(c tele.Context) error {
 func stateRecvLink(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	link, tp := findLinkWithType(c.Message().Text)
-	if tp != "line.me" {
+	if tp != LINK_LINE {
 		return c.Send("invalid link! try again or /exit")
 	}
 
@@ -451,7 +447,6 @@ func stateRecvLink(c tele.Context) error {
 
 	// keep preparing on background.
 	return prepLineStickers(users.data[c.Sender().ID])
-	return nil
 }
 
 func stateRecvTitle(c tele.Context) error {

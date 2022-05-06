@@ -7,3 +7,4 @@ config.ini
 .venv
 moe-sticker-bot
 __debug*
+*_data/

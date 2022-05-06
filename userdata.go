@@ -25,7 +25,7 @@ func cleanUserData(uid int64) bool {
 	}
 }
 
-func initUserData(c tele.Context, command string, state string) {
+func initUserData(c tele.Context, command string, state string) *UserData {
 	uid := c.Sender().ID
 	users.mu.Lock()
 	users.data[uid] = &UserData{
@@ -39,6 +39,7 @@ func initUserData(c tele.Context, command string, state string) {
 	// Sanitize user work directory.
 	os.RemoveAll(users.data[uid].userDir)
 	os.MkdirAll(users.data[uid].userDir, 0755)
+	return users.data[uid]
 }
 
 func getState(c tele.Context) (string, string) {
