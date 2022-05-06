@@ -121,6 +121,10 @@ func insertLineS(lineID string, lineLink string, tgID string, tgLink string, aE 
 	if db == nil {
 		return
 	}
+	if lineID == "" || lineLink == "" || tgID == "" || tgLink == "" {
+		log.Warn("Empty entry to insert line s")
+		return
+	}
 	_, err := db.Exec("INSERT line (line_id, line_link, tg_id, tg_title, auto_emoji) VALUES (?, ?, ?, ?, ?)",
 		lineID, lineLink, tgID, tgLink, aE)
 
@@ -133,6 +137,10 @@ func insertLineS(lineID string, lineLink string, tgID string, tgLink string, aE 
 
 func insertUserS(uid int64, tgID string, tgTitle string, timestamp int64) {
 	if db == nil {
+		return
+	}
+	if tgID == "" || tgTitle == "" {
+		log.Warn("Empty entry to insert user s")
 		return
 	}
 	_, err := db.Exec("INSERT stickers (user_id, tg_id, tg_title, timestamp) VALUES (?, ?, ?, ?)",

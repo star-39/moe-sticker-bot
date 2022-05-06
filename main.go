@@ -83,6 +83,8 @@ func handleMessage(c tele.Context) error {
 		switch state {
 		case "recvLink":
 			err = stateRecvLink(c)
+		case "recvCbImport":
+			err = stateRecvCbImport(c)
 		case "recvTitle":
 			err = stateRecvTitle(c)
 		case "recvEmoji":
@@ -423,17 +425,15 @@ func stateRecvSticker(c tele.Context) error {
 
 func cmdImport(c tele.Context) error {
 	initUserData(c, "import", "recvLink")
-	c.Send("send link:")
-
 	sendAskImportLink(c)
 	return nil
 }
 
 func stateRecvLink(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
-	link := findLink(c.Message().Text)
-	if link == "" {
-		return c.Send("invalid link! try again.")
+	link, tp := findLinkWithType(c.Message().Text)
+	if tp != "line.me" {
+		return c.Send("invalid link! try again or /exit")
 	}
 
 	err := parseImportLink(link, ud.lineData)
@@ -441,13 +441,16 @@ func stateRecvLink(c tele.Context) error {
 		return err
 	}
 
-	sendNotifySExist(c)
+	if sendNotifySExist(c) {
+		setState(c, "recvCbImport")
+		return sendAskWantImport(c)
+	}
 
 	setState(c, "recvTitle")
 	sendAskTitle_Import(c)
 
 	// keep preparing on background.
-	go prepLineStickers(users.data[c.Sender().ID])
+	return prepLineStickers(users.data[c.Sender().ID])
 	return nil
 }
 

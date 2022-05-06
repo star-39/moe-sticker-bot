@@ -26,13 +26,6 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:lates
 * curl
 * mariadb-server (optional)
 
-Specify `BOT_TOKEN` environment variable and run:
-```
-BOT_TOKEN=your_bot_token python3 main.py
-```
-
-This software supports all platforms python supports, including Linux, Windows and Mac.
-
 ### Manual deployment
 #### Linux/macOS
 ```

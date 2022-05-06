@@ -112,7 +112,7 @@ func sendAskTitle_Import(c tele.Context) {
 	c.Send("Please set a title for this sticker set. Press Auto button to set title from LINE Store as shown below:\n"+
 		"請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中的標題如下:\n"+
 		"スタンプのタイトルを送信してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。\n\n"+
-		users.data[c.Sender().ID].lineData.title, selector)
+		"<code>"+escapeTagMark(users.data[c.Sender().ID].lineData.title)+"</code>", selector, tele.ModeHTML)
 }
 
 func sendAskTitle(c tele.Context) {
@@ -127,13 +127,21 @@ func sendAskImportLink(c tele.Context) error {
 		"スタンプのLINE Storeリンクを送信してください")
 }
 
-func sendNotifySExist(c tele.Context) error {
+func sendNotifySExist(c tele.Context) bool {
 	links := queryLinksByLineID(users.data[c.Sender().ID].lineData.id)
-	if len(links) > 0 {
-		linkText := strings.Join(links, "\n")
-		return c.Send(linkText)
+	if len(links) == 0 {
+		return false
 	}
-	return nil
+	message := "This sticker set exists in our database, you can continue import or just use them if you want.\n" +
+		"此套貼圖包已經存在於資料庫中, 您可以繼續匯入, 或者使用下列現成的貼圖包\n\n"
+	if len(links) > 3 {
+		links = links[:2]
+	}
+
+	linkText := strings.Join(links, "\n")
+	message += linkText
+	c.Send(message)
+	return true
 }
 
 func sendAskStickerFile(c tele.Context) error {
