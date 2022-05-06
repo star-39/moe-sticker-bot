@@ -55,13 +55,13 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 
 	if createSet {
 		if ud.command == "import" {
-			insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.link, true)
+			insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, true)
 		} else if ud.command == "create" {
 			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
 	}
-	editProgressMsg(0, 0, "Success!", c)
-	c.Send(ud.stickerData.link)
+	editProgressMsg(0, 0, "Success! /start", c)
+	sendSFromSS(c)
 	return nil
 }
 
@@ -108,13 +108,13 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	if ud.stickerData.pos == ud.stickerData.lAmount {
 		if createSet {
 			if ud.command == "import" {
-				insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.link, true)
+				insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, true)
 			} else if ud.command == "create" {
 				insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 			}
 		}
-		c.Send("done!")
-		c.Send("https://t.me/addstickers/" + ud.stickerData.id)
+		c.Send("done! 作業成功完成")
+		sendSFromSS(c)
 		terminateSession(c)
 	} else {
 		sendAskEmojiAssign(c)
@@ -288,7 +288,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 		c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(pngZipPath), File: tele.FromDisk(pngZipPath)})
 	}
 
-	editProgressMsg(0, 0, "/download success!", c)
+	editProgressMsg(0, 0, "success! /start", c)
 	return nil
 }
 

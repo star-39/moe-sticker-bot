@@ -77,22 +77,39 @@ func getEmojis(s string) string {
 	return eString
 }
 
-func queryLinksByLineID(s string) []string {
-	ids, aes := queryLineS(s)
-	if ids == nil || aes == nil {
-		return nil
-	}
-	var links []string
-	for index, id := range ids {
-		if aes[index] {
-			links = append(links, "https://t.me/addstickers/"+id)
-		} else {
-			// append to top.
-			links = append([]string{"https://t.me/addstickers/" + id}, links...)
-		}
-	}
-	return links
-}
+// func queryLinksByLineID(s string) []string {
+// 	_, ids, aes := queryLineS(s)
+// 	if ids == nil || aes == nil {
+// 		return nil
+// 	}
+// 	var links []string
+// 	for index, id := range ids {
+// 		if aes[index] {
+// 			links = append(links, "https://t.me/addstickers/"+id)
+// 		} else {
+// 			// append to top.
+// 			links = append([]string{"https://t.me/addstickers/" + id}, links...)
+// 		}
+// 	}
+// 	return links
+// }
+
+// func queryTitlesAndLinksByLineID(s string) ([]string, []string) {
+// 	titles, ids, aes := queryLineS(s)
+// 	if ids == nil || aes == nil {
+// 		return nil, nil
+// 	}
+// 	var links []string
+// 	for index, id := range ids {
+// 		if aes[index] {
+// 			links = append(links, "https://t.me/addstickers/"+id)
+// 		} else {
+// 			// append to top.
+// 			links = append([]string{"https://t.me/addstickers/" + id}, links...)
+// 		}
+// 	}
+// 	return titles, links
+// }
 
 func sanitizeCallback(next tele.HandlerFunc) tele.HandlerFunc {
 	return func(c tele.Context) error {

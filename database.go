@@ -88,50 +88,63 @@ func createMariaDB(dbname string) error {
 	return nil
 }
 
-func queryLineS(id string) ([]string, []bool) {
+// return title, id, ae
+func queryLineS(id string) []*LineStickerQ {
 	if db == nil {
-		return nil, nil
+		return nil
 	}
-	var tgIDs []string
-	var aEs []bool
+	var lines []*LineStickerQ
+	// var tgTitles []string
+	// var tgIDs []string
+	// var aEs []bool
+	var tgTitle string
 	var tgID string
 	var aE bool
-	qs, _ := db.Query("SELECT tg_id, auto_emoji FROM line WHERE line_id=?", id)
+	qs, _ := db.Query("SELECT tg_title, tg_id, auto_emoji FROM line WHERE line_id=?", id)
 	defer qs.Close()
 	for qs.Next() {
-		err := qs.Scan(&tgID, &aE)
+		err := qs.Scan(&tgTitle, &tgID, &aE)
 		if err != nil {
-			return nil, nil
+			return nil
 		}
-		tgIDs = append(tgIDs, tgID)
-		aEs = append(aEs, aE)
+		// ignore empty entry
+		if tgID == "" {
+			continue
+		}
+		lines = append(lines, &LineStickerQ{
+			tg_id:    tgID,
+			tg_title: tgTitle,
+			ae:       aE,
+		})
+		log.Debugf("Matched line record: id:%s | title:%s | ae:%v", tgID, tgTitle, aE)
+		// tgTitles = append(tgTitles, tgTitle)
+		// tgIDs = append(tgIDs, tgID)
+		// aEs = append(aEs, aE)
 	}
 	err := qs.Err()
 	if err != nil {
-		log.Debugln("No line id match? id: ", id)
-		return nil, nil
+		log.Errorln("error quering line db: ", id)
+		return nil
 	}
-	log.Debug("Matched line record.")
-	log.Debugln("tgIDs:", tgIDs)
-	log.Debugln("aEs:", aEs)
-	return tgIDs, aEs
+
+	return lines
 }
 
-func insertLineS(lineID string, lineLink string, tgID string, tgLink string, aE bool) {
+func insertLineS(lineID string, lineLink string, tgID string, tgTitle string, aE bool) {
 	if db == nil {
 		return
 	}
-	if lineID == "" || lineLink == "" || tgID == "" || tgLink == "" {
+	if lineID == "" || lineLink == "" || tgID == "" || tgTitle == "" {
 		log.Warn("Empty entry to insert line s")
 		return
 	}
 	_, err := db.Exec("INSERT line (line_id, line_link, tg_id, tg_title, auto_emoji) VALUES (?, ?, ?, ?, ?)",
-		lineID, lineLink, tgID, tgLink, aE)
+		lineID, lineLink, tgID, tgTitle, aE)
 
 	if err != nil {
 		log.Warnln("Failed to insert line s:", lineID, lineLink)
 	} else {
-		log.Infoln("Insert LineS OK ->", lineID, lineLink, tgID, tgLink, aE)
+		log.Infoln("Insert LineS OK ->", lineID, lineLink, tgID, tgTitle, aE)
 	}
 }
 
@@ -170,6 +183,10 @@ func queryUserS(uid int64) ([]string, []string, []int64) {
 		err := qs.Scan(&tgID, &tgTitle, &timestamp)
 		if err != nil {
 			return nil, nil, nil
+		}
+		// ignore empty entry
+		if tgID == "" {
+			continue
 		}
 		tgIDs = append(tgIDs, tgID)
 		tgTitles = append(tgTitles, tgTitle)

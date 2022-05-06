@@ -61,7 +61,7 @@ BOT_VERSION: %s
 
 func sendAskEmoji(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnRand := selector.Data("Random", "random")
+	btnRand := selector.Data("🌟Random", "random")
 	btnManu := selector.Data("Manual", "manual")
 	selector.Inline(selector.Row(btnRand, btnManu))
 
@@ -128,19 +128,28 @@ func sendAskImportLink(c tele.Context) error {
 }
 
 func sendNotifySExist(c tele.Context) bool {
-	links := queryLinksByLineID(users.data[c.Sender().ID].lineData.id)
-	if len(links) == 0 {
+	lines := queryLineS(users.data[c.Sender().ID].lineData.id)
+	if len(lines) == 0 {
 		return false
 	}
 	message := "This sticker set exists in our database, you can continue import or just use them if you want.\n" +
 		"此套貼圖包已經存在於資料庫中, 您可以繼續匯入, 或者使用下列現成的貼圖包\n\n"
-	if len(links) > 3 {
-		links = links[:2]
-	}
 
-	linkText := strings.Join(links, "\n")
-	message += linkText
-	c.Send(message)
+	var entries []string
+	for _, l := range lines {
+		if l.ae {
+			entries = append(entries, fmt.Sprintf(`<a href="%s">%s</a>`, "https://t.me/addstickers/"+l.tg_id, l.tg_title))
+		} else {
+			// append to top
+			entries = append([]string{fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.tg_id, l.tg_title)}, entries...)
+		}
+	}
+	// if len(entries) > 3 {
+	// 	entries = entries[:3]
+	// }
+	message += strings.Join(entries, "\n")
+	println(message)
+	c.Send(message, tele.ModeHTML)
 	return true
 }
 
@@ -325,4 +334,12 @@ func sendConfirmDelset(c tele.Context) error {
 	return c.Send("You are attempting to delete the whole sticker set, please confirm.\n"+
 		"您將要刪除整個貼圖包, 請確認.", selector)
 
+}
+
+func sendSFromSS(c tele.Context) error {
+	ud := users.data[c.Sender().ID]
+	id := ud.stickerData.id
+	ss, _ := c.Bot().StickerSet(id)
+	c.Send(&ss.Stickers[0])
+	return nil
 }

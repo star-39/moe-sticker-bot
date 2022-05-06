@@ -14,6 +14,12 @@ var botName string
 var botVersion = "1.0-RC1-GO"
 var users Users
 
+type LineStickerQ struct {
+	tg_id    string
+	tg_title string
+	ae       bool
+}
+
 type StickerFile struct {
 	wg sync.WaitGroup
 	// path of original file
