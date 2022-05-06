@@ -53,7 +53,6 @@ type LineData struct {
 }
 
 type UserData struct {
-	mu          sync.RWMutex
 	wg          sync.WaitGroup
 	state       string
 	userDir     string

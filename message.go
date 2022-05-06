@@ -168,10 +168,11 @@ func sendNoStateWarning(c tele.Context) error {
 
 func sendAskSTypeToCreate(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnStatic := selector.Data("Static", "static")
-	btnAnimated := selector.Data("Animated", "video")
+	btnStatic := selector.Data("Static/靜態", "static")
+	btnAnimated := selector.Data("Animated/動態", "video")
 	selector.Inline(selector.Row(btnStatic, btnAnimated))
-	return c.Send("What kind of sticker set you want to create?", selector)
+	return c.Send("What kind of sticker set you want to create?\n"+
+		"您想要創建何種類型的貼圖包?", selector)
 }
 
 func sendAskEmojiAssign(c tele.Context) error {

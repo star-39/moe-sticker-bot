@@ -10,6 +10,7 @@ c1=$(buildah from docker://arm64v8/archlinux:latest)
 
 buildah run $c1 -- pacman -Sy
 buildah run $c1 -- pacman --noconfirm -S libheif ffmpeg imagemagick curl libarchive 
+buildah run $c1 -- sh -c 'yes | pacman -Scc'
 
 buildah config --cmd '/moe-sticker-bot' $c1
 
