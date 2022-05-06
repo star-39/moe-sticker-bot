@@ -22,6 +22,7 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base_aarch64)
 
+go version
 GOOS=linux GOARCH=arm64 go build
 buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 

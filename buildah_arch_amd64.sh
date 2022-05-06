@@ -22,6 +22,7 @@ buildah push moe-sticker-bot:base ghcr.io/star-39/moe-sticker-bot:base
 
 c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base)
 
+go version
 go build
 buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
