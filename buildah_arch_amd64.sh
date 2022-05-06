@@ -16,7 +16,7 @@ buildah config --cmd '/moe-sticker-bot' $c1
 
 buildah commit $c1 moe-sticker-bot:base
 
-buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:base
+buildah push moe-sticker-bot:base ghcr.io/star-39/moe-sticker-bot:base
 
 #################################
 

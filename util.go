@@ -128,7 +128,7 @@ func initWorkspace(b *tele.Bot) {
 		log.Warn("Not using database because USE_DB is not set to 1.")
 	}
 
-	wpConvertWebm, _ = ants.NewPoolWithFunc(8, wConvertWebm)
+	wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
 
 	if runtime.GOOS == "linux" {
 		BSDTAR_BIN = "bsdtar"

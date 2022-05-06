@@ -14,9 +14,9 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 # buildah config --cmd '/moe-sticker-bot' $c1
 
-# buildah commit $c1 moe-sticker-bot:base
+# buildah commit $c1 moe-sticker-bot:base_aarch64
 
-# buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:base
+# buildah push moe-sticker-bot:base_aarch64 ghcr.io/star-39/moe-sticker-bot:base_aarch64
 
 #################################
 
@@ -25,6 +25,6 @@ c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base_aarch64)
 GOOS=linux GOARCH=arm64 go build
 buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
-buildah commit $c1 moe-sticker-bot:latest
+buildah commit $c1 moe-sticker-bot:aarch64
 
-buildah push moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:aarch64
+buildah push moe-sticker-bot:aarch64 ghcr.io/star-39/moe-sticker-bot:aarch64
