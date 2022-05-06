@@ -28,7 +28,7 @@ jobs:
       - name: Build OCI container AArch64
         run: |
           go version
-          export /opt/hostedtoolcache/go/1.18.1/x64/bin/:$PATH
+          export PATH=/opt/hostedtoolcache/go/1.18.1/x64/bin/:$PATH
           go version
           chmod +x buildah_arch_aarch64.sh
           ./buildah_arch_aarch64.sh ${{ secrets.GITHUB_TOKEN }}
