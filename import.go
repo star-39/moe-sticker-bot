@@ -116,18 +116,22 @@ func prepLineStickers(ud *UserData) error {
 func lineZipExtract(f string, ld *LineData) []string {
 	var files []string
 	workDir := fExtract(f)
+	if workDir == "" {
+		return nil
+	}
+	log.Debugln("scanning workdir:", workDir)
 
 	switch ld.category {
 	case LINE_STICKER_ANIMATION:
-		files, _ = filepath.Glob(path.Join(workDir, "animation@2x", "*.png"))
+		files, _ = filepath.Glob(filepath.Join(workDir, "animation@2x", "*.png"))
 	case LINE_STICKER_POPUP:
 		files = lsFilesR(workDir, []string{".png", "popup"}, []string{"tab", "key", "json"})
 	case LINE_STICKER_POPUP_EFFECT:
-		pfs, _ := filepath.Glob(path.Join(workDir, "popup"))
+		pfs, _ := filepath.Glob(filepath.Join(workDir, "popup"))
 		for _, pf := range pfs {
 			os.Rename(pf, filepath.Join(workDir, strings.TrimSuffix(path.Base(pf), ".png"), "@99.png"))
 		}
-		files, _ = filepath.Glob(path.Join(workDir, "*.png"))
+		files, _ = filepath.Glob(filepath.Join(workDir, "*.png"))
 	default:
 		files = lsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	}

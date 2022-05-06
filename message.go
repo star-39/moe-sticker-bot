@@ -166,7 +166,7 @@ func sendAskSTypeToCreate(c tele.Context) error {
 	return c.Send("What kind of sticker set you want to create?", selector)
 }
 
-func sendAskEmojiAssign(c tele.Context) {
+func sendAskEmojiAssign(c tele.Context) error {
 	sd := users.data[c.Sender().ID].stickerData
 	caption := fmt.Sprintf(`
 Send emoji(s) representing this sticker.
@@ -185,13 +185,17 @@ Send emoji(s) representing this sticker.
 			Caption: caption,
 		})
 		if err2 != nil {
-			c.Send(&tele.Document{
+			err3 := c.Send(&tele.Document{
 				File:     tele.FromDisk(sd.stickers[sd.pos].oPath),
 				FileName: filepath.Base(sd.stickers[sd.pos].oPath),
 				Caption:  caption,
 			})
+			if err3 != nil {
+				return err3
+			}
 		}
 	}
+	return nil
 }
 
 func sendFatalError(err error, c tele.Context) {

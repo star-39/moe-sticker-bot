@@ -79,3 +79,5 @@ var LINE_EMOJI_ANIMATION = "line_i"      //動態表情貼
 var LINE_STICKER_MESSAGE = "line_m"      //訊息
 var LINE_STICKER_NAME = "line_n"         //隨你填
 var KAKAO_EMOTICON = "kakao_e"           //KAKAOTALK普通貼圖
+
+var BSDTAR_BIN string

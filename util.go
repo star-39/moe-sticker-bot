@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -121,6 +122,12 @@ func initWorkspace(b *tele.Bot) {
 	}
 
 	wpConvertWebm, _ = ants.NewPoolWithFunc(8, wConvertWebm)
+
+	if runtime.GOOS == "linux" {
+		BSDTAR_BIN = "bsdtar"
+	} else {
+		BSDTAR_BIN = "tar"
+	}
 }
 
 func escapeTagMark(s string) string {

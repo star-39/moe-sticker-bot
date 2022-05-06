@@ -268,7 +268,7 @@ func handleNoState(c tele.Context) error {
 	// bare message, we expect a link.
 	link, tp := findLinkWithType(c.Message().Text)
 	if link == "" {
-		return nil
+		return sendNoStateWarning(c)
 	}
 	initUserData(c, "nostate", "recvCbImport")
 	ud := users.data[c.Sender().ID]
@@ -291,6 +291,7 @@ func handleNoState(c tele.Context) error {
 	} else {
 		log.Debug("bad link sent barely, purging ud.")
 		cleanUserData(c.Sender().ID)
+		return sendNoStateWarning(c)
 	}
 	return nil
 }
@@ -484,8 +485,7 @@ func stateRecvEmojiChoice(c tele.Context) error {
 			users.data[c.Sender().ID].stickerData.emojis = []string{"🌟"}
 		case "manual":
 			setState(c, "recvEmojiAssign")
-			sendAskEmojiAssign(c)
-			return nil
+			return sendAskEmojiAssign(c)
 		default:
 			return nil
 		}
@@ -499,8 +499,11 @@ func stateRecvEmojiChoice(c tele.Context) error {
 
 	setState(c, "process")
 
-	execAutoCommit(!(command == "manage"), c)
+	err := execAutoCommit(!(command == "manage"), c)
 	terminateSession(c)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -509,8 +512,7 @@ func stateRecvEmojiAssign(c tele.Context) error {
 	if emojis == "" {
 		return c.Send("send emoji! try again.")
 	}
-	execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), emojis, c)
-	return nil
+	return execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), emojis, c)
 }
 
 func cmdStart(c tele.Context) error {

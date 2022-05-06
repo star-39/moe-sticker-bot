@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -43,8 +42,9 @@ func fExtract(f string) string {
 	os.MkdirAll(targetDir, 0755)
 	log.Debugln("Extracting to :", targetDir)
 
-	err := exec.Command("tar", "-xvf", f, "-C", targetDir).Run()
+	out, err := exec.Command(BSDTAR_BIN, "-xvf", f, "-C", targetDir).CombinedOutput()
 	if err != nil {
+		log.Errorln("Error extracting:", string(out))
 		return ""
 	} else {
 		return targetDir
@@ -54,7 +54,8 @@ func fExtract(f string) string {
 func archiveExtract(f string) []string {
 	targetDir := filepath.Join(path.Dir(f), secHex(4))
 	os.MkdirAll(targetDir, 0755)
-	err := exec.Command("tar", "-xvf", f, "-C", targetDir).Run()
+
+	err := exec.Command(BSDTAR_BIN, "-xvf", f, "-C", targetDir).Run()
 	if err != nil {
 		return []string{}
 	}
@@ -131,17 +132,11 @@ func fCompress(f string, flist []string) error {
 	dir := path.Dir(f)
 	// strip data dir in zip.
 	comps := strconv.Itoa(len(strings.Split(dir, string(os.PathSeparator))) + 1)
-	var bin string
-	if runtime.GOOS == "linux" {
-		bin = "bsdtar"
-	} else {
-		bin = "tar"
-	}
 
 	args := []string{"--strip-components", comps, "-avcf", f}
 	args = append(args, flist...)
 
-	cmd := exec.Command(bin, args...)
+	cmd := exec.Command(BSDTAR_BIN, args...)
 	cmd.Dir = dir
 	return cmd.Run()
 }

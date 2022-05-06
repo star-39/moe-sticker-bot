@@ -17,7 +17,10 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	sendProcessStarted(c)
 	ud.wg.Wait()
 
-	// ud.stickerData.amount = len(ud.stickerData.files)
+	if len(ud.stickerData.stickers) == 0 {
+		log.Error("No sticker to commit!!")
+		return errors.New("no sticker available")
+	}
 
 	log.Debugln("stickerData summary:")
 	log.Debugln(ud.stickerData)
@@ -66,6 +69,10 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	ud.wg.Wait()
 
+	if len(ud.stickerData.stickers) == 0 {
+		log.Error("No sticker to commit!!")
+		return errors.New("no sticker available")
+	}
 	var err error
 	ss := tele.StickerSet{
 		Name:   ud.stickerData.id,
