@@ -225,6 +225,7 @@ func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerS
 	// How dare you https://github.com/tdlib/telegram-bot-api
 	for i := 0; i < 5; i++ {
 		time.Sleep(5 * time.Second)
+		log.Warnln("Check RA... loop:", i)
 		cloudSS, err := c.Bot().StickerSet(ss.Name)
 		// if RA is fake, return immediately! so we can continue operation.
 		if amountSupposed == 1 {
@@ -235,6 +236,8 @@ func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerS
 				isFake = false
 			}
 		} else {
+			log.Warnln("Checked cAmount is :", len(cloudSS.Stickers))
+			log.Warnln("We suppose :", amountSupposed)
 			if len(cloudSS.Stickers) == amountSupposed {
 				return true
 			} else {
