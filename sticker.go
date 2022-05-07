@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,6 +48,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			err = commitSticker(false, committedStickers+1, false, sf, c, ss)
 			if err != nil {
 				log.Warnln("a sticker failed to add. ", err)
+				c.Send("one sticker failed to add, index is:" + strconv.Itoa(index))
 				errorCount += 1
 				if errorCount > 2 {
 					return errors.New("too many errors when adding sticker")
@@ -102,6 +104,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 			if strings.Contains(err.Error(), "invalid sticker emojis") {
 				return c.Send("Bad emoji. try again.\n這個emoji無效, 請再試一次.")
 			}
+			c.Send("one sticker failed to add, index is:" + strconv.Itoa(ud.stickerData.pos))
 			log.Warnln("a sticker failed to add. ", err)
 		} else {
 			ud.stickerData.cAmount += 1
