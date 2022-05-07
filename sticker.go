@@ -166,6 +166,16 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 		}
 
 		if errors.As(err, &floodErr) {
+			// This Error is NASTY.
+			// It only happens to specific user at specific time.
+			// It is "fake" most of time, since TDLib in API Server will automatically retry.
+			// However! API always return 429 without mentioning its self retry.
+			// As a workaround, we need to verify whether this error is "genuine".
+			// This leads to another problem, API sometimes return the sticker set before self retry being made,
+			// or the result was being cached in API.
+			// We need to wait long enough to verify the actual result.
+			c.Send("We encountered a small issue and might take some time (< 1min) to resolve, please wait...\n" +
+				"BOT遇到了點小問題, 可能需要一點時間(少於1分鐘)解決, 請耐心等待...")
 			log.Warnln("upload sticker retry after: ", floodErr.RetryAfter)
 			log.Warn("sleeping...zzz")
 			if floodErr.RetryAfter > 60 {
@@ -211,7 +221,9 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 
 func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerSet) bool {
 	var isFake bool
-	for i := 0; i < 3; i++ {
+	// go crazy! let's check it FIVE TIMES!
+	// How dare you https://github.com/tdlib/telegram-bot-api
+	for i := 0; i < 5; i++ {
 		time.Sleep(5 * time.Second)
 		cloudSS, err := c.Bot().StickerSet(ss.Name)
 		// if RA is fake, return immediately! so we can continue operation.
