@@ -456,8 +456,6 @@ func stateRecvTitle(c tele.Context) error {
 
 	if c.Callback() == nil {
 		ud.stickerData.title = c.Message().Text
-	} else {
-		ud.stickerData.title = ud.lineData.title
 	}
 
 	if !checkTitle(ud.stickerData.title) {

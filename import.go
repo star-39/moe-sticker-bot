@@ -74,7 +74,7 @@ func parseImportLink(link string, lineData *LineData) error {
 func prepLineStickers(ud *UserData) error {
 	ud.stickerData.isVideo = ud.lineData.isAnimated
 	ud.stickerData.id = ud.lineData.category + ud.lineData.id + secHex(2) + "_by_" + botName
-	ud.stickerData.title = ud.lineData.title
+	ud.stickerData.title = ud.lineData.title + " @" + botName
 	ud.stickerData.link = "https://t.me/addstickers/" + ud.stickerData.id
 
 	if ud.lineData.category == LINE_STICKER_MESSAGE {
