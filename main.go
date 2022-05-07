@@ -174,11 +174,11 @@ func stateRecvSManage(c tele.Context) error {
 		ud.stickerData.id = path.Base(link)
 	}
 	if !matchUserS(c.Sender().ID, ud.stickerData.id) {
-		return c.Send("Not owned by you. try again.")
+		return c.Send("Not owned by you. try again or /quit")
 	}
 	ss, err := c.Bot().StickerSet(ud.stickerData.id)
 	if err != nil {
-		return c.Send("set does not exist! try again.")
+		return c.Send("set does not exist! try again or /quit")
 	}
 	ud.stickerData.cAmount = len(ss.Stickers)
 
@@ -211,15 +211,15 @@ func stateRecvEditChoice(c tele.Context) error {
 func stateRecvSDel(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	if c.Message().Sticker == nil {
-		return c.Send("send sticker! try again")
+		return c.Send("send sticker! try again or /quit")
 	}
 	if c.Message().Sticker.SetName != ud.stickerData.id {
-		return c.Send("wrong sticker! tra again")
+		return c.Send("wrong sticker! try again or /quit")
 	}
 
 	err := c.Bot().DeleteSticker(c.Message().Sticker.FileID)
 	if err != nil {
-		c.Send("error deleting sticker! try another one")
+		c.Send("error deleting sticker! try another one or /quit")
 		return err
 	}
 	c.Send("Delete OK.")
@@ -409,7 +409,7 @@ func stateRecvSticker(c tele.Context) error {
 		ud.stickerData.id = path.Base(link)
 		ss, sserr := c.Bot().StickerSet(ud.stickerData.id)
 		if sserr != nil {
-			return c.Send("bad link! try again")
+			return c.Send("bad link! try again or /quit")
 		}
 		err = downloadStickersToZip(&ss.Stickers[0], true, c)
 	} else {
@@ -461,7 +461,7 @@ func stateRecvTitle(c tele.Context) error {
 	}
 
 	if !checkTitle(ud.stickerData.title) {
-		return c.Send("bad title! try again.")
+		return c.Send("bad title! try again or /quit")
 	}
 
 	if command != "import" {
@@ -509,7 +509,7 @@ func stateRecvEmojiChoice(c tele.Context) error {
 func stateRecvEmojiAssign(c tele.Context) error {
 	emojis := getEmojis(c.Message().Text)
 	if emojis == "" {
-		return c.Send("send emoji! try again.")
+		return c.Send("send emoji! try again or /quit")
 	}
 	return execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), emojis, c)
 }
@@ -520,9 +520,10 @@ func cmdStart(c tele.Context) error {
 
 func cmdQuit(c tele.Context) error {
 	if terminateSession(c) {
-		return c.Send("Exited")
+		return c.Send("Bye. /start")
+	} else {
+		return c.Send("Please use /start")
 	}
-	return nil
 }
 
 func cmdAbout(c tele.Context) error {

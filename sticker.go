@@ -56,9 +56,8 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	if createSet {
 		if ud.command == "import" {
 			insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, true)
-		} else if ud.command == "create" {
-			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
+		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
 	editProgressMsg(0, 0, "Success! /start", c)
 	sendSFromSS(c)
@@ -109,9 +108,8 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 		if createSet {
 			if ud.command == "import" {
 				insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, true)
-			} else if ud.command == "create" {
-				insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 			}
+			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
 		c.Send("done! 作業成功完成")
 		sendSFromSS(c)
