@@ -38,27 +38,40 @@ func parseImportLink(link string, lineData *LineData) error {
 	c := ""
 	d := "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/"
 
-	if strings.Contains(page, "MdIcoPlay_b") || strings.Contains(page, "MdIcoAni_b") {
-		c = LINE_STICKER_ANIMATION
-		d += "stickerpack@2x.zip"
-		a = true
-	} else if strings.Contains(page, "MdIcoMessageSticker_b") {
-		d = u
-		c = LINE_STICKER_MESSAGE
-	} else if strings.Contains(page, "MdIcoNameSticker_b") {
-		d += "sticker_name_base@2x.zip"
-		c = LINE_STICKER_NAME
-	} else if strings.Contains(page, "MdIcoFlash_b") || strings.Contains(page, "MdIcoFlashAni_b") {
-		c = LINE_STICKER_POPUP
-		d += "stickerpack@2x.zip"
-		a = true
-	} else if strings.Contains(page, "MdIcoEffectSoundSticker_b") || strings.Contains(page, "MdIcoEffectSticker_b") {
-		c = LINE_STICKER_POPUP_EFFECT
-		d += "stickerpack@2x.zip"
-		a = true
+	if strings.Contains(u, "stickershop") {
+		if strings.Contains(page, "MdIcoPlay_b") || strings.Contains(page, "MdIcoAni_b") {
+			c = LINE_STICKER_ANIMATION
+			d += "stickerpack@2x.zip"
+			a = true
+		} else if strings.Contains(page, "MdIcoMessageSticker_b") {
+			d = u
+			c = LINE_STICKER_MESSAGE
+		} else if strings.Contains(page, "MdIcoNameSticker_b") {
+			d += "sticker_name_base@2x.zip"
+			c = LINE_STICKER_NAME
+		} else if strings.Contains(page, "MdIcoFlash_b") || strings.Contains(page, "MdIcoFlashAni_b") {
+			c = LINE_STICKER_POPUP
+			d += "stickerpack@2x.zip"
+			a = true
+		} else if strings.Contains(page, "MdIcoEffectSoundSticker_b") || strings.Contains(page, "MdIcoEffectSticker_b") {
+			c = LINE_STICKER_POPUP_EFFECT
+			d += "stickerpack@2x.zip"
+			a = true
+		} else {
+			c = LINE_STICKER_STATIC
+			d += "stickers@2x.zip"
+		}
+	} else if strings.Contains(u, "emojishop") {
+		if strings.Contains(page, "MdIcoPlay_b") {
+			c = LINE_EMOJI_ANIMATION
+			d = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + i + "/iphone/package_animation.zip"
+			a = true
+		} else {
+			c = LINE_EMOJI_STATIC
+			d = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + i + "/iphone/package.zip"
+		}
 	} else {
-		c = LINE_STICKER_STATIC
-		d += "stickers@2x.zip"
+		return errors.New("unknown line store category")
 	}
 
 	lineData.link = u
@@ -133,7 +146,7 @@ func lineZipExtract(f string, ld *LineData) []string {
 		for _, pf := range pfs {
 			os.Rename(pf, filepath.Join(workDir, strings.TrimSuffix(filepath.Base(pf), ".png")+"@99.png"))
 		}
-		files, _ = filepath.Glob(filepath.Join(workDir, "*.png"))
+		files = lsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	default:
 		files = lsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	}
