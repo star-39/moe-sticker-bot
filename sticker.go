@@ -211,22 +211,27 @@ func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerS
 	var cloudSS *tele.StickerSet
 	var cloudAmount int
 	var err error
-	cloudSS, err = c.Bot().StickerSet(ss.Name)
-	if amountSupposed == 1 {
-		if err != nil {
-			// Sticker set exists.
-			return true
+	var isFake bool
+	for i := 0; i < 2; i++ {
+		cloudSS, err = c.Bot().StickerSet(ss.Name)
+		if amountSupposed == 1 {
+			if err != nil {
+				// Sticker set exists.
+				isFake = true
+			} else {
+				isFake = false
+			}
 		} else {
-			return false
+			cloudAmount = len(cloudSS.Stickers)
+			if cloudAmount == amountSupposed {
+				isFake = true
+			} else {
+				isFake = false
+			}
 		}
-	} else {
-		cloudAmount = len(cloudSS.Stickers)
-		if cloudAmount == amountSupposed {
-			return true
-		} else {
-			return false
-		}
+		time.Sleep(3 * time.Second)
 	}
+	return isFake
 }
 
 func downloadSAndC(path string, s *tele.Sticker, c tele.Context) (string, string) {
