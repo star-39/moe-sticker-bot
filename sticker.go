@@ -168,7 +168,8 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 		if errors.As(err, &floodErr) {
 			log.Warnln("upload sticker retry after: ", floodErr.RetryAfter)
 			log.Warn("sleeping...zzz")
-			time.Sleep(time.Duration(floodErr.RetryAfter * int(time.Second)))
+			time.Sleep(10 * time.Second)
+			// time.Sleep(time.Duration(floodErr.RetryAfter * int(time.Second)))
 			log.Warn("woke up from RA sleep.")
 			// do this check AFTER sleep.
 			if verifyRetryAfterIsFake(amountSupposed, c, ss) {

@@ -522,7 +522,7 @@ func cmdQuit(c tele.Context) error {
 
 	if cleanUserData(c.Sender().ID) {
 		c.Send("Please wait...")
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 2)
 		forceCleanUserData(c.Sender().ID)
 		return c.Send("Bye. /start")
 	} else {
