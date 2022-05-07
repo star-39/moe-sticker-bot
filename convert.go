@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -54,7 +55,15 @@ func ffToWebm(f string) (string, error) {
 
 	output, err := exec.Command(bin, args...).CombinedOutput()
 	log.Traceln(string(output))
-	// err := cmd.Run()
+
+	if stat, _ := os.Stat(pathOut); stat.Size() > 260000 {
+		log.Warn("ff to webm too big, retrying...")
+		args = []string{"-hide_banner", "-i", f,
+			"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
+			"-c:v", "libvpx-vp9", "-cpu-used", "8", "-minrate", "50k", "-b:v", "200k", "-maxrate", "350k",
+			"-to", "00:00:02.900", "-an", "-y", pathOut}
+		err = exec.Command(bin, args...).Run()
+	}
 	return pathOut, err
 }
 
