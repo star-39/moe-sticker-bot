@@ -173,8 +173,8 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 				return err
 			}
 			log.Warn("sleeping...zzz")
-			// Sleep for extra one second.
-			time.Sleep(time.Duration((floodErr.RetryAfter + 1) * int(time.Second)))
+			// Sleep for extra 5 seconds.
+			time.Sleep(time.Duration((floodErr.RetryAfter + 5) * int(time.Second)))
 			log.Warn("woke up from RA sleep.")
 			// do this check AFTER sleep.
 			if verifyRetryAfterIsFake(amountSupposed, c, ss) {
