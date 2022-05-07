@@ -112,7 +112,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	if ud.stickerData.pos == ud.stickerData.lAmount {
 		if createSet {
 			if ud.command == "import" {
-				insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, true)
+				insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, false)
 			}
 			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
