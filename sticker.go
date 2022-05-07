@@ -25,6 +25,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	log.Debugln("stickerData summary:")
 	log.Debugln(ud.stickerData)
 	committedStickers := 0
+	errorCount := 0
 
 	for index, sf := range ud.stickerData.stickers {
 		var err error
@@ -46,6 +47,10 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			err = commitSticker(false, committedStickers+1, false, sf, c, ss)
 			if err != nil {
 				log.Warnln("a sticker failed to add. ", err)
+				errorCount += 1
+				if errorCount > 2 {
+					return errors.New("too many errors when adding sticker")
+				}
 			} else {
 				committedStickers += 1
 			}

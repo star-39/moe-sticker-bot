@@ -518,7 +518,11 @@ func cmdStart(c tele.Context) error {
 
 func cmdQuit(c tele.Context) error {
 	log.Debug("Received user quit request.")
+
 	if cleanUserData(c.Sender().ID) {
+		c.Send("Please wait...")
+		time.Sleep(time.Second * 5)
+		forceCleanUserData(c.Sender().ID)
 		return c.Send("Bye. /start")
 	} else {
 		return c.Send("Please use /start")
