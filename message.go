@@ -145,9 +145,9 @@ func sendNotifySExist(c tele.Context) bool {
 			entries = append([]string{fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.tg_id, l.tg_title)}, entries...)
 		}
 	}
-	// if len(entries) > 3 {
-	// 	entries = entries[:3]
-	// }
+	if len(entries) > 5 {
+		entries = entries[:5]
+	}
 	message += strings.Join(entries, "\n")
 	println(message)
 	c.Send(message, tele.ModeHTML)
@@ -303,10 +303,37 @@ func sendUserOwnedS(c tele.Context) error {
 		entry += " | " + date
 		entries = append(entries, entry)
 	}
-	message := "You own following stickers:\n"
-	message += strings.Join(entries, "\n")
 
-	return c.Send(message, tele.ModeHTML)
+	if len(entries) > 30 {
+		eChunks := chunkSlice(entries, 30)
+		for _, eChunk := range eChunks {
+			message := "You own following stickers:\n"
+			message += strings.Join(eChunk, "\n")
+			c.Send(message, tele.ModeHTML)
+		}
+	} else {
+		message := "You own following stickers:\n"
+		message += strings.Join(entries, "\n")
+		c.Send(message, tele.ModeHTML)
+	}
+	return nil
+}
+
+func chunkSlice(slice []string, chunkSize int) [][]string {
+	var chunks [][]string
+	for {
+		if len(slice) == 0 {
+			break
+		}
+
+		if len(slice) < chunkSize {
+			chunkSize = len(slice)
+		}
+
+		chunks = append(chunks, slice[0:chunkSize])
+		slice = slice[chunkSize:]
+	}
+	return chunks
 }
 
 func sendAskEditChoice(c tele.Context) error {
