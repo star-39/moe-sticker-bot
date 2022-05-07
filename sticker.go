@@ -210,24 +210,21 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 }
 
 func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerSet) bool {
-	var cloudSS *tele.StickerSet
-	var cloudAmount int
-	var err error
 	var isFake bool
-	for i := 0; i < 2; i++ {
-		time.Sleep(3 * time.Second)
-		cloudSS, err = c.Bot().StickerSet(ss.Name)
+	for i := 0; i < 3; i++ {
+		time.Sleep(5 * time.Second)
+		cloudSS, err := c.Bot().StickerSet(ss.Name)
+		// if RA is fake, return immediately! so we can continue operation.
 		if amountSupposed == 1 {
 			if err != nil {
 				// Sticker set exists.
-				isFake = true
+				return true
 			} else {
 				isFake = false
 			}
 		} else {
-			cloudAmount = len(cloudSS.Stickers)
-			if cloudAmount == amountSupposed {
-				isFake = true
+			if len(cloudSS.Stickers) == amountSupposed {
+				return true
 			} else {
 				isFake = false
 			}
