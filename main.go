@@ -481,6 +481,7 @@ func stateRecvEmojiChoice(c tele.Context) error {
 		case "random":
 			users.data[c.Sender().ID].stickerData.emojis = []string{"🌟"}
 		case "manual":
+			sendProcessStarted(c, "preparing...")
 			setState(c, "recvEmojiAssign")
 			return sendAskEmojiAssign(c)
 		default:

@@ -224,7 +224,7 @@ func sendFatalError(err error, c tele.Context) {
 		"<code>"+err.Error()+"</code>", tele.ModeHTML)
 }
 
-func sendProcessStarted(c tele.Context) error {
+func sendProcessStarted(c tele.Context, optMsg string) error {
 	ud := users.data[c.Sender().ID]
 	message := fmt.Sprintf(`
 Preparing stickers, please wait...
@@ -243,7 +243,7 @@ TG Link:</code>%s
 		ud.lineData.id,
 		ud.stickerData.id,
 		escapeTagMark(ud.stickerData.title),
-		"https://t.me/addstickers/"+ud.stickerData.id, "")
+		"https://t.me/addstickers/"+ud.stickerData.id, optMsg)
 	ud.progress = message
 
 	teleMsg, err := c.Bot().Send(c.Recipient(), message, tele.ModeHTML)

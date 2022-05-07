@@ -14,7 +14,7 @@ import (
 
 func execAutoCommit(createSet bool, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
-	sendProcessStarted(c)
+	sendProcessStarted(c, "")
 	ud.wg.Wait()
 
 	if len(ud.stickerData.stickers) == 0 {
@@ -64,7 +64,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
-	editProgressMsg(0, 0, "Success! /start", c)
+	c.Send("Success! /start")
 	sendSFromSS(c)
 	return nil
 }
@@ -116,7 +116,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 			}
 			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
-		c.Send("done! 作業成功完成")
+		sendProcessStarted(c, "success! /start")
 		sendSFromSS(c)
 		terminateSession(c)
 	} else {
@@ -268,7 +268,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	ud.stickerData.id = ss.Name
 	ud.stickerData.title = ss.Title
 	ud.stickerData.link = "https://t.me/addstickers/" + ss.Name
-	sendProcessStarted(c)
+	sendProcessStarted(c, "")
 	for index, s := range ss.Stickers {
 		go editProgressMsg(index, len(ss.Stickers), "", c)
 		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
