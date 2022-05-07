@@ -326,18 +326,19 @@ func stateRecvCbSDown(c tele.Context) error {
 		return handleNoState(c)
 	}
 	ud := users.data[c.Sender().ID]
+	var err error
 
 	switch c.Callback().Data {
 	case "single":
-		downloadStickersToZip(ud.stickerData.sticker, false, c)
+		err = downloadStickersToZip(ud.stickerData.sticker, false, c)
 		terminateSession(c)
 	case "whole":
-		downloadStickersToZip(ud.stickerData.sticker, true, c)
+		err = downloadStickersToZip(ud.stickerData.sticker, true, c)
 		terminateSession(c)
 	default:
 		return c.Send("bad callback, try again or /quit")
 	}
-	return nil
+	return err
 }
 
 func cmdCreate(c tele.Context) error {
@@ -394,29 +395,30 @@ func cmdDownload(c tele.Context) error {
 func stateRecvSticker(c tele.Context) error {
 	log.Debugf("User %d reacted to state: recvSticker", c.Sender().ID)
 	ud := users.data[c.Sender().ID]
+	var err error
 
 	if c.Message().Animation != nil {
-		return downloadGifToZip(c)
-	}
+		err = downloadGifToZip(c)
 
-	if c.Message().Sticker != nil {
+	} else if c.Message().Sticker != nil {
 		ud.stickerData.sticker = c.Message().Sticker
 		setState(c, "recvCbSChoice")
 		return sendAskSDownloadChoice(c)
-	}
 
-	if link, tp := findLinkWithType(c.Message().Text); tp == LINK_TG {
+	} else if link, tp := findLinkWithType(c.Message().Text); tp == LINK_TG {
 		ud.stickerData.id = path.Base(link)
-		ss, err := c.Bot().StickerSet(ud.stickerData.id)
-		if err != nil {
+		ss, sserr := c.Bot().StickerSet(ud.stickerData.id)
+		if sserr != nil {
 			return c.Send("bad link! try again")
 		}
-		downloadStickersToZip(&ss.Stickers[0], true, c)
+		err = downloadStickersToZip(&ss.Stickers[0], true, c)
+	} else {
+		c.Send("send link/sticker/GIF or /exit ")
 	}
 
 	c.Send("done")
 	terminateSession(c)
-	return nil
+	return err
 }
 
 func cmdImport(c tele.Context) error {
@@ -445,7 +447,6 @@ func stateRecvLink(c tele.Context) error {
 	setState(c, "recvTitle")
 	sendAskTitle_Import(c)
 
-	// keep preparing on background.
 	return prepLineStickers(users.data[c.Sender().ID])
 }
 

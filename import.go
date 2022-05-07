@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -125,11 +124,11 @@ func lineZipExtract(f string, ld *LineData) []string {
 	case LINE_STICKER_ANIMATION:
 		files, _ = filepath.Glob(filepath.Join(workDir, "animation@2x", "*.png"))
 	case LINE_STICKER_POPUP:
-		files = lsFilesR(workDir, []string{".png", "popup"}, []string{"tab", "key", "json"})
+		files, _ = filepath.Glob(filepath.Join(workDir, "popup", "*.png"))
 	case LINE_STICKER_POPUP_EFFECT:
-		pfs, _ := filepath.Glob(filepath.Join(workDir, "popup"))
+		pfs, _ := filepath.Glob(filepath.Join(workDir, "popup", "*.png"))
 		for _, pf := range pfs {
-			os.Rename(pf, filepath.Join(workDir, strings.TrimSuffix(path.Base(pf), ".png"), "@99.png"))
+			os.Rename(pf, filepath.Join(workDir, strings.TrimSuffix(filepath.Base(pf), ".png")+"@99.png"))
 		}
 		files, _ = filepath.Glob(filepath.Join(workDir, "*.png"))
 	default:

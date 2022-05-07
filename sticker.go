@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -152,7 +152,7 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 	log.Debugln("sticker file path:", sf.cPath)
 	log.Debugln("attempt commiting:", ss)
 	// Retry loop.
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 5; i++ {
 		if createSet {
 			err = c.Bot().CreateStickerSet(c.Recipient(), ss)
 		} else {
@@ -167,6 +167,7 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 			log.Warn("sleeping...zzz")
 			time.Sleep(time.Duration(floodErr.RetryAfter * int(time.Second)))
 			log.Warn("woke up from RA sleep.")
+			// do this check AFTER sleep.
 			if verifyRetryAfterIsFake(amountSupposed, c, ss) {
 				log.Warn("The RA is fake, breaking retry loop...")
 				// Break retry loop if RA is fake.
@@ -187,6 +188,7 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 				return commitSticker(createSet, amountSupposed, true, sf, c, ss)
 			}
 		} else {
+			log.Warnln("upload sticker error:", err)
 			return err
 		}
 	}
@@ -244,12 +246,15 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	os.MkdirAll(workDir, 0755)
 	var flist []string
 	var cflist []string
+	var err error
 
 	if !wantSet {
 		_, cf := downloadSAndC(filepath.Join(workDir, id+"_"+s.Emoji), s, c)
+		zip := filepath.Join(workDir, secHex(4)+".zip")
+		fCompress(zip, []string{cf})
 		// c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(f), File: tele.FromDisk(f)})
-		c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(cf), File: tele.FromDisk(cf)})
-		return nil
+		_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
+		return err
 	}
 
 	ss, _ := c.Bot().StickerSet(id)
@@ -259,13 +264,15 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	sendProcessStarted(c)
 	for index, s := range ss.Stickers {
 		go editProgressMsg(index, len(ss.Stickers), "", c)
-		f, cf := downloadSAndC(filepath.Join(workDir, id+"_"+strconv.Itoa(index+1)), &s, c)
+		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
+		f, cf := downloadSAndC(fName, &s, c)
 		flist = append(flist, f)
 		if cf != "" {
 			cflist = append(cflist, cf)
 		}
 		log.Debugln("Download one sticker OK, path: ", f)
 	}
+	go editProgressMsg(0, 0, "Packaging...", c)
 
 	webmZipPath := filepath.Join(workDir, id+"_webm.zip")
 	webpZipPath := filepath.Join(workDir, id+"_webp.zip")
@@ -276,18 +283,20 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	if ss.Video {
 		fCompress(webmZipPath, flist)
 		fCompress(gifZipPath, cflist)
-		c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(webmZipPath), File: tele.FromDisk(webmZipPath)})
-		c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(gifZipPath), File: tele.FromDisk(gifZipPath)})
+		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(webmZipPath), File: tele.FromDisk(webmZipPath)})
+		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(gifZipPath), File: tele.FromDisk(gifZipPath)})
 	} else if ss.Animated {
 		fCompress(tgsZipPath, flist)
-		c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(tgsZipPath), File: tele.FromDisk(tgsZipPath)})
+		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(tgsZipPath), File: tele.FromDisk(tgsZipPath)})
 	} else {
 		fCompress(webpZipPath, flist)
 		fCompress(pngZipPath, cflist)
-		c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(webpZipPath), File: tele.FromDisk(webpZipPath)})
-		c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(pngZipPath), File: tele.FromDisk(pngZipPath)})
+		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(webpZipPath), File: tele.FromDisk(webpZipPath)})
+		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(pngZipPath), File: tele.FromDisk(pngZipPath)})
 	}
-
+	if err != nil {
+		return err
+	}
 	editProgressMsg(0, 0, "success! /start", c)
 	return nil
 }
@@ -296,10 +305,10 @@ func downloadGifToZip(c tele.Context) error {
 	workDir := filepath.Join(users.data[c.Sender().ID].userDir, secHex(4))
 	os.MkdirAll(workDir, 0755)
 	f := filepath.Join(workDir, "gif.mp4")
-
 	err := c.Bot().Download(&c.Message().Animation.File, f)
-	zip := f + ".zip"
-	fCompress(zip, []string{f})
+	cf, _ := ffToGif(f)
+	zip := secHex(4) + ".zip"
+	fCompress(zip, []string{cf})
 
 	c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
 

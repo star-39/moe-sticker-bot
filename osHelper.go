@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -129,9 +128,10 @@ func lsFiles(dir string, mustHave []string, mustNotHave []string) []string {
 }
 
 func fCompress(f string, flist []string) error {
-	dir := filepath.Dir(f)
+	// dir := filepath.Dir(f)
 	// strip data dir in zip.
-	comps := strconv.Itoa(len(strings.Split(dir, string(os.PathSeparator))) - 1)
+	// comps are 2
+	comps := "2"
 
 	args := []string{"--strip-components", comps, "-avcf", f}
 	// args := []string{"-avcf", f}
