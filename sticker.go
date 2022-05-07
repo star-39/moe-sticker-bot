@@ -99,6 +99,9 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	} else {
 		err = commitSticker(false, ud.stickerData.cAmount+1, false, sf, c, ss)
 		if err != nil {
+			if strings.Contains(err.Error(), "invalid sticker emojis") {
+				return c.Send("Bad emoji. try again.\n這個emoji無效, 請再試一次.")
+			}
 			log.Warnln("a sticker failed to add. ", err)
 		} else {
 			ud.stickerData.cAmount += 1
