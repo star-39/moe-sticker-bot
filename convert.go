@@ -19,7 +19,7 @@ func imToWebp(f string) (string, error) {
 		bin = "magick"
 		args = append(args, "convert")
 	}
-	args = append(args, "-resize", "512x512", "-define", "webp:lossless=true", f+"[0]", pathOut)
+	args = append(args, "-resize", "512x512", "-filter", "Lanczos", "-define", "webp:lossless=true", f+"[0]", pathOut)
 
 	cmd := exec.Command(bin, args...)
 	err := cmd.Run()
