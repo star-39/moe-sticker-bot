@@ -166,15 +166,17 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 		}
 
 		if errors.As(err, &floodErr) {
-
 			log.Warnln("upload sticker retry after: ", floodErr.RetryAfter)
-			if floodErr.RetryAfter > 60 {
-				log.Error("RA too crazy! die now.")
-				return err
-			}
 			log.Warn("sleeping...zzz")
-			// Sleep for extra 5 seconds.
-			time.Sleep(time.Duration((floodErr.RetryAfter + 5) * int(time.Second)))
+			if floodErr.RetryAfter > 60 {
+				log.Error("RA too crazy! must be framework bug.")
+				log.Error("Attempt to sleep for 15 seconds.")
+				time.Sleep(15 * time.Second)
+			} else {
+				// Sleep for extra 5 seconds than RA.
+				time.Sleep(time.Duration((floodErr.RetryAfter + 5) * int(time.Second)))
+			}
+
 			log.Warn("woke up from RA sleep.")
 			// do this check AFTER sleep.
 			if verifyRetryAfterIsFake(amountSupposed, c, ss) {
@@ -213,6 +215,7 @@ func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerS
 	var err error
 	var isFake bool
 	for i := 0; i < 2; i++ {
+		time.Sleep(3 * time.Second)
 		cloudSS, err = c.Bot().StickerSet(ss.Name)
 		if amountSupposed == 1 {
 			if err != nil {
@@ -229,7 +232,6 @@ func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerS
 				isFake = false
 			}
 		}
-		time.Sleep(3 * time.Second)
 	}
 	return isFake
 }
