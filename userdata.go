@@ -9,7 +9,7 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-func cleanUserData(uid int64) bool {
+func forceCleanUserData(uid int64) bool {
 	log.WithField("uid", uid).Debugln("Purging userdata...")
 	_, exist := users.data[uid]
 	if exist {
@@ -17,6 +17,23 @@ func cleanUserData(uid int64) bool {
 		users.mu.Lock()
 		delete(users.data, uid)
 		users.mu.Unlock()
+		log.WithField("uid", uid).Debugln("Userdata purged from map and disk.")
+		return true
+	} else {
+		log.WithField("uid", uid).Debugln("Userdata does not exist, do nothing.")
+		return false
+	}
+}
+
+func cleanUserData(uid int64) bool {
+	log.WithField("uid", uid).Debugln("Purging userdata...")
+	_, exist := users.data[uid]
+	if exist {
+		os.RemoveAll(users.data[uid].userDir)
+		users.data[uid].command = ""
+		users.data[uid].state = ""
+		// DO NOT delete *UserData, may cause nil pointer hence fatalpanic!!!
+		// After workdir being removed, ongoing process shoud encounter fatal and quit.
 		log.WithField("uid", uid).Debugln("Userdata purged from map and disk.")
 		return true
 	} else {

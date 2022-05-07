@@ -517,7 +517,8 @@ func cmdStart(c tele.Context) error {
 }
 
 func cmdQuit(c tele.Context) error {
-	if terminateSession(c) {
+	log.Debug("Received user quit request.")
+	if cleanUserData(c.Sender().ID) {
 		return c.Send("Bye. /start")
 	} else {
 		return c.Send("Please use /start")
@@ -530,7 +531,7 @@ func cmdAbout(c tele.Context) error {
 }
 
 func terminateSession(c tele.Context) bool {
-	return cleanUserData(c.Sender().ID)
+	return forceCleanUserData(c.Sender().ID)
 	// c.Send("bye")
 }
 
@@ -538,5 +539,5 @@ func onError(err error, c tele.Context) {
 	log.Error("User encountered fatal error!")
 	log.Error(err)
 	sendFatalError(err, c)
-	terminateSession(c)
+	forceCleanUserData(c.Sender().ID)
 }
