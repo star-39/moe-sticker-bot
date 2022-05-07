@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -71,7 +72,15 @@ func parseImportLink(link string, lineData *LineData) error {
 }
 
 func prepLineStickers(ud *UserData) error {
-	// ud.wg.Add(1)
+	ud.stickerData.isVideo = ud.lineData.isAnimated
+	ud.stickerData.id = ud.lineData.category + ud.lineData.id + secHex(2) + "_by_" + botName
+	ud.stickerData.title = ud.lineData.title
+	ud.stickerData.link = "https://t.me/addstickers/" + ud.stickerData.id
+
+	if ud.lineData.category == LINE_STICKER_MESSAGE {
+		return prepLineMessageS(ud)
+	}
+
 	workDir := filepath.Join(ud.userDir, ud.lineData.id)
 	savePath := filepath.Join(workDir, "line.zip")
 	os.MkdirAll(workDir, 0755)
@@ -80,19 +89,14 @@ func prepLineStickers(ud *UserData) error {
 	if err != nil {
 		return err
 	}
+
 	pngFiles := lineZipExtract(savePath, ud.lineData)
 	if len(pngFiles) == 0 {
 		return errors.New("no line image")
 	}
 
-	ud.lineData.files = pngFiles
 	ud.lineData.amount = len(pngFiles)
-
-	ud.stickerData.isVideo = ud.lineData.isAnimated
 	ud.stickerData.lAmount = len(pngFiles)
-	ud.stickerData.id = ud.lineData.category + ud.lineData.id + secHex(2) + "_by_" + botName
-	ud.stickerData.title = ud.lineData.title
-	ud.stickerData.link = "https://t.me/addstickers/" + ud.stickerData.id
 
 	for _, f := range pngFiles {
 		sf := &StickerFile{oPath: f}
@@ -109,7 +113,6 @@ func prepLineStickers(ud *UserData) error {
 	// ud.wg.Done()
 
 	return nil
-
 }
 
 func lineZipExtract(f string, ld *LineData) []string {
@@ -154,4 +157,68 @@ func doConvert(ud *UserData) {
 			s.wg.Done()
 		}
 	}
+}
+
+func prepLineMessageS(ud *UserData) error {
+	workDir := filepath.Join(ud.userDir, ud.lineData.id)
+	os.MkdirAll(workDir, 0755)
+
+	page, err := httpGet(ud.lineData.link)
+	if err != nil {
+		return err
+	}
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(page))
+	if err != nil {
+		log.Println("Failed gq parsing line link!", err)
+		return err
+	}
+
+	var baseImages []string
+	var overlayImages []string
+	var jsonData map[string]interface{}
+	doc.Find("li").Each(func(i int, s *goquery.Selection) {
+		jsonDP, exist := s.Attr("data-preview")
+		if !exist {
+			return
+		}
+		log.Debugln("Got one json data-preview:", jsonDP)
+
+		err := json.Unmarshal([]byte(jsonDP), &jsonData)
+		if err != nil {
+			log.Warnln("Json parse failed!", jsonDP)
+			return
+		}
+		baseImages = append(baseImages, jsonData["staticUrl"].(string))
+		overlayImages = append(overlayImages, jsonData["customOverlayUrl"].(string))
+	})
+	log.Debugln("base images:", baseImages)
+	log.Debugln("overlay images:", overlayImages)
+
+	for range baseImages {
+		sf := &StickerFile{}
+		sf.wg = sync.WaitGroup{}
+		sf.wg.Add(1)
+		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
+	}
+
+	ud.lineData.amount = len(baseImages)
+	ud.stickerData.lAmount = ud.lineData.amount
+
+	for i, b := range baseImages {
+		log.Debugln("Preparing one message sticker... index:", i)
+		bPath := filepath.Join(workDir, strconv.Itoa(i)+".base.png")
+		oPath := filepath.Join(workDir, strconv.Itoa(i)+".overlay.png")
+		httpDownload(b, bPath)
+		httpDownload(overlayImages[i], oPath)
+		f, err := imStackToWebp(bPath, oPath)
+		if err != nil {
+			return err
+		}
+		ud.stickerData.stickers[i].oPath = f
+		ud.stickerData.stickers[i].cPath = f
+		ud.stickerData.stickers[i].wg.Done()
+		log.Debugln("one message sticker OK:", f)
+	}
+
+	return nil
 }

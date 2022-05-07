@@ -18,6 +18,18 @@ func fDownload(link string, savePath string) error {
 	return err
 }
 
+func httpDownload(link string, f string) error {
+	res, err := http.Get(link)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	fp, _ := os.Create(f)
+	defer fp.Close()
+	_, err = io.Copy(fp, res.Body)
+	return err
+}
+
 func httpGet(link string) (string, error) {
 	// cmd := exec.Command("curl", link)
 	// output, err := cmd.CombinedOutput()

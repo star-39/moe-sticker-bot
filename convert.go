@@ -88,3 +88,25 @@ func ffToGif(f string) (string, error) {
 	err := cmd.Run()
 	return pathOut, err
 }
+
+func imStackToWebp(base string, overlay string) (string, error) {
+	args := []string{}
+	fOut := base + ".composite.webp"
+	var bin string
+	if runtime.GOOS == "linux" {
+		bin = "convert"
+	} else {
+		bin = "magick"
+		args = append(args, "convert")
+	}
+	args = append(args, base, overlay, "-background", "none", "-filter", "Lanczos", "-resize", "512x512", "-composite",
+		"-define", "webp:lossless=true", fOut)
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Error("IM stack ERROR!")
+		log.Errorln(out)
+		return "", err
+	} else {
+		return fOut, nil
+	}
+}
