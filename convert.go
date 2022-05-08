@@ -102,12 +102,12 @@ func ffToGif(f string) (string, error) {
 	bin := "ffmpeg"
 	args = append(args, decoder...)
 	args = append(args, "-i", f, "-hide_banner",
-		"-lavfi", "force_original_aspect_ratio=decrease,split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
+		"-lavfi", "split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
 		"-loglevel", "error", pathOut)
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Warnln("ffToGif ERROR:", out)
+		log.Warnf("ffToGif ERROR:\n%s", out)
 	}
 	return pathOut, err
 }

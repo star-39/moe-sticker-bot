@@ -341,7 +341,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 		}
 		log.Debugln("Download one sticker OK, path: ", f)
 	}
-	go editProgressMsg(0, 0, "Packaging...", c)
+	go editProgressMsg(0, 0, "Uploading...", c)
 
 	webmZipPath := filepath.Join(workDir, id+"_webm.zip")
 	webpZipPath := filepath.Join(workDir, id+"_webp.zip")
@@ -349,23 +349,31 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	gifZipPath := filepath.Join(workDir, id+"_gif.zip")
 	tgsZipPath := filepath.Join(workDir, id+"_tgs.zip")
 
+	var zipPaths []string
+
 	if ss.Video {
-		fCompress(webmZipPath, flist)
-		fCompress(gifZipPath, cflist)
-		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(webmZipPath), File: tele.FromDisk(webmZipPath)})
-		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(gifZipPath), File: tele.FromDisk(gifZipPath)})
+		zipPaths = append(zipPaths, fCompressVol(webmZipPath, flist)...)
+		zipPaths = append(zipPaths, fCompressVol(gifZipPath, cflist)...)
 	} else if ss.Animated {
-		fCompress(tgsZipPath, flist)
-		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(tgsZipPath), File: tele.FromDisk(tgsZipPath)})
+		zipPaths = append(zipPaths, fCompressVol(tgsZipPath, flist)...)
 	} else {
-		fCompress(webpZipPath, flist)
-		fCompress(pngZipPath, cflist)
-		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(webpZipPath), File: tele.FromDisk(webpZipPath)})
-		_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(pngZipPath), File: tele.FromDisk(pngZipPath)})
+		zipPaths = append(zipPaths, fCompressVol(webpZipPath, flist)...)
+		zipPaths = append(zipPaths, fCompressVol(pngZipPath, cflist)...)
 	}
-	if err != nil {
-		return err
+	for _, zipPath := range zipPaths {
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("downloadStickersToZip received ctxDone!")
+			return nil
+		default:
+		}
+		_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zipPath), File: tele.FromDisk(zipPath)})
+		time.Sleep(1 * time.Second)
+		if err != nil {
+			return err
+		}
 	}
+
 	editProgressMsg(0, 0, "success! /start", c)
 	return nil
 }

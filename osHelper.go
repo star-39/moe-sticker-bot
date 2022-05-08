@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -157,6 +158,61 @@ func fCompress(f string, flist []string) error {
 		log.Errorln(string(out))
 	}
 	return err
+}
+
+func fCompressVol(f string, flist []string) []string {
+	basename := filepath.Base(f)
+	dir := filepath.Dir(f)
+	zipIndex := 0
+	// var zipFiles []string
+	var zips [][]string
+	var zipPaths []string
+	// var err error
+	var curSize int64 = 0
+
+	for _, f := range flist {
+		st, err := os.Stat(f)
+		if err != nil {
+			return nil
+		}
+		fSize := st.Size()
+		if curSize == 0 {
+			zips = append(zips, []string{})
+		}
+		if curSize+fSize < 50000000 {
+			zips[zipIndex] = append(zips[zipIndex], f)
+		} else {
+			curSize = 0
+			zips = append(zips, []string{})
+			zipIndex += 1
+			zips[zipIndex] = append(zips[zipIndex], f)
+		}
+		curSize += fSize
+	}
+
+	for i, files := range zips {
+		zipBN := fmt.Sprintf("Vol%d_%s", i, basename)
+		zipPath := filepath.Join(dir, zipBN)
+		err := fCompress(zipPath, files)
+		if err != nil {
+			return nil
+		}
+		zipPaths = append(zipPaths, zipPath)
+	}
+	return zipPaths
+
+	// args := []string{"--strip-components", comps, "-avcf", f}
+	// // args := []string{"-avcf", f}
+	// args = append(args, flist...)
+
+	// log.Debugf("Compressing strip-comps:%s to file:%s for these files:%v", comps, f, flist)
+	// out, err := exec.Command(BSDTAR_BIN, args...).CombinedOutput()
+	// log.Debugln(string(out))
+	// if err != nil {
+	// 	log.Error("Compress error!")
+	// 	log.Errorln(string(out))
+	// }
+	// return err
 }
 
 func getEnv(env string, fallback string) string {
