@@ -15,6 +15,24 @@ var botName string
 var botVersion = "1.0-RC2-GO"
 var users Users
 
+// Line sticker types
+var LINE_STICKER_STATIC = "line_s"       //普通貼圖
+var LINE_STICKER_ANIMATION = "line_a"    //動態貼圖
+var LINE_STICKER_POPUP = "line_p"        //全螢幕
+var LINE_STICKER_POPUP_EFFECT = "line_f" //特效
+var LINE_EMOJI_STATIC = "line_e"         //表情貼
+var LINE_EMOJI_ANIMATION = "line_i"      //動態表情貼
+var LINE_STICKER_MESSAGE = "line_m"      //訊息
+var LINE_STICKER_NAME = "line_n"         //隨你填
+var KAKAO_EMOTICON = "kakao_e"           //KAKAOTALK普通貼圖
+
+var LINK_TG = "t.me"
+var LINK_LINE = "line.me"
+
+var BSDTAR_BIN string
+var CONVERT_BIN string
+var CONVERT_ARGS []string
+
 type LineStickerQ struct {
 	tg_id    string
 	tg_title string
@@ -82,19 +100,3 @@ type Users struct {
 	mu   sync.Mutex
 	data map[int64]*UserData
 }
-
-// Line sticker types
-var LINE_STICKER_STATIC = "line_s"       //普通貼圖
-var LINE_STICKER_ANIMATION = "line_a"    //動態貼圖
-var LINE_STICKER_POPUP = "line_p"        //全螢幕
-var LINE_STICKER_POPUP_EFFECT = "line_f" //特效
-var LINE_EMOJI_STATIC = "line_e"         //表情貼
-var LINE_EMOJI_ANIMATION = "line_i"      //動態表情貼
-var LINE_STICKER_MESSAGE = "line_m"      //訊息
-var LINE_STICKER_NAME = "line_n"         //隨你填
-var KAKAO_EMOTICON = "kakao_e"           //KAKAOTALK普通貼圖
-
-var LINK_TG = "t.me"
-var LINK_LINE = "line.me"
-
-var BSDTAR_BIN string

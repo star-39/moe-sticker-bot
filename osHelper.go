@@ -158,3 +158,11 @@ func fCompress(f string, flist []string) error {
 	}
 	return err
 }
+
+func getEnv(env string, fallback string) string {
+	value := os.Getenv(env)
+	if value == "" {
+		value = fallback
+	}
+	return value
+}

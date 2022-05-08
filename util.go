@@ -126,20 +126,15 @@ func sanitizeCallback(next tele.HandlerFunc) tele.HandlerFunc {
 func initWorkspace(b *tele.Bot) {
 	botName = b.Me.Username
 	dataDir = botName + "_data"
-
 	users = Users{data: make(map[int64]*UserData)}
 	err := os.MkdirAll(dataDir, 0755)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	log.WithFields(log.Fields{"botName": botName, "dataDir": dataDir}).Info("Bot OK.")
 
 	if os.Getenv("USE_DB") == "1" {
-		dbName := os.Getenv("DB_NAME")
-		if dbName == "" {
-			dbName = botName + "_db"
-		}
+		dbName := getEnv("DB_NAME", botName+"_db")
 		initDB(dbName)
 	} else {
 		log.Warn("Not using database because USE_DB is not set to 1.")
@@ -149,8 +144,11 @@ func initWorkspace(b *tele.Bot) {
 
 	if runtime.GOOS == "linux" {
 		BSDTAR_BIN = "bsdtar"
+		CONVERT_BIN = "convert"
 	} else {
 		BSDTAR_BIN = "tar"
+		CONVERT_BIN = "magick"
+		CONVERT_ARGS = []string{"convert"}
 	}
 }
 

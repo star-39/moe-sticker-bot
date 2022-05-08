@@ -39,6 +39,7 @@ func main() {
 	}
 
 	initWorkspace(b)
+	log.WithFields(log.Fields{"botName": botName, "dataDir": dataDir}).Info("Bot OK.")
 
 	b.Handle("/quit", cmdQuit)
 	b.Handle("/cancel", cmdQuit)
