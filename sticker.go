@@ -170,68 +170,73 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 	log.Debugln("sticker file path:", sf.cPath)
 	log.Debugln("attempt commiting:", ss)
 	// Retry loop.
-	// for i := 0; i < 5; i++ {
-	if createSet {
-		err = c.Bot().CreateStickerSet(c.Recipient(), ss)
-	} else {
-		err = c.Bot().AddSticker(c.Recipient(), ss)
-	}
-	if err == nil {
-		return nil
-	}
-	if errors.As(err, &floodErr) {
-		// This Error is NASTY.
-		// It only happens to specific user at specific time.
-		// It is "fake" most of time, since TDLib in API Server will automatically retry.
-		// However! API always return 429 without mentioning its self retry.
-		// As a workaround, we need to verify whether this error is "genuine".
-		// This leads to another problem, API sometimes return the sticker set before self retry being made,
-		// or the result was being cached in API.
-		// We need to wait long enough to verify the actual result.
-		//
-		// EDIT: No! Seems API side will always do retry at TDLib level, message_id was also being kept so
-		// no position shifting will happen.
-		// Yep, we are gonna ignore the FLOOD_LIMIT!
-		c.Send("We encountered a small issue and might take some time (< 1min) to resolve, please wait...\n" +
-			"BOT遇到了點小問題, 可能需要一點時間(少於1分鐘)解決, 請耐心等待...")
-		log.Warnf("Flood limit encountered by set:%s", ss.Name)
-		log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
-		log.Warn("sleeping...zzz")
-		if floodErr.RetryAfter > 60 {
-			log.Error("RA too crazy! should be framework bug.")
-			log.Error("Attempt to sleep for 65 seconds.")
-			time.Sleep(65 * time.Second)
+	for i := 0; i < 3; i++ {
+		if createSet {
+			err = c.Bot().CreateStickerSet(c.Recipient(), ss)
 		} else {
-			// Sleep for extra 5 seconds than RA.
-			time.Sleep(time.Duration((floodErr.RetryAfter + 10) * int(time.Second)))
+			err = c.Bot().AddSticker(c.Recipient(), ss)
 		}
+		if err == nil {
+			break
+		}
+		if errors.As(err, &floodErr) {
+			// This Error is NASTY.
+			// It only happens to specific user at specific time.
+			// It is "fake" most of time, since TDLib in API Server will automatically retry.
+			// However! API always return 429 without mentioning its self retry.
+			// As a workaround, we need to verify whether this error is "genuine".
+			// This leads to another problem, API sometimes return the sticker set before self retry being made,
+			// or the result was being cached in API.
+			// We need to wait long enough to verify the actual result.
+			//
+			// EDIT: No! Seems API side will always do retry at TDLib level, message_id was also being kept so
+			// no position shifting will happen.
+			// Yep, we are gonna ignore the FLOOD_LIMIT!
+			c.Send("We encountered a small issue and might take some time (< 1min) to resolve, please wait...\n" +
+				"BOT遇到了點小問題, 可能需要一點時間(少於1分鐘)解決, 請耐心等待...")
+			log.Warnf("Flood limit encountered by set:%s", ss.Name)
+			log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
+			log.Warn("sleeping...zzz")
+			if floodErr.RetryAfter > 60 {
+				log.Error("RA too crazy! should be framework bug.")
+				log.Error("Attempt to sleep for 65 seconds.")
+				time.Sleep(65 * time.Second)
+			} else {
+				// Sleep for extra 5 seconds than RA.
+				time.Sleep(time.Duration((floodErr.RetryAfter + 10) * int(time.Second)))
+			}
 
-		log.Warn("woke up from RA sleep. ignoring this error.")
-		// do this check AFTER sleep.
-		// if verifyRetryAfterIsFake(amountSupposed, c, ss) {
-		// 	log.Warn("The RA is fake, breaking retry loop...")
-		// 	// Break retry loop if RA is fake.
-		// 	break
-		// } else {
-		// 	log.Warn("Oops! The flood limit is real, retrying...")
-		// 	continue
-		// }
-	} else if strings.Contains(strings.ToLower(err.Error()), "video_long") {
-		// Redo with safe mode on.
-		// This should happen only one time.
-		// So if safe mode is on and this error still occurs, return err.
-		if safeMode {
-			log.Error("safe mode DID NOT resolve video_long problem.")
-			return err
+			log.Warn("woke up from RA sleep. ignoring this error.")
+			break
+			// do this check AFTER sleep.
+			// if verifyRetryAfterIsFake(amountSupposed, c, ss) {
+			// 	log.Warn("The RA is fake, breaking retry loop...")
+			// 	// Break retry loop if RA is fake.
+			// 	break
+			// } else {
+			// 	log.Warn("Oops! The flood limit is real, retrying...")
+			// 	continue
+			// }
+		} else if strings.Contains(strings.ToLower(err.Error()), "video_long") {
+			// Redo with safe mode on.
+			// This should happen only one time.
+			// So if safe mode is on and this error still occurs, return err.
+			if safeMode {
+				log.Error("safe mode DID NOT resolve video_long problem.")
+				return err
+			} else {
+				log.Warnln("returned video_long, attempting safe mode.")
+				return commitSticker(createSet, amountSupposed, true, sf, c, ss)
+			}
 		} else {
-			log.Warnln("returned video_long, attempting safe mode.")
-			return commitSticker(createSet, amountSupposed, true, sf, c, ss)
+			if i == 2 {
+				log.Warn("too many retries, end retry loop")
+				return err
+			}
+			log.Warnf("upload sticker error:%s for set:%s", err, ss.Name)
+			log.Warn("retrying...")
 		}
-	} else {
-		log.Warnln("upload sticker error:", err)
-		return err
 	}
-	// }
 	if safeMode {
 		log.Warn("safe mode resolved video_long problem.")
 	}
