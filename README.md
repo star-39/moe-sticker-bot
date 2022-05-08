@@ -61,6 +61,13 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-2 GO(20220508)
+  * Fix SEGV when user requested /quit
+  * Ignore FloodLimit by default since API will do retry at TDLib level.
+  * Fix emoji in database.
+  * Fix video sticker when /manage.
+  * Support line message sticker and emoticon(emoji).
+
 1.0 RC-1 GO(20220506)
   * Completely rewritten whole project to golang
   * Countless bug fixes.
