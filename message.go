@@ -77,7 +77,8 @@ func sendAskSDownloadChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnRand := selector.Data("This sticker/這張貼圖", "single")
 	btnManu := selector.Data("Whole sticker set/整個貼圖包", "whole")
-	selector.Inline(selector.Row(btnRand), selector.Row(btnManu))
+	btnBye := selector.Data("Exit/退出", "bye")
+	selector.Inline(selector.Row(btnRand), selector.Row(btnManu), selector.Row(btnBye))
 	return c.Reply(`
 You can download this sticker or the whole sticker set, please select below.
 您可以下載這個貼圖或者其所屬的整個貼圖包, 請選擇:
@@ -87,7 +88,8 @@ You can download this sticker or the whole sticker set, please select below.
 func sendAskWantSDown(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btn1 := selector.Data("Yes", "yes")
-	selector.Inline(selector.Row(btn1))
+	btnNo := selector.Data("No", "bye")
+	selector.Inline(selector.Row(btn1), selector.Row(btnNo))
 	return c.Reply(`
 You can download this sticker set. Press Yes to continue.
 您可以下載這個貼圖包, 按下Yes來繼續.
@@ -97,7 +99,8 @@ You can download this sticker set. Press Yes to continue.
 func sendAskWantImport(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btn1 := selector.Data("Yes", "yes")
-	selector.Inline(selector.Row(btn1))
+	btnNo := selector.Data("No", "bye")
+	selector.Inline(selector.Row(btn1), selector.Row(btnNo))
 	return c.Reply(`
 You can import this sticker set. Press Yes to continue.
 您可以匯入這個貼圖包, 按下Yes來繼續.

@@ -203,7 +203,6 @@ func stateRecvEditChoice(c tele.Context) error {
 		setState(c, "recvCbDelset")
 		return sendConfirmDelset(c)
 	case "bye":
-		c.Send("bye")
 		terminateSession(c)
 	}
 	return nil
@@ -226,7 +225,6 @@ func stateRecvSDel(c tele.Context) error {
 	c.Send("Delete OK.")
 
 	if ud.stickerData.cAmount == 1 {
-		c.Send("bye")
 		deleteUserS(ud.stickerData.id)
 		terminateSession(c)
 		return nil
@@ -241,7 +239,6 @@ func stateRecvCbDelset(c tele.Context) error {
 		return c.Send("press a button!")
 	}
 	if c.Callback().Data != "yes" {
-		c.Send("bye")
 		terminateSession(c)
 		return nil
 	}
@@ -283,7 +280,7 @@ func handleNoState(c tele.Context) error {
 	case LINK_LINE:
 		ud := initUserData(c, "nostate", "recvCbImport")
 		if err := parseImportLink(link, ud.lineData); err != nil {
-			terminateSession(c)
+			endSession(c)
 			return nil
 		}
 		sendNotifySExist(c)
@@ -300,9 +297,12 @@ func stateRecvCbSLinkD(c tele.Context) error {
 		return handleNoState(c)
 	}
 
-	if c.Callback().Data == "yes" {
+	switch c.Callback().Data {
+	case "yes":
 		setCommand(c, "download")
 		downloadStickersToZip(users.data[c.Sender().ID].stickerData.sticker, true, c)
+	case "bye":
+		terminateSession(c)
 	}
 	return nil
 }
@@ -312,12 +312,14 @@ func stateRecvCbImport(c tele.Context) error {
 		return handleNoState(c)
 	}
 
-	if c.Callback().Data == "yes" {
+	switch c.Callback().Data {
+	case "yes":
 		setCommand(c, "import")
 		setState(c, "recvTitle")
 		sendAskTitle_Import(c)
-
 		return prepLineStickers(users.data[c.Sender().ID])
+	case "bye":
+		terminateSession(c)
 	}
 	return nil
 }
@@ -332,13 +334,13 @@ func stateRecvCbSDown(c tele.Context) error {
 	switch c.Callback().Data {
 	case "single":
 		err = downloadStickersToZip(ud.stickerData.sticker, false, c)
-		terminateSession(c)
 	case "whole":
 		err = downloadStickersToZip(ud.stickerData.sticker, true, c)
-		terminateSession(c)
+	case "bye":
 	default:
 		return c.Send("bad callback, try again or /quit")
 	}
+	terminateSession(c)
 	return err
 }
 
@@ -499,7 +501,7 @@ func stateRecvEmojiChoice(c tele.Context) error {
 	setState(c, "process")
 
 	err := execAutoCommit(!(command == "manage"), c)
-	terminateSession(c)
+	endSession(c)
 	if err != nil {
 		return err
 	}
@@ -524,11 +526,10 @@ func cmdQuit(c tele.Context) error {
 	if !exist {
 		return c.Send("Please use /start")
 	}
-
+	c.Send("Please wait...")
 	ud.cancel()
 	ud.udWg.Wait()
-	forceCleanUserData(c.Sender().ID)
-	c.Send("Bye. /start")
+	terminateSession(c)
 	return nil
 }
 
@@ -537,9 +538,15 @@ func cmdAbout(c tele.Context) error {
 	return nil
 }
 
-func terminateSession(c tele.Context) bool {
-	return forceCleanUserData(c.Sender().ID)
-	// c.Send("bye")
+// This one never say goodbye.
+func endSession(c tele.Context) {
+	forceCleanUserData(c.Sender().ID)
+}
+
+// This one will say goodbye.
+func terminateSession(c tele.Context) {
+	forceCleanUserData(c.Sender().ID)
+	c.Send("Bye. /start")
 }
 
 func onError(err error, c tele.Context) {
