@@ -4,6 +4,7 @@ import log "github.com/sirupsen/logrus"
 
 func wConvertWebm(i interface{}) {
 	sf := i.(*StickerFile)
+	defer sf.wg.Done()
 	log.Debugln("Converting in pool for:", sf)
 
 	var err error
@@ -12,5 +13,4 @@ func wConvertWebm(i interface{}) {
 		sf.cError = err
 	}
 	log.Debugln("convert OK: ", sf.cPath)
-	sf.wg.Done()
 }

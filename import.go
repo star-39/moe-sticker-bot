@@ -118,7 +118,6 @@ func prepLineStickers(ud *UserData) error {
 	for _, f := range pngFiles {
 		sf := &StickerFile{oPath: f}
 		sf.wg = sync.WaitGroup{}
-		sf.wg.Add(1)
 		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
 	}
 	log.Debugln("start converting...")
@@ -159,7 +158,14 @@ func lineZipExtract(f string, ld *LineData) []string {
 func doConvert(ud *UserData) {
 	sf := ud.stickerData.stickers
 	for _, s := range sf {
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("doConvert received ctxDone!")
+			return
+		default:
+		}
 		var err error
+		s.wg.Add(1)
 		// If lineS is animated, commit to worker pool,
 		// since encoding vp9 is time and resource costy.
 		if ud.lineData.isAnimated {
@@ -220,6 +226,12 @@ func prepLineMessageS(ud *UserData) error {
 	ud.stickerData.lAmount = ud.lineData.amount
 
 	for i, b := range baseImages {
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("prepLineMessageS received ctxDone!")
+			return nil
+		default:
+		}
 		log.Debugln("Preparing one message sticker... index:", i)
 		bPath := filepath.Join(workDir, strconv.Itoa(i)+".base.png")
 		oPath := filepath.Join(workDir, strconv.Itoa(i)+".overlay.png")
