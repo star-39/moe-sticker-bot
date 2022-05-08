@@ -18,6 +18,10 @@ Simply run:
 ```
 docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:latest
 ```
+If you are on ARM64(AArch64) arch, use `aarch64` tag:
+```
+docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:aarch64
+```
 
 ### System Dependencies
 * ImageMagick
