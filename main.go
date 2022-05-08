@@ -519,15 +519,16 @@ func cmdStart(c tele.Context) error {
 
 func cmdQuit(c tele.Context) error {
 	log.Debug("Received user quit request.")
-
-	if cleanUserData(c.Sender().ID) {
-		c.Send("Please wait...")
-		time.Sleep(time.Second * 2)
-		forceCleanUserData(c.Sender().ID)
-		return c.Send("Bye. /start")
-	} else {
+	ud, exist := users.data[c.Sender().ID]
+	if !exist {
 		return c.Send("Please use /start")
 	}
+
+	ud.cancel()
+	ud.udWg.Wait()
+	forceCleanUserData(c.Sender().ID)
+	c.Send("Bye. /start")
+	return nil
 }
 
 func cmdAbout(c tele.Context) error {

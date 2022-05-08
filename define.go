@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"sync"
 
 	"github.com/panjf2000/ants/v2"
@@ -59,7 +60,15 @@ type LineData struct {
 }
 
 type UserData struct {
-	wg          sync.WaitGroup
+	// udWg should be used for time consuming works.
+	// When user signals a termination of goroutine,
+	// we MUST wait for this wg to Done.
+	udWg sync.WaitGroup
+	// wg is a generic waitgroup, for internal use.
+	wg     sync.WaitGroup
+	ctx    context.Context
+	cancel context.CancelFunc
+
 	state       string
 	userDir     string
 	command     string

@@ -73,7 +73,9 @@ func parseImportLink(link string, lineData *LineData) error {
 	} else {
 		return errors.New("unknown line store category")
 	}
-
+	if lineData == nil {
+		return nil
+	}
 	lineData.link = u
 	lineData.category = c
 	lineData.dLink = d
@@ -85,6 +87,8 @@ func parseImportLink(link string, lineData *LineData) error {
 }
 
 func prepLineStickers(ud *UserData) error {
+	ud.udWg.Add(1)
+	defer ud.udWg.Done()
 	ud.stickerData.isVideo = ud.lineData.isAnimated
 	ud.stickerData.id = ud.lineData.category + ud.lineData.id + secHex(2) + "_by_" + botName
 	ud.stickerData.title = ud.lineData.title + " @" + botName
@@ -122,8 +126,6 @@ func prepLineStickers(ud *UserData) error {
 
 	log.Debug("Done preparing line files:")
 	log.Debugln(ud.lineData, ud.stickerData)
-
-	// ud.wg.Done()
 
 	return nil
 }

@@ -15,11 +15,14 @@ import (
 
 func execAutoCommit(createSet bool, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
+	ud.udWg.Add(1)
+	defer ud.udWg.Done()
+
 	sendProcessStarted(c, "")
 	ud.wg.Wait()
 
 	if len(ud.stickerData.stickers) == 0 {
-		log.Error("No sticker to commit!!")
+		log.Error("No sticker to commit!")
 		return errors.New("no sticker available")
 	}
 
@@ -29,6 +32,12 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	errorCount := 0
 
 	for index, sf := range ud.stickerData.stickers {
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("execAutoCommit received ctxDone!")
+			return nil
+		default:
+		}
 		var err error
 		ss := tele.StickerSet{
 			Name:   ud.stickerData.id,
@@ -161,98 +170,106 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 	log.Debugln("sticker file path:", sf.cPath)
 	log.Debugln("attempt commiting:", ss)
 	// Retry loop.
-	for i := 0; i < 5; i++ {
-		if createSet {
-			err = c.Bot().CreateStickerSet(c.Recipient(), ss)
-		} else {
-			err = c.Bot().AddSticker(c.Recipient(), ss)
-		}
-		if err == nil {
-			break
-		}
-
-		if errors.As(err, &floodErr) {
-			// This Error is NASTY.
-			// It only happens to specific user at specific time.
-			// It is "fake" most of time, since TDLib in API Server will automatically retry.
-			// However! API always return 429 without mentioning its self retry.
-			// As a workaround, we need to verify whether this error is "genuine".
-			// This leads to another problem, API sometimes return the sticker set before self retry being made,
-			// or the result was being cached in API.
-			// We need to wait long enough to verify the actual result.
-			c.Send("We encountered a small issue and might take some time (< 1min) to resolve, please wait...\n" +
-				"BOT遇到了點小問題, 可能需要一點時間(少於1分鐘)解決, 請耐心等待...")
-			log.Warnln("upload sticker retry after: ", floodErr.RetryAfter)
-			log.Warn("sleeping...zzz")
-			if floodErr.RetryAfter > 60 {
-				log.Error("RA too crazy! must be framework bug.")
-				log.Error("Attempt to sleep for 15 seconds.")
-				time.Sleep(15 * time.Second)
-			} else {
-				// Sleep for extra 5 seconds than RA.
-				time.Sleep(time.Duration((floodErr.RetryAfter + 5) * int(time.Second)))
-			}
-
-			log.Warn("woke up from RA sleep.")
-			// do this check AFTER sleep.
-			if verifyRetryAfterIsFake(amountSupposed, c, ss) {
-				log.Warn("The RA is fake, breaking retry loop...")
-				// Break retry loop if RA is fake.
-				break
-			} else {
-				log.Warn("Oops! The flood limit is real, retrying...")
-				continue
-			}
-		} else if strings.Contains(strings.ToLower(err.Error()), "video_long") {
-			// Redo with safe mode on.
-			// This should happen only one time.
-			// So if safe mode is on and this error still occurs, return err.
-			if safeMode {
-				log.Error("safe mode DID NOT resolve video_long problem.")
-				return err
-			} else {
-				log.Warnln("returned video_long, attempting safe mode.")
-				return commitSticker(createSet, amountSupposed, true, sf, c, ss)
-			}
-		} else {
-			log.Warnln("upload sticker error:", err)
-			return err
-		}
+	// for i := 0; i < 5; i++ {
+	if createSet {
+		err = c.Bot().CreateStickerSet(c.Recipient(), ss)
+	} else {
+		err = c.Bot().AddSticker(c.Recipient(), ss)
 	}
+	if err == nil {
+		return nil
+	}
+	if errors.As(err, &floodErr) {
+		// This Error is NASTY.
+		// It only happens to specific user at specific time.
+		// It is "fake" most of time, since TDLib in API Server will automatically retry.
+		// However! API always return 429 without mentioning its self retry.
+		// As a workaround, we need to verify whether this error is "genuine".
+		// This leads to another problem, API sometimes return the sticker set before self retry being made,
+		// or the result was being cached in API.
+		// We need to wait long enough to verify the actual result.
+		//
+		// EDIT: No! Seems API side will always do retry at TDLib level, message_id was also being kept so
+		// no position shifting will happen.
+		// Yep, we are gonna ignore the FLOOD_LIMIT!
+		c.Send("We encountered a small issue and might take some time (< 1min) to resolve, please wait...\n" +
+			"BOT遇到了點小問題, 可能需要一點時間(少於1分鐘)解決, 請耐心等待...")
+		log.Warnf("Flood limit encountered by set:%s", ss.Name)
+		log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
+		log.Warn("sleeping...zzz")
+		if floodErr.RetryAfter > 60 {
+			log.Error("RA too crazy! should be framework bug.")
+			log.Error("Attempt to sleep for 65 seconds.")
+			time.Sleep(65 * time.Second)
+		} else {
+			// Sleep for extra 5 seconds than RA.
+			time.Sleep(time.Duration((floodErr.RetryAfter + 10) * int(time.Second)))
+		}
+
+		log.Warn("woke up from RA sleep. ignoring this error.")
+		// do this check AFTER sleep.
+		// if verifyRetryAfterIsFake(amountSupposed, c, ss) {
+		// 	log.Warn("The RA is fake, breaking retry loop...")
+		// 	// Break retry loop if RA is fake.
+		// 	break
+		// } else {
+		// 	log.Warn("Oops! The flood limit is real, retrying...")
+		// 	continue
+		// }
+	} else if strings.Contains(strings.ToLower(err.Error()), "video_long") {
+		// Redo with safe mode on.
+		// This should happen only one time.
+		// So if safe mode is on and this error still occurs, return err.
+		if safeMode {
+			log.Error("safe mode DID NOT resolve video_long problem.")
+			return err
+		} else {
+			log.Warnln("returned video_long, attempting safe mode.")
+			return commitSticker(createSet, amountSupposed, true, sf, c, ss)
+		}
+	} else {
+		log.Warnln("upload sticker error:", err)
+		return err
+	}
+	// }
 	if safeMode {
 		log.Warn("safe mode resolved video_long problem.")
 	}
 	return nil
 }
 
-func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerSet) bool {
-	var isFake bool
-	// go crazy! let's check it FIVE TIMES!
-	// How dare you https://github.com/tdlib/telegram-bot-api
-	for i := 0; i < 5; i++ {
-		time.Sleep(5 * time.Second)
-		log.Warnln("Check RA... loop:", i)
-		cloudSS, err := c.Bot().StickerSet(ss.Name)
-		// if RA is fake, return immediately! so we can continue operation.
-		if amountSupposed == 1 {
-			if err != nil {
-				// Sticker set exists.
-				return true
-			} else {
-				isFake = false
-			}
-		} else {
-			log.Warnln("Checked cAmount is :", len(cloudSS.Stickers))
-			log.Warnln("We suppose :", amountSupposed)
-			if len(cloudSS.Stickers) == amountSupposed {
-				return true
-			} else {
-				isFake = false
-			}
-		}
-	}
-	return isFake
-}
+// Completely useless!
+// API server caches the SS result and always return a outdated value!
+// They also silently do retry at TDLib level after getting "can_retry" from TG.
+// Goodbye! Duplicated stickers!
+// func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerSet) bool {
+// 	var isFake bool
+// 	// go crazy! let's check it FIVE TIMES!
+// 	// How dare you https://github.com/tdlib/telegram-bot-api
+// 	for i := 0; i < 5; i++ {
+// 		time.Sleep(5 * time.Second)
+// 		log.Warnln("Check RA... loop:", i)
+// 		cloudSS, err := c.Bot().StickerSet(ss.Name)
+// 		// if RA is fake, return immediately! so we can continue operation.
+// 		if amountSupposed == 1 {
+// 			if err != nil {
+// 				// Sticker set exists.
+// 				return true
+// 			} else {
+// 				isFake = false
+// 			}
+// 		} else {
+// 			log.Warnln("Checked cAmount is :", len(cloudSS.Stickers))
+// 			log.Warnln("We suppose :", amountSupposed)
+// 			if len(cloudSS.Stickers) == amountSupposed {
+// 				return true
+// 			} else {
+// 				isFake = false
+// 			}
+// 		}
+// 	}
+// 	return isFake
+// }
 
 func downloadSAndC(path string, s *tele.Sticker, c tele.Context) (string, string) {
 	var f string
@@ -276,6 +293,8 @@ func downloadSAndC(path string, s *tele.Sticker, c tele.Context) (string, string
 func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error {
 	id := s.SetName
 	ud := users.data[c.Sender().ID]
+	ud.udWg.Add(1)
+	defer ud.udWg.Done()
 	workDir := filepath.Join(ud.userDir, id)
 	os.MkdirAll(workDir, 0755)
 	var flist []string
@@ -301,6 +320,12 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	ud.stickerData.link = "https://t.me/addstickers/" + ss.Name
 	sendProcessStarted(c, "")
 	for index, s := range ss.Stickers {
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("downloadStickersToZip received ctxDone!")
+			return nil
+		default:
+		}
 		go editProgressMsg(index, len(ss.Stickers), "", c)
 		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
 		f, cf := downloadSAndC(fName, &s, c)

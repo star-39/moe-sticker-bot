@@ -252,7 +252,10 @@ TG Link:</code>%s
 }
 
 func editProgressMsg(cur int, total int, sp string, c tele.Context) error {
-	ud := users.data[c.Sender().ID]
+	ud, exist := users.data[c.Sender().ID]
+	if !exist {
+		return nil
+	}
 	origin := ud.progress
 	header := origin[:strings.LastIndex(origin, "<code>")]
 	prog := ""
