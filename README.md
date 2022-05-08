@@ -80,6 +80,14 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-3 GO(20220509)
+  * Split large zip to under 50MB chunks.
+  * Split long message to chunks.
+  * GIF downloaded is now in original 512px resolution.
+  * You can press "No" now when sent link or sticker.
+  * If error is not HTTP400, bot will retry for 3 times.
+  * Other minor improvements.
+
 1.0 RC-2 GO(20220508)
   * Fix SEGV when user requested /quit
   * Ignore FloodLimit by default since API will do retry at TDLib level.
