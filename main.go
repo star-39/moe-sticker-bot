@@ -181,6 +181,7 @@ func stateRecvSManage(c tele.Context) error {
 		return c.Send("set does not exist! try again or /quit")
 	}
 	ud.stickerData.cAmount = len(ss.Stickers)
+	ud.stickerData.isVideo = ss.Video
 
 	setState(c, "recvEditChoice")
 	return sendAskEditChoice(c)
