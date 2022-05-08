@@ -235,6 +235,7 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 			}
 			log.Warnf("upload sticker error:%s for set:%s", err, ss.Name)
 			log.Warn("retrying...")
+			time.Sleep(5 * time.Second)
 		}
 	}
 	if safeMode {
