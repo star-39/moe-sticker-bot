@@ -16,7 +16,7 @@ func imToWebp(f string) (string, error) {
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Warnln("imToWebp ERROR:", out)
+		log.Warnln("imToWebp ERROR:", string(out))
 	}
 	return pathOut, err
 }
@@ -29,7 +29,7 @@ func imToPng(f string) (string, error) {
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Warnln("imToPng ERROR:", out)
+		log.Warnln("imToPng ERROR:", string(out))
 	}
 	return pathOut, err
 }
@@ -44,7 +44,7 @@ func ffToWebm(f string) (string, error) {
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Warnln("ffToWebm ERROR:", out)
+		log.Warnln("ffToWebm ERROR:", string(out))
 		return pathOut, err
 	}
 
@@ -121,8 +121,7 @@ func imStackToWebp(base string, overlay string) (string, error) {
 		"-define", "webp:lossless=true", fOut)
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Error("IM stack ERROR!")
-		log.Errorln(out)
+		log.Errorln("IM stack ERROR!", string(out))
 		return "", err
 	} else {
 		return fOut, nil
