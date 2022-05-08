@@ -148,11 +148,6 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 	var floodErr tele.FloodError
 	var f string
 	ud := users.data[c.Sender().ID]
-	// ss := tele.StickerSet{
-	// 	Name:   ud.stickerData.id,
-	// 	Title:  ud.stickerData.title,
-	// 	Emojis: ud.stickerData.emojis[0],
-	// }
 
 	sf.wg.Wait()
 	if ud.stickerData.isVideo {
@@ -179,6 +174,7 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 		if err == nil {
 			break
 		}
+		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		if errors.As(err, &floodErr) {
 			// This Error is NASTY.
 			// It only happens to specific user at specific time.
@@ -228,12 +224,16 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 				log.Warnln("returned video_long, attempting safe mode.")
 				return commitSticker(createSet, amountSupposed, true, sf, c, ss)
 			}
+		} else if strings.Contains(err.Error(), "400") {
+			// return remaining 400 BAD REQUEST to parent.
+			return err
 		} else {
+			// Handle unknown error here.
+			// We simply retry for 2 more times with 5 sec interval.
 			if i == 2 {
 				log.Warn("too many retries, end retry loop")
 				return err
 			}
-			log.Warnf("upload sticker error:%s for set:%s", err, ss.Name)
 			log.Warn("retrying...")
 			time.Sleep(5 * time.Second)
 		}

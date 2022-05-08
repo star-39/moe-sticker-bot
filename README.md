@@ -10,6 +10,21 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 
 > This project is undergoing a complete rewrite to golang due to python-telegram-bot's countless problems. No new python code will be commited. Completion date is unknown, probably before June. This python version will be re-branched after go version is published to master brach.
 
+## Features
+  * Import LINE stickers to Telegram without effort, you can batch or separately assign emojis.
+  * Batch download and convert Telegram stickers to original or common formats.
+  * Full support of video stickers.
+  * Create your own sticker set with your own images easily.
+  * Manage your sticker set: add / remove sticker or the whole set.
+  * Top class performance with simultaneous execution to save your time.
+
+  * 輕鬆匯入LINE貼圖包到Telegram, 可以統一或分開指定emoji.
+  * 下載Telegram貼圖包, 自動變換為常用格式, 並且保留原檔.
+  * 完整支援動態貼圖.
+  * 輕鬆使用自己的圖片,短片來創建自己的貼圖包.
+  * 可以管理自己的貼圖包: 可以新增/刪除貼圖或貼圖包.
+  * 擁有超高處理速度, 節省您的時間. 
+
 ## Deployment
 ### Deploy with pre-built containers
 A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
