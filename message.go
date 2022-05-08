@@ -218,10 +218,15 @@ Send emoji(s) representing this sticker.
 }
 
 func sendFatalError(err error, c tele.Context) {
+	errMsg := err.Error()
+	if strings.Contains(errMsg, "500") {
+		errMsg += "\nThis is an internal error of Telegram server, we could do nothing but wait for its recover. Please try again later.\n" +
+			"此錯誤為Telegram伺服器之內部錯誤, 無法由bot解決, 只能等候官方修復. 建議您稍後再嘗試一次."
+	}
 	c.Send("<b>Fatal error! Please try again. /start\n"+
-		"發生致命錯誤! 請您從頭再試一次. /start\n"+
-		"致命的なエラーが発生しました！もう一度やり直してください /start </b>\n\n"+
-		"<code>"+err.Error()+"</code>", tele.ModeHTML)
+		"發生嚴重錯誤! 請您從頭再試一次. /start\n"+
+		"深刻なエラーが発生しました！もう一度やり直してください /start </b>\n\n"+
+		"<code>"+errMsg+"</code>", tele.ModeHTML)
 }
 
 func sendProcessStarted(c tele.Context, optMsg string) error {
