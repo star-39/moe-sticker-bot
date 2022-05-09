@@ -183,6 +183,10 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 		}
 		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		if errors.As(err, &floodErr) {
+			if createSet {
+				sendTooManyFloodLimits(c)
+				return errors.New("too many flood limits")
+			}
 			*flCount += 1
 			log.Warnln("Current flood limit count:", *flCount)
 			// This Error is NASTY.
