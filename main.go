@@ -554,8 +554,6 @@ func terminateSession(c tele.Context) {
 }
 
 func onError(err error, c tele.Context) {
-	log.Error("User encountered fatal error!")
-	log.Error(err)
 	sendFatalError(err, c)
 	forceCleanUserData(c.Sender().ID)
 }

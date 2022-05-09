@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	tele "github.com/star-39/telebot"
 )
 
@@ -222,6 +224,10 @@ Send emoji(s) representing this sticker.
 
 func sendFatalError(err error, c tele.Context) {
 	errMsg := err.Error()
+	errMsg += "\n" + escapeTagMark(string(debug.Stack()))
+	log.Error("User encountered fatal error!")
+	log.Errorln("Raw error:", err)
+	log.Errorln(errMsg)
 	if strings.Contains(errMsg, "500") {
 		errMsg += "\nThis is an internal error of Telegram server, we could do nothing but wait for its recover. Please try again later.\n" +
 			"此錯誤為Telegram伺服器之內部錯誤, 無法由bot解決, 只能等候官方修復. 建議您稍後再嘗試一次."
@@ -229,7 +235,8 @@ func sendFatalError(err error, c tele.Context) {
 	c.Send("<b>Fatal error! Please try again. /start\n"+
 		"發生嚴重錯誤! 請您從頭再試一次. /start\n"+
 		"深刻なエラーが発生しました！もう一度やり直してください /start </b>\n\n"+
-		"<code>"+errMsg+"</code>", tele.ModeHTML)
+		"You can report this error to @plow283 or https://github.com/star-39/moe-sticker-bot/issues\n\n"+
+		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
 
 func sendProcessStarted(c tele.Context, optMsg string) error {
