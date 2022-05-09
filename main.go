@@ -45,6 +45,7 @@ func main() {
 	b.Handle("/exit", cmdQuit)
 	b.Handle("/help", cmdStart, checkState)
 	b.Handle("/about", cmdAbout, checkState)
+	b.Handle("/faq", cmdAbout, checkState)
 	b.Handle("/import", cmdImport, checkState)
 	b.Handle("/download", cmdDownload, checkState)
 	b.Handle("/create", cmdCreate, checkState)
