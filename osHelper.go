@@ -38,7 +38,7 @@ func httpGet(link string) (string, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", link, nil)
 	req.Header.Set("User-Agent", "curl/7.61.1")
-
+	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
 	res, err := client.Do(req)
 	if err != nil {
 		return "", err
