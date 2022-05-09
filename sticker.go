@@ -118,7 +118,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 		err = commitSticker(false, new(int), false, sf, c, ss)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid sticker emojis") {
-				return c.Send("Bad emoji. try again.\n這個emoji無效, 請再試一次.")
+				return c.Send("Sorry, this emoji is invalid. Try another one.\n抱歉, 這個emoji無效, 請另試一次.")
 			}
 			c.Send("one sticker failed to add, index is:" + strconv.Itoa(ud.stickerData.pos))
 			log.Warnln("a sticker failed to add. ", err)
