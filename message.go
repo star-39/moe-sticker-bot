@@ -14,9 +14,9 @@ import (
 
 func sendStartMessage(c tele.Context) error {
 	message := `
-Hello! I'm moe_sticker_bot doing sticker stuffs!
+Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a> doing sticker stuffs!
 Send me links or stickers to import or download them, or, use a command below:
-你好! 歡迎使用萌萌貼圖BOT, 請傳送連結或貼圖給我來匯入或下載貼圖喔,
+你好! 歡迎使用萌萌貼圖BOT, 請傳送連結或貼圖來匯入或下載貼圖喔,
 您也可以從下方選擇指令:
 
 <b>/import</b> LINE stickers to Telegram<code>
@@ -44,7 +44,9 @@ Send me links or stickers to import or download them, or, use a command below:
 func sendAboutMessage(c tele.Context) {
 	c.Send(fmt.Sprintf(`
 @%s by @plow283
-https://github.com/star-39/moe-sticker-bot
+<b>Please hit Star for this project on Github if you like this bot!
+如果您喜歡這個bot, 請在Github給本專案標Star喔!
+https://github.com/star-39/moe-sticker-bot</b>
 Thank you @StickerGroup for feedbacks and advices!
 <code>
 This free(as in freedom) software is released under the GPLv3 License.
