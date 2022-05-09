@@ -10,7 +10,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	tele "gopkg.in/telebot.v3"
+	tele "github.com/star-39/telebot"
 )
 
 func execAutoCommit(createSet bool, c tele.Context) error {
@@ -30,6 +30,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	log.Debugln(ud.stickerData)
 	committedStickers := 0
 	errorCount := 0
+	flCount := 0
 
 	for index, sf := range ud.stickerData.stickers {
 		select {
@@ -46,7 +47,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		go editProgressMsg(index, len(ud.stickerData.stickers), "", c)
 		if index == 0 && createSet {
-			err = commitSticker(true, 1, false, sf, c, ss)
+			err = commitSticker(true, &flCount, false, sf, c, ss)
 			if err != nil {
 				log.Errorln("create failed. ", err)
 				return err
@@ -54,7 +55,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				committedStickers += 1
 			}
 		} else {
-			err = commitSticker(false, committedStickers+1, false, sf, c, ss)
+			err = commitSticker(false, &flCount, false, sf, c, ss)
 			if err != nil {
 				log.Warnln("a sticker failed to add. ", err)
 				c.Send("one sticker failed to add, index is:" + strconv.Itoa(index))
@@ -62,10 +63,15 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				if errorCount > 2 {
 					return errors.New("too many errors when adding sticker")
 				}
+				if flCount > 3 {
+					sendTooManyFloodLimits(c)
+					return errors.New("too many flood limits")
+				}
 			} else {
 				committedStickers += 1
 			}
 		}
+		log.Warnln("flc is:", flCount)
 		log.Debugln("one sticker commited. count: ", committedStickers)
 	}
 
@@ -100,7 +106,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	log.Debugln(ss)
 
 	if createSet && ud.stickerData.pos == 0 {
-		err = commitSticker(true, 1, false, sf, c, ss)
+		err = commitSticker(true, new(int), false, sf, c, ss)
 		if err != nil {
 			log.Errorln("create failed. ", err)
 			return err
@@ -108,7 +114,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 			ud.stickerData.cAmount += 1
 		}
 	} else {
-		err = commitSticker(false, ud.stickerData.cAmount+1, false, sf, c, ss)
+		err = commitSticker(false, new(int), false, sf, c, ss)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid sticker emojis") {
 				return c.Send("Bad emoji. try again.\n這個emoji無效, 請再試一次.")
@@ -143,7 +149,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 
 // This function handles sticker conversion and upload.
 // The "amountSupposed" is for detecting fake flood limit.
-func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
+func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
 	var err error
 	var floodErr tele.FloodError
 	var f string
@@ -176,6 +182,8 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 		}
 		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		if errors.As(err, &floodErr) {
+			*flCount += 1
+			log.Warnln("Current flood limit count:", *flCount)
 			// This Error is NASTY.
 			// It only happens to specific user at specific time.
 			// It is "fake" most of time, since TDLib in API Server will automatically retry.
@@ -188,9 +196,8 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 			// EDIT: No! Seems API side will always do retry at TDLib level, message_id was also being kept so
 			// no position shifting will happen.
 			// Yep, we are gonna ignore the FLOOD_LIMIT!
-			c.Send("We encountered a small issue and might take some time (< 1min) to resolve, please wait...\n" +
-				"BOT遇到了點小問題, 可能需要一點時間(少於1分鐘)解決, 請耐心等待...")
-			log.Warnf("Flood limit encountered by set:%s", ss.Name)
+			sendFLWarning(c)
+			log.Warnf("Flood limit encountered for user:%d for set:%s", c.Sender().ID, ss.Name)
 			log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
 			log.Warn("sleeping...zzz")
 			if floodErr.RetryAfter > 60 {
@@ -222,7 +229,7 @@ func commitSticker(createSet bool, amountSupposed int, safeMode bool, sf *Sticke
 				return err
 			} else {
 				log.Warnln("returned video_long, attempting safe mode.")
-				return commitSticker(createSet, amountSupposed, true, sf, c, ss)
+				return commitSticker(createSet, flCount, true, sf, c, ss)
 			}
 		} else if strings.Contains(err.Error(), "400") {
 			// return remaining 400 BAD REQUEST to parent.
@@ -392,33 +399,43 @@ func downloadGifToZip(c tele.Context) error {
 	return err
 }
 
+// Accept telebot Media and Sticker only
 func appendMedia(c tele.Context) error {
+	log.Debugf("Received file, MType:%s, FileID:%s", c.Message().Media().MediaType(), c.Message().Media().MediaFile().FileID)
 	var files []string
 	ud := users.data[c.Sender().ID]
 	ud.wg.Add(1)
+	defer ud.wg.Done()
+
 	workDir := users.data[c.Sender().ID].userDir
 	savePath := filepath.Join(workDir, secHex(4))
-	if c.Message().Document != nil {
-		c.Bot().Download(&c.Message().Document.File, savePath)
-		fName := c.Message().Document.FileName
-		if guessIsArchive(strings.ToLower(fName)) {
-			files = append(files, archiveExtract(savePath)...)
-		} else {
-			files = append(files, savePath)
-		}
-	} else if c.Message().Photo != nil {
-		c.Bot().Download(&c.Message().Photo.File, savePath)
-		files = append(files, savePath)
-	} else if c.Message().Video != nil {
-		c.Bot().Download(&c.Message().Video.File, savePath)
-		files = append(files, savePath)
-	} else if c.Message().Sticker != nil {
-		c.Bot().Download(&c.Message().Sticker.File, savePath)
-		files = append(files, savePath)
+
+	err := c.Bot().Download(c.Message().Media().MediaFile(), savePath)
+	if err != nil {
+		return errors.New("error downloading media")
+	}
+	if c.Message().Media().MediaType() == "document" && guessIsArchive(c.Message().Document.FileName) {
+		files = append(files, archiveExtract(savePath)...)
 	} else {
-		log.Debug("?unknown media.")
+		files = append(files, savePath)
 	}
 
+	// if c.Message().Document != nil {
+	// 	c.Bot().Download(&c.Message().Document.File, savePath)
+	// 	// fName := c.Message().Document.FileName
+
+	// } else if c.Message().Photo != nil {
+	// 	c.Bot().Download(&c.Message().Photo.File, savePath)
+	// 	files = append(files, savePath)
+	// } else if c.Message().Video != nil {
+	// 	c.Bot().Download(&c.Message().Video.File, savePath)
+	// 	files = append(files, savePath)
+	// } else if c.Message().Sticker != nil {
+	// 	c.Bot().Download(&c.Message().Sticker.File, savePath)
+	// 	files = append(files, savePath)
+	// } else {
+	// 	log.Debug("?unknown media.")
+	// }
 	var sfs []*StickerFile
 	for _, f := range files {
 		var cf string
@@ -430,14 +447,16 @@ func appendMedia(c tele.Context) error {
 		}
 		if err != nil {
 			log.Warnln("Failed converting one user sticker", err)
+			c.Send("Failed converting one user sticker:" + err.Error())
 			continue
 		}
 		sfs = append(sfs, &StickerFile{
 			oPath: f,
 			cPath: cf,
 		})
+		log.Debugf("One received file OK. oPath:%s | cPath:%s", f, cf)
 	}
-	ud.wg.Done()
+
 	if len(sfs) == 0 {
 		return errors.New("download or convert error")
 	}

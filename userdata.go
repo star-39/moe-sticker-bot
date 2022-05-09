@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	tele "gopkg.in/telebot.v3"
+	tele "github.com/star-39/telebot"
 )
 
 func forceCleanUserData(uid int64) bool {
@@ -21,7 +21,7 @@ func forceCleanUserData(uid int64) bool {
 		log.WithField("uid", uid).Debugln("Userdata purged from map and disk.")
 		return true
 	} else {
-		log.WithField("uid", uid).Debugln("Userdata does not exist, do nothing.")
+		log.WithField("uid", uid).Debugln("Userdata does not exisst, do nothing.")
 		return false
 	}
 }

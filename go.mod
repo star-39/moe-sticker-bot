@@ -15,6 +15,7 @@ require (
 require (
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/star-39/telebot v0.0.0-20220509082205-16b03d3361cf // indirect
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 )

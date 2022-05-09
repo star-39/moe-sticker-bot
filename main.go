@@ -7,8 +7,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	tele "gopkg.in/telebot.v3"
-	"gopkg.in/telebot.v3/middleware"
+	tele "github.com/star-39/telebot"
 )
 
 // main.go should only handle states and basic response,
@@ -59,7 +58,7 @@ func main() {
 	b.Handle(tele.OnSticker, handleMessage)
 	b.Handle(tele.OnDocument, handleMessage)
 	b.Handle(tele.OnPhoto, handleMessage)
-	b.Handle(tele.OnCallback, handleMessage, middleware.AutoRespond(), sanitizeCallback)
+	b.Handle(tele.OnCallback, handleMessage, autoRespond, sanitizeCallback)
 
 	b.Start()
 }
@@ -370,24 +369,25 @@ func stateRecvFile(c tele.Context) error {
 	if c.Callback() != nil {
 		return nil
 	}
-	log.Debug("Received file, text: ", c.Message().Text)
-	if c.Message().Text == "" {
+
+	if c.Message().Media() != nil {
 		err := appendMedia(c)
 		if err != nil {
-			c.Reply("Failed processing this file.")
+			c.Reply("Failed processing this file. ERR:" + err.Error())
 		}
-
-	} else if strings.Contains(c.Message().Text, "#") {
-		if len(users.data[c.Sender().ID].stickerData.stickers) == 0 {
-			return c.Send("No image received. try again.")
-		} else {
-			users.data[c.Sender().ID].stickerData.lAmount = len(users.data[c.Sender().ID].stickerData.stickers)
-			setState(c, "recvEmoji")
-			sendAskEmoji(c)
-		}
-	} else {
-		c.Send("please send # mark.")
+		return nil
 	}
+	if !strings.Contains(c.Message().Text, "#") {
+		return c.Send("please send # mark.")
+	}
+	if len(users.data[c.Sender().ID].stickerData.stickers) == 0 {
+		return c.Send("No image received. try again or /quit")
+	}
+
+	users.data[c.Sender().ID].stickerData.lAmount = len(users.data[c.Sender().ID].stickerData.stickers)
+	setState(c, "recvEmoji")
+	sendAskEmoji(c)
+
 	return nil
 }
 

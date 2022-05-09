@@ -13,7 +13,7 @@ import (
 	"github.com/forPelevin/gomoji"
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
-	tele "gopkg.in/telebot.v3"
+	tele "github.com/star-39/telebot"
 	"mvdan.cc/xurls/v2"
 )
 
@@ -119,6 +119,14 @@ func sanitizeCallback(next tele.HandlerFunc) tele.HandlerFunc {
 		c.Callback().Data = regexAlphanum.FindString(c.Callback().Data)
 
 		log.Debugln("now:", hex.EncodeToString([]byte(c.Callback().Data)))
+		return next(c)
+	}
+}
+func autoRespond(next tele.HandlerFunc) tele.HandlerFunc {
+	return func(c tele.Context) error {
+		if c.Callback() != nil {
+			defer c.Respond()
+		}
 		return next(c)
 	}
 }

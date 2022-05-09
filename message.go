@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	tele "gopkg.in/telebot.v3"
+	tele "github.com/star-39/telebot"
 )
 
 func sendStartMessage(c tele.Context) error {
@@ -158,10 +158,10 @@ func sendNotifySExist(c tele.Context) bool {
 }
 
 func sendAskStickerFile(c tele.Context) error {
-	return c.Send("Please send images/photos/stickers(less than 120 in total)(don't group items),\n" +
+	return c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
 		"or send an archive containing image files,\n" +
 		"wait until upload complete, then send a # mark.\n\n" +
-		"請傳送任意格式的圖片/照片/貼圖(少於120張)(不要合併成組)\n" +
+		"請傳送任意格式的圖片/照片/貼圖(少於120張)\n" +
 		"或者傳送內有貼圖檔案的歸檔,\n" +
 		"請等候所有檔案上載完成, 然後傳送 # 記號\n")
 }
@@ -381,4 +381,14 @@ func sendSFromSS(c tele.Context) error {
 	ss, _ := c.Bot().StickerSet(id)
 	c.Send(&ss.Stickers[0])
 	return nil
+}
+
+func sendFLWarning(c tele.Context) error {
+	return c.Send("It might take longer to process this request (< 1min), please wait...\n" +
+		"此貼圖可能需要更長時間處理(少於1分鐘), 請耐心等待...")
+}
+
+func sendTooManyFloodLimits(c tele.Context) error {
+	return c.Send("Sorry, you have triggered Telegram's flood limit for too many times, it's recommended try again after a while.\n" +
+		"抱歉, 您暫時超過了Telegram的貼圖製作次數限制, 建議您過一段時間後再試一次.")
 }
