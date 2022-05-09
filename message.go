@@ -265,6 +265,9 @@ func editProgressMsg(cur int, total int, sp string, c tele.Context) error {
 		return nil
 	}
 	origin := ud.progress
+	if strings.LastIndex(origin, "<code>") == -1 {
+		return nil
+	}
 	header := origin[:strings.LastIndex(origin, "<code>")]
 	prog := ""
 
