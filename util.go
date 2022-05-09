@@ -28,12 +28,13 @@ func checkTitle(t string) bool {
 }
 
 func checkID(s string) bool {
+	if len(s) < 1 || len(s) > 63 {
+		return false
+	}
 	if _, err := strconv.Atoi(s[:1]); err == nil {
 		return false
 	}
-	if len(s) > 63 {
-		return false
-	}
+
 	return true
 }
 
