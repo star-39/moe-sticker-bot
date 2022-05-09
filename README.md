@@ -80,6 +80,10 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-4 GO(20220509)
+  * Use my custom fork of telebot
+  * User sent sticker now supports any file.
+
 1.0 RC-3 GO(20220509)
   * Split large zip to under 50MB chunks.
   * Split long message to chunks.

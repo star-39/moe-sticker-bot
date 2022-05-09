@@ -96,6 +96,9 @@ func lsFilesR(dir string, mustHave []string, mustNotHave []string) []string {
 				accept = false
 			}
 		}
+		if info.IsDir() {
+			accept = false
+		}
 		log.Debugf("accept?: %t path: %s", accept, path)
 		if accept {
 			files = append(files, path)

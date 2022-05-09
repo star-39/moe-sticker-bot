@@ -71,7 +71,6 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				committedStickers += 1
 			}
 		}
-		log.Warnln("flc is:", flCount)
 		log.Debugln("one sticker commited. count: ", committedStickers)
 	}
 
@@ -466,6 +465,7 @@ func appendMedia(c tele.Context) error {
 }
 
 func guessIsArchive(f string) bool {
+	f = strings.ToLower(f)
 	archiveExts := []string{".rar", ".7z", ".zip", ".tar", ".gz", ".bz2", ".zst", ".rar5"}
 	for _, ext := range archiveExts {
 		if strings.HasSuffix(f, ext) {
