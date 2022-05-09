@@ -60,16 +60,17 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				log.Warnln("a sticker failed to add. ", err)
 				c.Send("one sticker failed to add, index is:" + strconv.Itoa(index))
 				errorCount += 1
-				if errorCount > 2 {
-					return errors.New("too many errors when adding sticker")
-				}
-				if flCount > 3 {
-					sendTooManyFloodLimits(c)
-					return errors.New("too many flood limits")
-				}
-			} else {
-				committedStickers += 1
 			}
+
+			if errorCount > 2 {
+				return errors.New("too many errors when adding sticker")
+			}
+			if flCount > 3 {
+				sendTooManyFloodLimits(c)
+				return errors.New("too many flood limits")
+			}
+
+			committedStickers += 1
 		}
 		log.Debugln("one sticker commited. count: ", committedStickers)
 	}
