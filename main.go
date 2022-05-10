@@ -336,9 +336,11 @@ func stateRecvCbSDown(c tele.Context) error {
 	switch c.Callback().Data {
 	case "single":
 		setCommand(c, "download")
+		setState(c, "process")
 		err = downloadStickersToZip(ud.stickerData.sticker, false, c)
 	case "whole":
 		setCommand(c, "download")
+		setState(c, "process")
 		err = downloadStickersToZip(ud.stickerData.sticker, true, c)
 	case "bye":
 	default:
