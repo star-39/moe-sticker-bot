@@ -64,8 +64,8 @@ func ffToWebmSafe(f string) (string, error) {
 	bin := "ffmpeg"
 	args := []string{"-hide_banner", "-i", f,
 		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-		"-c:v", "libvpx-vp9", "-cpu-used", "8", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
-		"-to", "00:00:02.500", "-r", "30", "-an", "-y", pathOut}
+		"-c:v", "libvpx-vp9", "-cpu-used", "6", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
+		"-to", "00:00:02.800", "-r", "30", "-an", "-y", pathOut}
 
 	cmd := exec.Command(bin, args...)
 	err := cmd.Run()
