@@ -80,6 +80,14 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-5 GO(20220510)
+  * New feature: download raw line stickers to zip.
+  * FatalError now prints stack trace.
+  * zh-Hant is now default in auto LINE title.
+  * Quality of video sticker should improve by a bit.
+  * Fix possible slice out of range panic.
+  * If user experience FloodLimit over 3 times, terminate process.s
+
 1.0 RC-4 GO(20220509)
   * Use my custom fork of telebot
   * User sent sticker now supports any file.
