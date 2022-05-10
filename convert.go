@@ -39,7 +39,7 @@ func ffToWebm(f string) (string, error) {
 	bin := "ffmpeg"
 	args := []string{"-hide_banner", "-i", f,
 		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-		"-c:v", "libvpx-vp9", "-cpu-used", "6", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
+		"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
 		"-to", "00:00:02.900", "-an", "-y", pathOut}
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
@@ -52,7 +52,7 @@ func ffToWebm(f string) (string, error) {
 		log.Warn("ff to webm too big, retrying...")
 		args = []string{"-hide_banner", "-i", f,
 			"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-			"-c:v", "libvpx-vp9", "-cpu-used", "6", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
+			"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
 			"-to", "00:00:02.900", "-an", "-y", pathOut}
 		err = exec.Command(bin, args...).Run()
 	}
@@ -64,7 +64,7 @@ func ffToWebmSafe(f string) (string, error) {
 	bin := "ffmpeg"
 	args := []string{"-hide_banner", "-i", f,
 		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-		"-c:v", "libvpx-vp9", "-cpu-used", "6", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
+		"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
 		"-to", "00:00:02.800", "-r", "30", "-an", "-y", pathOut}
 
 	cmd := exec.Command(bin, args...)
