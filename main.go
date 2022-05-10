@@ -91,7 +91,7 @@ func handleMessage(c tele.Context) error {
 		case "recvEmoji":
 			err = stateRecvEmojiChoice(c)
 		case "process":
-			err = c.Send("processing, please wait...")
+			err = c.Send("processing, please wait... /quit")
 		case "recvEmojiAssign":
 			err = stateRecvEmojiAssign(c)
 		default:
@@ -104,7 +104,7 @@ func handleMessage(c tele.Context) error {
 		case "recvCbSChoice":
 			err = stateRecvCbSDown(c)
 		case "process":
-			err = c.Send("processing, please wait...")
+			err = c.Send("processing, please wait... /quit")
 		default:
 			err = c.Send("???")
 		}
