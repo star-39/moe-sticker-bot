@@ -52,7 +52,7 @@ func ffToWebm(f string) (string, error) {
 		log.Warn("ff to webm too big, retrying...")
 		args = []string{"-hide_banner", "-i", f,
 			"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-			"-c:v", "libvpx-vp9", "-cpu-used", "6", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300",
+			"-c:v", "libvpx-vp9", "-cpu-used", "6", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
 			"-to", "00:00:02.900", "-an", "-y", pathOut}
 		err = exec.Command(bin, args...).Run()
 	}
