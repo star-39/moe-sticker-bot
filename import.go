@@ -86,7 +86,7 @@ func parseImportLink(link string, lineData *LineData) error {
 	return nil
 }
 
-func prepLineStickers(ud *UserData) error {
+func prepLineStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 	ud.stickerData.isVideo = ud.lineData.isAnimated
@@ -112,6 +112,7 @@ func prepLineStickers(ud *UserData) error {
 		return errors.New("no line image")
 	}
 
+	ud.lineData.files = pngFiles
 	ud.lineData.amount = len(pngFiles)
 	ud.stickerData.lAmount = len(pngFiles)
 
@@ -120,8 +121,11 @@ func prepLineStickers(ud *UserData) error {
 		sf.wg = sync.WaitGroup{}
 		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
 	}
-	log.Debugln("start converting...")
-	doConvert(ud)
+
+	if needConvert {
+		log.Debugln("start converting...")
+		doConvert(ud)
+	}
 
 	log.Debug("Done preparing line files:")
 	log.Debugln(ud.lineData, ud.stickerData)
@@ -190,7 +194,7 @@ func prepLineMessageS(ud *UserData) error {
 	}
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(page))
 	if err != nil {
-		log.Println("Failed gq parsing line link!", err)
+		log.Errorln("Failed gq parsing line link!", err)
 		return err
 	}
 
@@ -241,6 +245,7 @@ func prepLineMessageS(ud *UserData) error {
 		if err != nil {
 			return err
 		}
+		ud.lineData.files = append(ud.lineData.files, f)
 		ud.stickerData.stickers[i].oPath = f
 		ud.stickerData.stickers[i].cPath = f
 		ud.stickerData.stickers[i].wg.Done()

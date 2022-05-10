@@ -23,7 +23,7 @@ Send me links or stickers to import or download them, or, use a command below:
   匯入LINE貼圖包至Telegram
 </code>
 <b>/download</b> Telegram sticker(s)<code>
-  下載Telegram的貼圖包
+  下載貼圖包
 </code>
 <b>/create</b> new sticker set<code>
   創建新的Telegram的貼圖包.
@@ -109,6 +109,11 @@ func sendAskWantImport(c tele.Context) error {
 You can import this sticker set. Press Yes to continue.
 您可以匯入這個貼圖包, 按下Yes來繼續.
 `, selector)
+}
+
+func sendAskWhatToDownload(c tele.Context) error {
+	return c.Send("Please send a sticker that you want to download, or its share link(can be either Telegram or LINE ones)\n" +
+		"請傳送想要下載的貼圖, 或者是貼圖包的分享連結(可以是Telegram或LINE連結).")
 }
 
 func sendAskTitle_Import(c tele.Context) {

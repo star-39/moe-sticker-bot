@@ -318,7 +318,7 @@ func stateRecvCbImport(c tele.Context) error {
 		setCommand(c, "import")
 		setState(c, "recvTitle")
 		sendAskTitle_Import(c)
-		return prepLineStickers(users.data[c.Sender().ID])
+		return prepLineStickers(users.data[c.Sender().ID], true)
 	case "bye":
 		terminateSession(c)
 	}
@@ -394,34 +394,47 @@ func stateRecvFile(c tele.Context) error {
 
 func cmdDownload(c tele.Context) error {
 	initUserData(c, "download", "recvSticker")
-	return c.Send("send sticker or share link:")
+	return sendAskWhatToDownload(c)
 }
 
 func stateRecvSticker(c tele.Context) error {
 	log.Debugf("User %d reacted to state: recvSticker", c.Sender().ID)
 	ud := users.data[c.Sender().ID]
 	var err error
+	link, tp := findLinkWithType(c.Message().Text)
 
-	if c.Message().Animation != nil {
+	switch {
+	case c.Message().Animation != nil:
 		err = downloadGifToZip(c)
-
-	} else if c.Message().Sticker != nil {
+	case c.Message().Sticker != nil:
 		ud.stickerData.sticker = c.Message().Sticker
 		setState(c, "recvCbSChoice")
 		return sendAskSDownloadChoice(c)
-
-	} else if link, tp := findLinkWithType(c.Message().Text); tp == LINK_TG {
+	case tp == LINK_TG:
 		ud.stickerData.id = path.Base(link)
 		ss, sserr := c.Bot().StickerSet(ud.stickerData.id)
 		if sserr != nil {
 			return c.Send("bad link! try again or /quit")
 		}
 		err = downloadStickersToZip(&ss.Stickers[0], true, c)
-	} else {
-		c.Send("send link/sticker/GIF or /exit ")
+	case tp == LINK_LINE:
+		c.Send("Please wait...")
+		err = parseImportLink(link, ud.lineData)
+		if err != nil {
+			return err
+		}
+		err = prepLineStickers(ud, false)
+		if err != nil {
+			return err
+		}
+		err = downloadLineSToZip(c, ud)
+	default:
+		return c.Send("send link or sticker or GIF or /exit ")
 	}
 
-	c.Send("done")
+	if err != nil {
+		return err
+	}
 	terminateSession(c)
 	return err
 }
@@ -452,7 +465,7 @@ func stateRecvLink(c tele.Context) error {
 	setState(c, "recvTitle")
 	sendAskTitle_Import(c)
 
-	return prepLineStickers(users.data[c.Sender().ID])
+	return prepLineStickers(users.data[c.Sender().ID], true)
 }
 
 func stateRecvTitle(c tele.Context) error {

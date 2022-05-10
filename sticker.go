@@ -404,6 +404,15 @@ func downloadGifToZip(c tele.Context) error {
 	return err
 }
 
+func downloadLineSToZip(c tele.Context, ud *UserData) error {
+	workDir := filepath.Dir(ud.lineData.files[0])
+	zipName := ud.lineData.id + ".zip"
+	zipPath := filepath.Join(workDir, zipName)
+	fCompress(zipPath, ud.lineData.files)
+	_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: zipName, File: tele.FromDisk(zipPath)})
+	return err
+}
+
 // Accept telebot Media and Sticker only
 func appendMedia(c tele.Context) error {
 	log.Debugf("Received file, MType:%s, FileID:%s", c.Message().Media().MediaType(), c.Message().Media().MediaFile().FileID)
@@ -425,22 +434,6 @@ func appendMedia(c tele.Context) error {
 		files = append(files, savePath)
 	}
 
-	// if c.Message().Document != nil {
-	// 	c.Bot().Download(&c.Message().Document.File, savePath)
-	// 	// fName := c.Message().Document.FileName
-
-	// } else if c.Message().Photo != nil {
-	// 	c.Bot().Download(&c.Message().Photo.File, savePath)
-	// 	files = append(files, savePath)
-	// } else if c.Message().Video != nil {
-	// 	c.Bot().Download(&c.Message().Video.File, savePath)
-	// 	files = append(files, savePath)
-	// } else if c.Message().Sticker != nil {
-	// 	c.Bot().Download(&c.Message().Sticker.File, savePath)
-	// 	files = append(files, savePath)
-	// } else {
-	// 	log.Debug("?unknown media.")
-	// }
 	var sfs []*StickerFile
 	for _, f := range files {
 		var cf string
