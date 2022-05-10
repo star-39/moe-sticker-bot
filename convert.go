@@ -106,7 +106,7 @@ func ffToGif(f string) (string, error) {
 	args = append(args, decoder...)
 	args = append(args, "-i", f, "-hide_banner",
 		"-lavfi", "split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
-		"-loglevel", "error", pathOut)
+		"-loglevel", "error", "-y", pathOut)
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
