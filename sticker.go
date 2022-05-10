@@ -291,21 +291,25 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 
 func downloadSAndC(path string, s *tele.Sticker, c tele.Context) (string, string) {
 	var f string
+	var cf string
+	var err error
 	if s.Video {
 		f = path + ".webm"
-		c.Bot().Download(&s.File, f)
-		cf, _ := ffToGif(f)
-		return f, cf
+		err = c.Bot().Download(&s.File, f)
+		cf, _ = ffToGif(f)
 	} else if s.Animated {
 		f = path + ".tgs"
-		c.Bot().Download(&s.File, f)
-		return f, ""
+		err = c.Bot().Download(&s.File, f)
 	} else {
 		f = path + ".webp"
-		c.Bot().Download(&s.File, f)
-		cf, _ := imToPng(f)
-		return f, cf
+		err = c.Bot().Download(&s.File, f)
+		cf, _ = imToPng(f)
+
 	}
+	if err != nil {
+		return "", ""
+	}
+	return f, cf
 }
 
 func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error {
@@ -347,6 +351,9 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 		go editProgressMsg(index, len(ss.Stickers), "", c)
 		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
 		f, cf := downloadSAndC(fName, &s, c)
+		if f == "" {
+			return errors.New("sticker download failed")
+		}
 		flist = append(flist, f)
 		if cf != "" {
 			cflist = append(cflist, cf)

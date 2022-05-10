@@ -103,6 +103,8 @@ func handleMessage(c tele.Context) error {
 			err = stateRecvSticker(c)
 		case "recvCbSChoice":
 			err = stateRecvCbSDown(c)
+		case "process":
+			err = c.Send("processing, please wait...")
 		default:
 			err = c.Send("???")
 		}
@@ -270,7 +272,6 @@ func handleNoState(c tele.Context) error {
 	link, tp := findLinkWithType(c.Message().Text)
 	switch tp {
 	case LINK_TG:
-
 		ss, err := c.Bot().StickerSet(path.Base(link))
 		if err != nil {
 			return nil

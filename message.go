@@ -274,14 +274,22 @@ TG Link:</code>%s
 }
 
 func editProgressMsg(cur int, total int, sp string, c tele.Context) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("editProgressMsg encountered panic! ignoring...")
+		}
+	}()
 	ud, exist := users.data[c.Sender().ID]
 	if !exist {
 		return nil
 	}
-	origin := ud.progress
-	if strings.LastIndex(origin, "<code>") == -1 {
+	select {
+	case <-ud.ctx.Done():
+		log.Warn("editProgressMsg received ctxDone!")
 		return nil
+	default:
 	}
+	origin := ud.progress
 	header := origin[:strings.LastIndex(origin, "<code>")]
 	prog := ""
 

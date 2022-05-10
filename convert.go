@@ -17,6 +17,7 @@ func imToWebp(f string) (string, error) {
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
 		log.Warnln("imToWebp ERROR:", string(out))
+		return "", err
 	}
 	return pathOut, err
 }
@@ -30,6 +31,7 @@ func imToPng(f string) (string, error) {
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
 		log.Warnln("imToPng ERROR:", string(out))
+		return "", err
 	}
 	return pathOut, err
 }
@@ -88,6 +90,7 @@ func ffToGifShrink(f string) (string, error) {
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
 		log.Warnln("ffToGifShrink ERROR:", out)
+		return "", err
 	}
 	return pathOut, err
 }
@@ -108,6 +111,7 @@ func ffToGif(f string) (string, error) {
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
 		log.Warnf("ffToGif ERROR:\n%s", out)
+		return "", err
 	}
 	return pathOut, err
 }
