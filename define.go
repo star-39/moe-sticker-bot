@@ -52,8 +52,8 @@ type StickerFile struct {
 }
 
 type StickerData struct {
-	id       string
-	link     string
+	id string
+	// link     string
 	title    string
 	emojis   []string
 	sticker  *tele.Sticker

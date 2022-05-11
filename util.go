@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/hex"
+	mrand "math/rand"
 	"net/url"
 	"os"
 	"regexp"
@@ -42,6 +43,14 @@ func secHex(n int) string {
 	bytes := make([]byte, n)
 	rand.Read(bytes)
 	return hex.EncodeToString(bytes)
+}
+
+func secNum(n int) string {
+	numbers := ""
+	for i := 0; i < n; i++ {
+		numbers += strconv.Itoa(mrand.Intn(10))
+	}
+	return numbers
 }
 
 func findLink(s string) string {
@@ -193,7 +202,6 @@ func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
 	}
 	sd.title = ss.Title
 	sd.id = ss.Name
-	sd.link = "https://t.me/addstickers/" + ss.Name
 	sd.cAmount = len(ss.Stickers)
 	sd.isVideo = ss.Video
 	return nil

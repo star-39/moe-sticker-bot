@@ -270,16 +270,16 @@ Preparing stickers, please wait...
 LINE Cat:%s
 LINE ID:%s
 TG ID:%s
-TG Title:%s
-TG Link:</code>%s
+TG Title:</code><a href="%s">%s</a>
 
 <b>Progress / 進展</b>
 <code>%s</code>
 `, ud.lineData.category,
 		ud.lineData.id,
 		ud.stickerData.id,
+		"https://t.me/addstickers/"+ud.stickerData.id,
 		escapeTagMark(ud.stickerData.title),
-		"https://t.me/addstickers/"+ud.stickerData.id, optMsg)
+		optMsg)
 	ud.progress = message
 
 	teleMsg, err := c.Bot().Send(c.Recipient(), message, tele.ModeHTML)

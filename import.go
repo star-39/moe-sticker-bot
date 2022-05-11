@@ -156,7 +156,6 @@ func prepKakaoStickers(ud *UserData, needConvert bool) error {
 	defer ud.udWg.Done()
 	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
 	ud.stickerData.title = ud.lineData.title + " @" + botName
-	ud.stickerData.link = "https://t.me/addstickers/" + ud.stickerData.id
 
 	workDir := filepath.Join(ud.userDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
@@ -195,9 +194,8 @@ func prepLineStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 	ud.stickerData.isVideo = ud.lineData.isAnimated
-	ud.stickerData.id = ud.lineData.category + ud.lineData.id + secHex(2) + "_by_" + botName
+	ud.stickerData.id = "line_" + ud.lineData.id + secNum(4) + "_by_" + botName
 	ud.stickerData.title = ud.lineData.title + " @" + botName
-	ud.stickerData.link = "https://t.me/addstickers/" + ud.stickerData.id
 
 	if ud.lineData.category == LINE_STICKER_MESSAGE {
 		return prepLineMessageS(ud)
