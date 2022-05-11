@@ -218,9 +218,14 @@ To deploy this feature. Set up mariadb-server and set the following env variable
   * Supports animated line sticker import.
 
 
-## Known issue
-### No response?
-The bot might have encountered some unhandled exception, try sending `/cancel` or report to GitHub issues.
+## Special Thanks:
+<img width=200 src="https://idcs-cb5322c0a68345bb83637843d27aa437.identity.oraclecloud.com/ui/v1/public/common/asset/defaultBranding/oracle-desktop-logo.gif"> for free 4CPU AArch64 Cloud Instance.
+
+<a href="http://t.me/StickerGroup">貼圖群 - Sticker Group Taiwan</a> for testing and reporting.
+
+[LINE Corp](https://linecorp.com/) / [Kakao Corp](http://www.kakaocorp.com/) for cute stickers.
+
+You and all the users! ☺
 
 
 ## License
