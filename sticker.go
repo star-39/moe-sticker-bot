@@ -398,7 +398,6 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	ss, _ := c.Bot().StickerSet(id)
 	ud.stickerData.id = ss.Name
 	ud.stickerData.title = ss.Title
-	ud.stickerData.link = "https://t.me/addstickers/" + ss.Name
 	sendProcessStarted(c, "")
 	for index, s := range ss.Stickers {
 		select {
