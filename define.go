@@ -81,6 +81,10 @@ type LineData struct {
 	amount     int
 }
 
+type StickerManage struct {
+	pendingS *tele.Sticker
+}
+
 type UserData struct {
 	// udWg should be used for time consuming works.
 	// When user signals a termination of goroutine,
@@ -91,13 +95,14 @@ type UserData struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	state       string
-	userDir     string
-	command     string
-	progress    string
-	progressMsg *tele.Message
-	lineData    *LineData
-	stickerData *StickerData
+	state         string
+	userDir       string
+	command       string
+	progress      string
+	progressMsg   *tele.Message
+	lineData      *LineData
+	stickerData   *StickerData
+	stickerManage *StickerManage
 }
 
 type Users struct {

@@ -129,6 +129,10 @@ func handleMessage(c tele.Context) error {
 			err = stateRecvSManage(c)
 		case "recvEditChoice":
 			err = stateRecvEditChoice(c)
+		case "recvSMovFrom":
+			err = recvSMovFrom(c)
+		case "recvSMovTo":
+			err = recvSMovTo(c)
 		case "recvFile":
 			err = stateRecvFile(c)
 		case "recvEmoji":
@@ -149,6 +153,50 @@ func handleMessage(c tele.Context) error {
 		err = c.Send("???")
 	}
 	return err
+}
+
+func recvSMovFrom(c tele.Context) error {
+	ud := users.data[c.Sender().ID]
+	if c.Message().Sticker == nil {
+		return c.Send("Send sticker! try again or /quit")
+	}
+	if c.Message().Sticker.SetName != ud.stickerData.id {
+		return c.Send("Sticker from wrong set! try again or /quit")
+	}
+
+	ud.stickerManage.pendingS = c.Message().Sticker
+	setState(c, "recvSMovTo")
+	return sendAskMovTarget(c)
+}
+
+func recvSMovTo(c tele.Context) error {
+	ud := users.data[c.Sender().ID]
+	if c.Message().Sticker == nil {
+		return c.Send("Send sticker! try again or /quit")
+	}
+	if c.Message().Sticker.SetName != ud.stickerData.id {
+		return c.Send("Sticker from wrong set! try again or /quit")
+	}
+
+	ss, err := c.Bot().StickerSet(c.Message().Sticker.SetName)
+	if err != nil {
+		return err
+	}
+	targetPos := -1
+	for i, s := range ss.Stickers {
+		if s.FileID == c.Message().Sticker.FileID {
+			targetPos = i
+		}
+	}
+	log.Debugf("Moving sticker to %d", targetPos)
+	err = c.Bot().SetStickerPosition(ud.stickerManage.pendingS.FileID, targetPos)
+	if err != nil {
+		return err
+	}
+
+	c.Send("Move sticker OK.")
+	setState(c, "recvEditChoice")
+	return sendAskEditChoice(c)
 }
 
 func cmdManage(c tele.Context) error {
@@ -205,6 +253,9 @@ func stateRecvEditChoice(c tele.Context) error {
 	case "delset":
 		setState(c, "recvCbDelset")
 		return sendConfirmDelset(c)
+	case "mov":
+		setState(c, "recvSMovFrom")
+		return sendAskSFrom(c)
 	case "bye":
 		terminateSession(c)
 	}

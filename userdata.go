@@ -48,13 +48,14 @@ func initUserData(c tele.Context, command string, state string) *UserData {
 	users.mu.Lock()
 	ctx, cancel := context.WithCancel(context.Background())
 	users.data[uid] = &UserData{
-		state:       state,
-		userDir:     filepath.Join(dataDir, strconv.FormatInt(uid, 10)),
-		command:     command,
-		lineData:    &LineData{},
-		stickerData: &StickerData{},
-		ctx:         ctx,
-		cancel:      cancel,
+		state:         state,
+		userDir:       filepath.Join(dataDir, strconv.FormatInt(uid, 10)),
+		command:       command,
+		lineData:      &LineData{},
+		stickerData:   &StickerData{},
+		stickerManage: &StickerManage{},
+		ctx:           ctx,
+		cancel:        cancel,
 	}
 	users.mu.Unlock()
 	// Sanitize user work directory.

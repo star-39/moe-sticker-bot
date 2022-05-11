@@ -19,8 +19,8 @@ Send me links or stickers to import or download them, or, use a command below:
 你好! 歡迎使用萌萌貼圖BOT, 請傳送連結或貼圖來匯入或下載貼圖喔,
 您也可以從下方選擇指令:
 
-<b>/import</b> LINE stickers to Telegram<code>
-  匯入LINE貼圖包至Telegram
+<b>/import</b> LINE or kakao stickers to Telegram<code>
+  匯入LINE/kakao貼圖包至Telegram
 </code>
 <b>/download</b> Telegram sticker(s)<code>
   下載貼圖包
@@ -38,7 +38,7 @@ Send me links or stickers to import or download them, or, use a command below:
   Interrupt conversation. 中斷指令.
 </code>
 `
-	return c.Send(message, tele.ModeHTML)
+	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }
 
 func sendAboutMessage(c tele.Context) {
@@ -377,12 +377,24 @@ func sendAskEditChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnAdd := selector.Data("Add sticker/增添貼圖", "add")
 	btnDel := selector.Data("Delete sticker/刪除貼圖", "del")
+	btnMov := selector.Data("Change order/調整順序", "mov")
 	btnDelset := selector.Data("Delete sticker set/刪除貼圖包", "delset")
 	btnExit := selector.Data("Exit/退出", "bye")
-	selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnExit))
+	selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnMov), selector.Row(btnExit))
 
-	return c.Send("What do you want to edit? Please select below:\n"+
-		"您想要修改貼圖包的甚麼內容? 請選擇:", selector)
+	return c.Send(fmt.Sprintf("<code>ID: %s</code>\n\n", users.data[c.Sender().ID].stickerData.id)+
+		"What do you want to edit? Please select below:\n"+
+		"您想要修改貼圖包的甚麼內容? 請選擇:", selector, tele.ModeHTML)
+}
+
+func sendAskSFrom(c tele.Context) error {
+	return c.Send("Which sticker do you want to move? Please send it.\n" +
+		"傳送您想要移動的那個貼圖.")
+}
+
+func sendAskMovTarget(c tele.Context) error {
+	return c.Send("Where do you want to move the sticker to? Please send the sticker that holds the target position.\n" +
+		"請傳送目標位置上所在的貼圖.")
 }
 
 func sendAskSDel(c tele.Context) error {
