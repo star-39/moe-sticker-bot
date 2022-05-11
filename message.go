@@ -89,6 +89,19 @@ You can download this sticker or the whole sticker set, please select below.
 `, selector)
 }
 
+func sendAskSChoice(c tele.Context) error {
+	selector := &tele.ReplyMarkup{}
+	btnRand := selector.Data("This sticker/下載這張貼圖", "single")
+	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", "whole")
+	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", "manage")
+	btnBye := selector.Data("Exit/退出", "bye")
+	selector.Inline(selector.Row(btnRand), selector.Row(btnManu), selector.Row(btnMan), selector.Row(btnBye))
+	return c.Reply(`
+You own this sticker set. You can download or manage this sticker set, please select below.
+您擁有這個貼圖包. 您可以下載或者管理這個貼圖包, 請選擇:
+`, selector)
+}
+
 func sendAskWantSDown(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btn1 := selector.Data("Yes", "yes")
@@ -378,9 +391,10 @@ func sendAskEditChoice(c tele.Context) error {
 	btnAdd := selector.Data("Add sticker/增添貼圖", "add")
 	btnDel := selector.Data("Delete sticker/刪除貼圖", "del")
 	btnMov := selector.Data("Change order/調整順序", "mov")
+	btnEmoji := selector.Data("Change emoji/修改Emoji", "emoji")
 	btnDelset := selector.Data("Delete sticker set/刪除貼圖包", "delset")
 	btnExit := selector.Data("Exit/退出", "bye")
-	selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnMov), selector.Row(btnExit))
+	selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnMov), selector.Row(btnEmoji), selector.Row(btnExit))
 
 	return c.Send(fmt.Sprintf("<code>ID: %s</code>\n\n", users.data[c.Sender().ID].stickerData.id)+
 		"What do you want to edit? Please select below:\n"+
@@ -400,6 +414,14 @@ func sendAskMovTarget(c tele.Context) error {
 func sendAskSDel(c tele.Context) error {
 	return c.Send("Which sticker do you want to delete? Please send it.\n" +
 		"您想要刪除哪一個貼圖? 請傳送那個貼圖")
+}
+
+func sendSEditEmoji(c tele.Context) error {
+	return c.Send("Please the sticker that you want to edit.\n請傳送想要修改的貼圖")
+}
+
+func sendAskEmojiEdit(c tele.Context) error {
+	return c.Send("Please send emoji(s)\n請傳送emoji(可以多個)")
 }
 
 func sendConfirmDelset(c tele.Context) error {

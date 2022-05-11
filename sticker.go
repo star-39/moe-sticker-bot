@@ -148,8 +148,6 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	return nil
 }
 
-// This function handles sticker conversion and upload.
-// The "amountSupposed" is for detecting fake flood limit.
 func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
 	var err error
 	var floodErr tele.FloodError
@@ -288,6 +286,67 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 // 	}
 // 	return isFake
 // }
+
+func editStickerEmoji(c tele.Context, ud *UserData) error {
+	e := findEmojis(c.Message().Text)
+	if e == "" {
+		return c.Send("Send emoji! try again or /quit")
+	}
+	workDir := ud.userDir
+	os.MkdirAll(workDir, 0755)
+	f := filepath.Join(workDir, ud.stickerManage.pendingS.FileID)
+	ss, _ := c.Bot().StickerSet(ud.stickerData.id)
+	lastFID := ss.Stickers[len(ss.Stickers)-1].FileID
+
+	pos := -1
+	for i, s := range ss.Stickers {
+		if s.FileID == ud.stickerManage.pendingS.FileID {
+			pos = i
+		}
+	}
+	if pos == -1 {
+		return errors.New("unknow error when determining position")
+	}
+
+	f, _ = downloadSAndC(f, ud.stickerManage.pendingS, c)
+	sf := &StickerFile{
+		oPath: f,
+		cPath: f,
+	}
+	ss.Emojis = e
+	if ss.Video {
+		ss.WebM = &tele.File{FileLocal: f}
+	} else {
+		ss.PNG = &tele.File{FileLocal: f}
+	}
+	log.Debugln("Edit eomji ready to commit ss:", ss)
+
+	err := commitSticker(false, new(int), false, sf, c, *ss)
+	if err != nil {
+		return errors.New("error commiting temp sticker " + err.Error())
+	}
+
+	for i := 0; i < 10; i++ {
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("editStickerEmoji received ctxDone!")
+			return nil
+		default:
+		}
+		time.Sleep(2 * time.Second)
+		ssNew, _ := c.Bot().StickerSet(ud.stickerData.id)
+		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
+		if commitedFID == lastFID {
+			continue
+		}
+		err = c.Bot().SetStickerPosition(commitedFID, pos)
+		if err != nil {
+			return errors.New("error setting position after editing emoji")
+		}
+		return c.Bot().DeleteSticker(ud.stickerManage.pendingS.FileID)
+	}
+	return errors.New("error setting position after editing emoji")
+}
 
 func downloadSAndC(path string, s *tele.Sticker, c tele.Context) (string, string) {
 	var f string

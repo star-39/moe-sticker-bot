@@ -76,7 +76,7 @@ func handleMessage(c tele.Context) error {
 		case "recvCbSLinkD":
 			err = stateRecvCbSLinkD(c)
 		case "recvCbSChoice":
-			err = stateRecvCbSDown(c)
+			err = recvCbSChoice(c)
 		case "recvCbImport":
 			err = stateRecvCbImport(c)
 		}
@@ -102,7 +102,7 @@ func handleMessage(c tele.Context) error {
 		case "recvSticker":
 			err = stateRecvSticker(c)
 		case "recvCbSChoice":
-			err = stateRecvCbSDown(c)
+			err = recvCbSChoice(c)
 		case "process":
 			err = c.Send("processing, please wait... /quit")
 		default:
@@ -133,6 +133,10 @@ func handleMessage(c tele.Context) error {
 			err = recvSMovFrom(c)
 		case "recvSMovTo":
 			err = recvSMovTo(c)
+		case "recvSEmojiEdit":
+			err = recvSEmojiEdit(c)
+		case "recvEmojiSEdit":
+			err = recvEmojiSEdit(c)
 		case "recvFile":
 			err = stateRecvFile(c)
 		case "recvEmoji":
@@ -143,6 +147,8 @@ func handleMessage(c tele.Context) error {
 			err = stateRecvSDel(c)
 		case "recvCbDelset":
 			err = stateRecvCbDelset(c)
+		case "process":
+			err = c.Send("processing, please wait... /quit")
 		}
 	case "modify":
 		switch state {
@@ -153,6 +159,32 @@ func handleMessage(c tele.Context) error {
 		err = c.Send("???")
 	}
 	return err
+}
+
+func recvSEmojiEdit(c tele.Context) error {
+	ud := users.data[c.Sender().ID]
+	if c.Message().Sticker == nil {
+		return c.Send("Send sticker! try again or /quit")
+	}
+	if c.Message().Sticker.SetName != ud.stickerData.id {
+		return c.Send("Sticker from wrong set! try again or /quit")
+	}
+	ud.stickerManage.pendingS = c.Message().Sticker
+	setState(c, "recvEmojiSEdit")
+	return sendAskEmojiEdit(c)
+}
+
+func recvEmojiSEdit(c tele.Context) error {
+	log.Debug("Attempting edit emoji.")
+	ud := users.data[c.Sender().ID]
+	setState(c, "process")
+	err := editStickerEmoji(c, ud)
+	if err != nil {
+		return err
+	}
+	setState(c, "recvEditChoice")
+	c.Send("Edit emoji OK.")
+	return sendAskEditChoice(c)
 }
 
 func recvSMovFrom(c tele.Context) error {
@@ -256,6 +288,9 @@ func stateRecvEditChoice(c tele.Context) error {
 	case "mov":
 		setState(c, "recvSMovFrom")
 		return sendAskSFrom(c)
+	case "emoji":
+		setState(c, "recvSEmojiEdit")
+		return sendSEditEmoji(c)
 	case "bye":
 		terminateSession(c)
 	}
@@ -315,8 +350,12 @@ func handleNoState(c tele.Context) error {
 	if c.Message().Sticker != nil {
 		ud := initUserData(c, "nostate", "recvCbSChoice")
 		ud.stickerData.sticker = c.Message().Sticker
-		sendAskSDownloadChoice(c)
-		return nil
+		ud.stickerData.id = c.Message().Sticker.SetName
+		if matchUserS(c.Sender().ID, c.Message().Sticker.SetName) {
+			return sendAskSChoice(c)
+		} else {
+			return sendAskSDownloadChoice(c)
+		}
 	}
 
 	// bare message, we expect a link.
@@ -377,7 +416,7 @@ func stateRecvCbImport(c tele.Context) error {
 	return nil
 }
 
-func stateRecvCbSDown(c tele.Context) error {
+func recvCbSChoice(c tele.Context) error {
 	if c.Callback() == nil {
 		return handleNoState(c)
 	}
@@ -393,6 +432,10 @@ func stateRecvCbSDown(c tele.Context) error {
 		setCommand(c, "download")
 		setState(c, "process")
 		err = downloadStickersToZip(ud.stickerData.sticker, true, c)
+	case "manage":
+		setCommand(c, "manage")
+		setState(c, "recvEditChoice")
+		return sendAskEditChoice(c)
 	case "bye":
 	default:
 		return c.Send("bad callback, try again or /quit")
@@ -562,7 +605,7 @@ func stateRecvEmojiChoice(c tele.Context) error {
 			return nil
 		}
 	} else {
-		emojis := getEmojis(c.Message().Text)
+		emojis := findEmojis(c.Message().Text)
 		if emojis == "" {
 			return c.Send("Send emoji or press button!")
 		}
@@ -580,7 +623,7 @@ func stateRecvEmojiChoice(c tele.Context) error {
 }
 
 func stateRecvEmojiAssign(c tele.Context) error {
-	emojis := getEmojis(c.Message().Text)
+	emojis := findEmojis(c.Message().Text)
 	if emojis == "" {
 		return c.Send("send emoji! try again or /quit")
 	}

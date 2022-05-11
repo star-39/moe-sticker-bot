@@ -71,7 +71,7 @@ func findLinkWithType(s string) (string, string) {
 	return link, host
 }
 
-func getEmojis(s string) string {
+func findEmojis(s string) string {
 	var eString string
 	gomojis := gomoji.FindAll(s)
 	for _, e := range gomojis {
