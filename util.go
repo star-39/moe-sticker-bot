@@ -35,6 +35,9 @@ func checkID(s string) bool {
 	if _, err := strconv.Atoi(s[:1]); err == nil {
 		return false
 	}
+	if strings.Contains(s, "__") {
+		return false
+	}
 
 	return true
 }

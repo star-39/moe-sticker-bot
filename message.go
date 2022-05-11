@@ -45,7 +45,7 @@ func sendAboutMessage(c tele.Context) {
 	c.Send(fmt.Sprintf(`
 @%s by @plow283
 <b>Please hit Star for this project on Github if you like this bot!
-如果您喜歡這個bot, 請在Github給本專案標Star喔!
+如果您喜歡這個bot, 歡迎Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
 Thank you @StickerGroup for feedbacks and advices!
 <code>
@@ -67,14 +67,25 @@ func sendFAQ(c tele.Context) {
 	c.Send(fmt.Sprintf(`
 @%s by @plow283
 <b>Please hit Star for this project on Github if you like this bot!
-如果您喜歡這個bot, 請在Github給本專案標Star喔!
+如果您喜歡這個bot, 歡迎在Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
-
+------------------------------------
 <b>Q: Why ID has suffix: _by_%s ?
 為甚麼ID的末尾有: _by_%s ?</b>
-
 A: It's forced by Telegra, bot created sticker set must have its name in ID suffix.
 因為這個是Telegram的強制要求, 由bot創造的貼圖ID末尾必須有bot名字.
+
+<b>Q:  Can I add video sticker to static sticker set or vice versa?
+    我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
+A:  Of course. Video will be static in static set
+    and static sticker will remain static in video set.
+    當然. 動態貼圖在靜態貼圖包裡會變成靜態, 靜態貼圖在動態貼圖包裡依然會是靜態.
+
+<b>Q:  Who owns the sticker sets the bot created?
+    BOT創造的貼圖包由誰所有?</b>
+A:  It's you of course.
+    You can manage them through /manage or Telegram's official @Stickers bot.
+    當然是您. 您可以通過 /manage 指令或者Telegram官方的 @Stickers 管理您的貼圖包.
 
 `, botName, botName, botName), tele.ModeHTML)
 }
@@ -163,10 +174,30 @@ func sendAskTitle(c tele.Context) {
 		"スタンプのタイトルを送信してください。")
 }
 
+func sendAskID(c tele.Context) error {
+	selector := &tele.ReplyMarkup{}
+	btnAuto := selector.Data("Auto Generate/自動生成", "auto")
+	selector.Inline(selector.Row(btnAuto))
+	return c.Send(
+		fmt.Sprintf(`
+Please set an ID for sticker set, used in share link.
+Can contain only english letters, digits and underscores.
+Must begin with a letter, can't contain consecutive underscores.
+請給此貼圖包設定一個ID, 用於分享連結.
+ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.",
+For example, share link below: 例如以下分享連結:<code>
+https://t.me/addstickers/LoveRinneForever_by_%s</code>
+<code>LoveRinneForever</code> part is the ID you will set.
+<code>LoveRinneForever</code> 部分便是您將要設定的ID.
+
+This is usually not important, it's recommended to press "Auto Generate" button.
+ID通常不重要, 建議您按下下方的"自動生成"按鈕.
+`, botName), selector, tele.ModeHTML)
+}
+
 func sendAskImportLink(c tele.Context) error {
-	return c.Send("Please send LINE store link of the sticker set\n" +
-		"請傳送貼圖包的LINE Store連結.\n" +
-		"スタンプのLINE Storeリンクを送信してください")
+	return c.Send("Please send LINE/kakao store link of the sticker set\n" +
+		"請傳送貼圖包的LINE/kakao Store連結.")
 }
 
 func sendNotifySExist(c tele.Context) bool {

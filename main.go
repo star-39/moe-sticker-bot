@@ -110,6 +110,8 @@ func handleMessage(c tele.Context) error {
 			err = stateRecvType(c)
 		case "recvTitle":
 			err = stateRecvTitle(c)
+		case "recvID":
+			err = recvID(c)
 		case "recvFile":
 			err = stateRecvFile(c)
 		case "recvEmoji":
@@ -453,8 +455,6 @@ func stateRecvType(c tele.Context) error {
 		users.data[c.Sender().ID].stickerData.isVideo = true
 	}
 
-	users.data[c.Sender().ID].stickerData.id = "sticker_" + secHex(4) + "_by_" + botName
-
 	sendAskTitle(c)
 	setState(c, "recvTitle")
 	return nil
@@ -574,15 +574,40 @@ func stateRecvTitle(c tele.Context) error {
 	}
 
 	if command != "import" {
-
-		sendAskStickerFile(c)
-		setState(c, "recvFile")
+		setState(c, "recvID")
+		sendAskID(c)
+		// sendAskStickerFile(c)
+		// setState(c, "recvFile")
 	} else {
 		sendAskEmoji(c)
 		setState(c, "recvEmoji")
 	}
 
 	return nil
+}
+
+func recvID(c tele.Context) error {
+	var id string
+	if c.Callback() != nil {
+		if c.Callback().Data == "auto" {
+			users.data[c.Sender().ID].stickerData.id = "sticker_" + secHex(4) + "_by_" + botName
+			goto NEXT
+		}
+	}
+
+	id = regexAlphanum.FindString(c.Message().Text)
+	if !checkID(id) {
+		return c.Send("Bad ID! try again or press Auto Generate. ID錯誤, 請試多一次或按下'自動生成'按鈕.")
+	}
+	if _, err := c.Bot().StickerSet(id); err == nil {
+		return c.Send("ID already occupied! try another one. ID已經被占用, 請試試另一個.")
+	}
+
+	users.data[c.Sender().ID].stickerData.id = id
+
+NEXT:
+	setState(c, "recvFile")
+	return sendAskStickerFile(c)
 }
 
 func stateRecvEmojiChoice(c tele.Context) error {
