@@ -63,6 +63,22 @@ BOT_VERSION: %s
 `, botName, botVersion), tele.ModeHTML)
 }
 
+func sendFAQ(c tele.Context) {
+	c.Send(fmt.Sprintf(`
+@%s by @plow283
+<b>Please hit Star for this project on Github if you like this bot!
+如果您喜歡這個bot, 請在Github給本專案標Star喔!
+https://github.com/star-39/moe-sticker-bot</b>
+
+<b>Q: Why ID has suffix: _by_%s ?
+為甚麼ID的末尾有: _by_%s ?</b>
+
+A: It's forced by Telegra, bot created sticker set must have its name in ID suffix.
+因為這個是Telegram的強制要求, 由bot創造的貼圖ID末尾必須有bot名字.
+
+`, botName, botName, botName), tele.ModeHTML)
+}
+
 func sendAskEmoji(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnRand := selector.Data("🌟Random", "random")

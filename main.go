@@ -45,7 +45,7 @@ func main() {
 	b.Handle("/exit", cmdQuit)
 	b.Handle("/help", cmdStart, checkState)
 	b.Handle("/about", cmdAbout, checkState)
-	b.Handle("/faq", cmdAbout, checkState)
+	b.Handle("/faq", cmdFAQ, checkState)
 	b.Handle("/import", cmdImport, checkState)
 	b.Handle("/download", cmdDownload, checkState)
 	b.Handle("/create", cmdCreate, checkState)
@@ -646,6 +646,11 @@ func cmdQuit(c tele.Context) error {
 
 func cmdAbout(c tele.Context) error {
 	sendAboutMessage(c)
+	return nil
+}
+
+func cmdFAQ(c tele.Context) error {
+	sendFAQ(c)
 	return nil
 }
 
