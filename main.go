@@ -91,7 +91,7 @@ func handleMessage(c tele.Context) error {
 		case "recvEmoji":
 			err = stateRecvEmojiChoice(c)
 		case "process":
-			err = c.Send("processing, please wait... /quit")
+			err = stateProcessing(c)
 		case "recvEmojiAssign":
 			err = stateRecvEmojiAssign(c)
 		}
@@ -102,7 +102,7 @@ func handleMessage(c tele.Context) error {
 		case "recvCbSChoice":
 			err = recvCbSChoice(c)
 		case "process":
-			err = c.Send("processing, please wait... /quit")
+			err = stateProcessing(c)
 		}
 	case "create":
 		switch state {
@@ -118,6 +118,8 @@ func handleMessage(c tele.Context) error {
 			err = stateRecvEmojiChoice(c)
 		case "recvEmojiAssign":
 			err = stateRecvEmojiAssign(c)
+		case "process":
+			err = stateProcessing(c)
 		}
 	case "manage":
 		switch state {
@@ -144,12 +146,21 @@ func handleMessage(c tele.Context) error {
 		case "recvCbDelset":
 			err = stateRecvCbDelset(c)
 		case "process":
-			err = c.Send("processing, please wait... /quit")
+			err = stateProcessing(c)
 		}
 	default:
 		err = c.Send("???")
 	}
 	return err
+}
+
+func stateProcessing(c tele.Context) error {
+	if c.Callback() != nil {
+		if c.Callback().Data == "bye" {
+			return cmdQuit(c)
+		}
+	}
+	return c.Send("processing, please wait... 作業中, 請稍後... /quit")
 }
 
 func recvSEmojiEdit(c tele.Context) error {
