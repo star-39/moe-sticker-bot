@@ -181,12 +181,12 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 		}
 		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		if errors.As(err, &floodErr) {
-			if createSet {
+			*flCount += 1
+			log.Warnln("Current flood limit count:", *flCount)
+			if createSet || *flCount > 4 {
 				sendTooManyFloodLimits(c)
 				return errors.New("too many flood limits")
 			}
-			*flCount += 1
-			log.Warnln("Current flood limit count:", *flCount)
 			// This Error is NASTY.
 			// It only happens to specific user at specific time.
 			// It is "fake" most of time, since TDLib in API Server will automatically retry.
