@@ -5,17 +5,6 @@ Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, �
 
 Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、スタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
 
-<!-- ![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png) 
-<img width="511" alt="スクリーンショット 2022-03-24 19 58 09" src="https://user-images.githubusercontent.com/75669297/159902095-fefbcbbf-1c5e-4c3e-9e55-eb28b48567e0.png"> -->
-
-<!--<img width="500" alt="スクリーンショット 2022-05-11 19 33 27" src="https://user-images.githubusercontent.com/75669297/167830628-1dfc9941-4b3c-408d-bf64-1ef814e3efe8.png"> <img width="500" alt="スクリーンショット 2022-05-11 19 51 46" src="https://user-images.githubusercontent.com/75669297/167833015-806b4f11-ecd9-4f10-9b9c-ecb7a20f8f97.png">-->
-
-<img width="500" alt="スクリーンショット 2022-05-11 19 58 52" src="https://user-images.githubusercontent.com/75669297/167834522-f1e988e8-bd24-44b1-a90c-f69791a9a623.png">
-
-<img width="500" alt="スクリーンショット 2022-05-11 19 59 46" src="https://user-images.githubusercontent.com/75669297/167834725-425a6b32-ba60-4201-b27e-33588ceff1df.png">
-
-<img width="500" alt="スクリーンショット 2022-05-11 20 00 16" src="https://user-images.githubusercontent.com/75669297/167834589-bbc80f8b-c6bc-43bb-aa33-44bbc800e5eb.png"> 
-
 ## Features
   * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
   * Batch download and convert Telegram stickers to original or common formats.
@@ -30,6 +19,20 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
   * 輕鬆使用自己的圖片,短片來創建自己的貼圖包.
   * 可以管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
   * 擁有超高處理速度, 節省您的時間. 
+
+## Screenshots
+[@moe_sticker_bot](https://t.me/moe_sticker_bot)
+<!-- ![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png) 
+<img width="511" alt="スクリーンショット 2022-03-24 19 58 09" src="https://user-images.githubusercontent.com/75669297/159902095-fefbcbbf-1c5e-4c3e-9e55-eb28b48567e0.png"> -->
+
+<!--<img width="500" alt="スクリーンショット 2022-05-11 19 33 27" src="https://user-images.githubusercontent.com/75669297/167830628-1dfc9941-4b3c-408d-bf64-1ef814e3efe8.png"> <img width="500" alt="スクリーンショット 2022-05-11 19 51 46" src="https://user-images.githubusercontent.com/75669297/167833015-806b4f11-ecd9-4f10-9b9c-ecb7a20f8f97.png">-->
+
+<img width="500" alt="スクリーンショット 2022-05-11 19 58 52" src="https://user-images.githubusercontent.com/75669297/167834522-f1e988e8-bd24-44b1-a90c-f69791a9a623.png">
+
+<img width="500" alt="スクリーンショット 2022-05-11 19 59 46" src="https://user-images.githubusercontent.com/75669297/167834725-425a6b32-ba60-4201-b27e-33588ceff1df.png">
+
+<img width="500" alt="スクリーンショット 2022-05-11 20 00 16" src="https://user-images.githubusercontent.com/75669297/167834589-bbc80f8b-c6bc-43bb-aa33-44bbc800e5eb.png"> 
+
 
 ## Deployment
 ### Deploy with pre-built containers
