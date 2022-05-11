@@ -117,11 +117,9 @@ func findEmojis(s string) string {
 func sanitizeCallback(next tele.HandlerFunc) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		log.Debug("Sanitizing callback data...")
-		log.Debugln("was:", hex.EncodeToString([]byte(c.Callback().Data)))
-
 		c.Callback().Data = regexAlphanum.FindString(c.Callback().Data)
 
-		log.Debugln("now:", hex.EncodeToString([]byte(c.Callback().Data)))
+		log.Debugln("now:", c.Callback().Data)
 		return next(c)
 	}
 }
@@ -186,4 +184,17 @@ func initLogrus() {
 	default:
 		log.SetLevel(log.TraceLevel)
 	}
+}
+
+func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
+	ss, err := c.Bot().StickerSet(id)
+	if err != nil {
+		return err
+	}
+	sd.title = ss.Title
+	sd.id = ss.Name
+	sd.link = "https://t.me/addstickers/" + ss.Name
+	sd.cAmount = len(ss.Stickers)
+	sd.isVideo = ss.Video
+	return nil
 }

@@ -94,8 +94,6 @@ func handleMessage(c tele.Context) error {
 			err = c.Send("processing, please wait... /quit")
 		case "recvEmojiAssign":
 			err = stateRecvEmojiAssign(c)
-		default:
-			err = c.Send("???")
 		}
 	case "download":
 		switch state {
@@ -105,8 +103,6 @@ func handleMessage(c tele.Context) error {
 			err = recvCbSChoice(c)
 		case "process":
 			err = c.Send("processing, please wait... /quit")
-		default:
-			err = c.Send("???")
 		}
 	case "create":
 		switch state {
@@ -120,8 +116,6 @@ func handleMessage(c tele.Context) error {
 			err = stateRecvEmojiChoice(c)
 		case "recvEmojiAssign":
 			err = stateRecvEmojiAssign(c)
-		default:
-			err = c.Send("???")
 		}
 	case "manage":
 		switch state {
@@ -150,11 +144,6 @@ func handleMessage(c tele.Context) error {
 		case "process":
 			err = c.Send("processing, please wait... /quit")
 		}
-	case "modify":
-		switch state {
-		default:
-			err = c.Send("???")
-		}
 	default:
 		err = c.Send("???")
 	}
@@ -178,6 +167,7 @@ func recvEmojiSEdit(c tele.Context) error {
 	log.Debug("Attempting edit emoji.")
 	ud := users.data[c.Sender().ID]
 	setState(c, "process")
+	c.Send("please wait...")
 	err := editStickerEmoji(c, ud)
 	if err != nil {
 		return err
@@ -232,7 +222,6 @@ func recvSMovTo(c tele.Context) error {
 }
 
 func cmdManage(c tele.Context) error {
-	log.Debugf("user %d entered manage with message: %s", c.Sender().ID, c.Message().Text)
 	err := sendUserOwnedS(c)
 	if err != nil {
 		return c.Send("Sorry you have not created any sticker set yet.")
@@ -259,12 +248,11 @@ func stateRecvSManage(c tele.Context) error {
 	if !matchUserS(c.Sender().ID, ud.stickerData.id) {
 		return c.Send("Not owned by you. try again or /quit")
 	}
-	ss, err := c.Bot().StickerSet(ud.stickerData.id)
+
+	err := retrieveSSDetails(c, ud.stickerData.id, ud.stickerData)
 	if err != nil {
-		return c.Send("set does not exist! try again or /quit")
+		return c.Send("sticker set wrong! try again or /quit")
 	}
-	ud.stickerData.cAmount = len(ss.Stickers)
-	ud.stickerData.isVideo = ss.Video
 
 	setState(c, "recvEditChoice")
 	return sendAskEditChoice(c)
@@ -312,8 +300,8 @@ func stateRecvSDel(c tele.Context) error {
 		return err
 	}
 	c.Send("Delete OK.")
-
-	if ud.stickerData.cAmount == 1 {
+	ud.stickerData.cAmount--
+	if ud.stickerData.cAmount == 0 {
 		deleteUserS(ud.stickerData.id)
 		terminateSession(c)
 		return nil
@@ -332,6 +320,7 @@ func stateRecvCbDelset(c tele.Context) error {
 		return nil
 	}
 	ud := users.data[c.Sender().ID]
+	setState(c, "process")
 	c.Send("please wait...")
 
 	ss, _ := c.Bot().StickerSet(ud.stickerData.id)
@@ -351,6 +340,7 @@ func handleNoState(c tele.Context) error {
 		ud := initUserData(c, "nostate", "recvCbSChoice")
 		ud.stickerData.sticker = c.Message().Sticker
 		ud.stickerData.id = c.Message().Sticker.SetName
+		ud.stickerData.isVideo = c.Message().Sticker.Video
 		if matchUserS(c.Sender().ID, c.Message().Sticker.SetName) {
 			return sendAskSChoice(c)
 		} else {
@@ -433,9 +423,14 @@ func recvCbSChoice(c tele.Context) error {
 		setState(c, "process")
 		err = downloadStickersToZip(ud.stickerData.sticker, true, c)
 	case "manage":
-		setCommand(c, "manage")
-		setState(c, "recvEditChoice")
-		return sendAskEditChoice(c)
+		err := retrieveSSDetails(c, ud.stickerData.id, ud.stickerData)
+		if err == nil || matchUserS(c.Sender().ID, ud.stickerData.id) {
+			setCommand(c, "manage")
+			setState(c, "recvEditChoice")
+			return sendAskEditChoice(c)
+		} else {
+			c.Send("Wrong stickter set?")
+		}
 	case "bye":
 	default:
 		return c.Send("bad callback, try again or /quit")
@@ -497,7 +492,6 @@ func cmdDownload(c tele.Context) error {
 }
 
 func stateRecvSticker(c tele.Context) error {
-	log.Debugf("User %d reacted to state: recvSticker", c.Sender().ID)
 	ud := users.data[c.Sender().ID]
 	var err error
 	link, tp := findLinkWithType(c.Message().Text)
