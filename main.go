@@ -424,7 +424,7 @@ func recvCbSChoice(c tele.Context) error {
 		err = downloadStickersToZip(ud.stickerData.sticker, true, c)
 	case "manage":
 		err := retrieveSSDetails(c, ud.stickerData.id, ud.stickerData)
-		if err == nil || matchUserS(c.Sender().ID, ud.stickerData.id) {
+		if err == nil && matchUserS(c.Sender().ID, ud.stickerData.id) {
 			setCommand(c, "manage")
 			setState(c, "recvEditChoice")
 			return sendAskEditChoice(c)
