@@ -1,9 +1,9 @@
 # [@moe_sticker_bot](https://t.me/moe_sticker_bot)
-A Telegram bot doing sticker stuffs, it imports LINE and kakaotalk sticker set to Telegram, downloads LINE and Telegram stickers, creates and manages Telegram sticker set. 
+A Telegram bot doing sticker stuffs, it imports LINE and kakaotalk sticker set to Telegram, downloads stickers, creates and manages Telegram sticker set. 
 
-Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, 可以下載LINE和telegram的貼圖包, 可以創建和管理Telegram貼圖包.
+Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, 可以下載貼圖包, 可以創建和管理Telegram貼圖包.
 
-Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、LINEとTelegramのスタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
+Telegram用萌え萌えのスタンプBOTです。LINEストアからスタンプをTelegramにインポートしたり、スタンプをダウンロードしたり、新しいTelegramステッカーセットを作ったり管理したり、色んなスタンプ関連機能があります。
 
 <!-- ![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png) -->
 <img width="511" alt="スクリーンショット 2022-03-24 19 58 09" src="https://user-images.githubusercontent.com/75669297/159902095-fefbcbbf-1c5e-4c3e-9e55-eb28b48567e0.png">
@@ -11,18 +11,18 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 > This project is undergoing a complete rewrite to golang due to python-telegram-bot's countless problems. No new python code will be commited. Completion date is unknown, probably before June. This python version will be re-branched after go version is published to master brach.
 
 ## Features
-  * Import LINE stickers to Telegram without effort, you can batch or separately assign emojis.
+  * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
   * Batch download and convert Telegram stickers to original or common formats.
   * Full support of video stickers.
   * Create your own sticker set with your own images easily.
-  * Manage your sticker set: add / remove sticker or the whole set.
+  * Manage your sticker set: add or remove sticker, change order, edit emoji.
   * Top class performance with simultaneous execution to save your time.
 
-  * 輕鬆匯入LINE貼圖包到Telegram, 可以統一或分開指定emoji.
+  * 輕鬆匯入LINE/kakao貼圖包到Telegram, 可以統一或分開指定emoji.
   * 下載Telegram貼圖包, 自動變換為常用格式, 並且保留原檔.
   * 完整支援動態貼圖.
   * 輕鬆使用自己的圖片,短片來創建自己的貼圖包.
-  * 可以管理自己的貼圖包: 可以新增/刪除貼圖或貼圖包.
+  * 可以管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
   * 擁有超高處理速度, 節省您的時間. 
 
 ## Deployment
@@ -53,7 +53,7 @@ dnf install git ImageMagick libwebp bsdtar curl ffmpeg go
 # For Debian / Ubuntu etc.
 apt install git imagemagick libarchive-tools curl ffmpeg go
 # For Arch
-pacman -S install ffmpeg imagemagick curl libarchive go
+pacman -S install git ffmpeg imagemagick curl libarchive go
 # For macOS
 brew install git imagemagick ffmpeg curl go
 
@@ -64,7 +64,7 @@ BOT_TOKEN=your_bot_token ./moe-sticker-bot
 #### Windows
 Please install scoop(https://scoop.sh) first, using Windows Powershell:
 ```
-scoop install ffmpeg imagemagick python go
+scoop install ffmpeg imagemagick go
 git clone https://github.com/star-39/moe-sticker-bot ; cd moe-sticker-bot
 go build
 $ENV:BOT_TOKEN=your_bot_token ; .\moe-sticker-bot
@@ -80,6 +80,13 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-6 GO(20220511)
+  * New feature: Change sticker order.
+  * New feature: Edit sticker emoji.
+  * New import support: kakaotalk emoticon.
+  * Fix possible panic when editMessage.
+  * We are closing to a stable release! RC should not exceed 8.
+
 1.0 RC-5 GO(20220510)
   * New feature: download raw line stickers to zip.
   * FatalError now prints stack trace.
