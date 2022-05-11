@@ -89,6 +89,12 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-7 GO(20220511)
+  * You can specify custom ID when /create.
+  * Changed import ID naming scheme for cleaner look.
+  * Die immediately if FloodLimit exceeds 4.
+  * If everything looks good, this should be the last RC for 1.0
+
 1.0 RC-6 GO(20220511)
   * New feature: Change sticker order.
   * New feature: Edit sticker emoji.
