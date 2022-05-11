@@ -62,7 +62,9 @@ func findLinkWithType(s string) (string, string) {
 	if host == "t.me" {
 		host = LINK_TG
 	} else if strings.HasSuffix(host, "line.me") {
-		host = LINK_LINE
+		host = LINK_IMPORT
+	} else if strings.HasSuffix(host, "e.kakao.com") {
+		host = LINK_IMPORT
 	}
 
 	log.Debugf("link parsed: link=%s, host=%s", link, host)

@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -13,7 +15,60 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func parseImportLink(link string, lineData *LineData) error {
+func parseImportLink(link string, ld *LineData) error {
+	u, err := url.Parse(link)
+	if err != nil {
+		return err
+	}
+	switch {
+	case strings.HasSuffix(u.Host, "line.me"):
+		ld.store = "line"
+		return parseLineLink(link, ld)
+	case strings.HasSuffix(u.Host, "kakao.com"):
+		ld.store = "kakao"
+		return parseKakaoLink(link, ld)
+	default:
+		return errors.New("unknow import")
+	}
+}
+
+func parseKakaoLink(link string, ld *LineData) error {
+	kakaoID := path.Base(link)
+	apiUrl := "https://e.kakao.com/api/v1/items/t/" + kakaoID
+	page, err := httpGet(apiUrl)
+	if err != nil {
+		return err
+	}
+
+	type KakaoJsonResult struct {
+		Title         string
+		ThumbnailUrls []string
+	}
+	type KakaoJson struct {
+		Result KakaoJsonResult
+	}
+
+	var kakaoJson KakaoJson
+	err = json.Unmarshal([]byte(page), &kakaoJson)
+	if err != nil {
+		log.Errorln("Failed json parsing kakao link!", err)
+		return err
+	}
+
+	log.Debugln("Parsed kakao link:", link)
+	log.Debugln(kakaoJson.Result)
+	t := kakaoJson.Result.Title
+	i := strings.ReplaceAll(kakaoID, "-", "_")
+
+	ld.dLinks = kakaoJson.Result.ThumbnailUrls
+	ld.title = t
+	ld.id = i
+	ld.link = link
+	ld.amount = len(ld.dLinks)
+	return nil
+}
+
+func parseLineLink(link string, ld *LineData) error {
 	page, err := httpGet(link)
 	if err != nil {
 		return err
@@ -73,16 +128,66 @@ func parseImportLink(link string, lineData *LineData) error {
 	} else {
 		return errors.New("unknown line store category")
 	}
-	if lineData == nil {
+	if ld == nil {
 		return nil
 	}
-	lineData.link = u
-	lineData.category = c
-	lineData.dLink = d
-	lineData.id = i
-	lineData.title = t
-	lineData.isAnimated = a
-	log.Debugln("line data parsed:", lineData)
+	ld.link = u
+	ld.category = c
+	ld.dLink = d
+	ld.id = i
+	ld.title = t
+	ld.isAnimated = a
+	log.Debugln("line data parsed:", ld)
+	return nil
+}
+
+func prepImportStickers(ud *UserData, needConvert bool) error {
+	switch ud.lineData.store {
+	case "line":
+		return prepLineStickers(ud, needConvert)
+	case "kakao":
+		return prepKakaoStickers(ud, needConvert)
+	}
+	return nil
+}
+
+func prepKakaoStickers(ud *UserData, needConvert bool) error {
+	ud.udWg.Add(1)
+	defer ud.udWg.Done()
+	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
+	ud.stickerData.title = ud.lineData.title + " @" + botName
+	ud.stickerData.link = "https://t.me/addstickers/" + ud.stickerData.id
+
+	workDir := filepath.Join(ud.userDir, ud.lineData.id)
+	os.MkdirAll(workDir, 0755)
+	for range ud.lineData.dLinks {
+		sf := &StickerFile{}
+		sf.wg.Add(1)
+		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
+		ud.stickerData.lAmount += 1
+	}
+	for i, l := range ud.lineData.dLinks {
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("prepKakaoStickers received ctxDone!")
+			return nil
+		default:
+		}
+		f := filepath.Join(workDir, path.Base(l))
+		err := httpDownload(l, f)
+		if err != nil {
+			return err
+		}
+		cf, _ := imToWebp(f)
+		ud.lineData.files = append(ud.lineData.files, f)
+		ud.stickerData.stickers[i].oPath = f
+		ud.stickerData.stickers[i].cPath = cf
+		ud.stickerData.stickers[i].wg.Done()
+
+		log.Debug("Done process one kakao emoticon")
+		log.Debugf("f:%s, cf:%s", f, cf)
+	}
+	log.Debug("Done process ALL kakao emoticons")
 	return nil
 }
 
@@ -170,7 +275,7 @@ func doConvert(ud *UserData) {
 		}
 		var err error
 		s.wg.Add(1)
-		// If lineS is animated, commit to worker pool,
+		// If lineS is animated, commit to worker pool
 		// since encoding vp9 is time and resource costy.
 		if ud.lineData.isAnimated {
 			wpConvertWebm.Invoke(s)

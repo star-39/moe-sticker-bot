@@ -28,6 +28,8 @@ var KAKAO_EMOTICON = "kakao_e"           //KAKAOTALK普通貼圖
 
 var LINK_TG = "t.me"
 var LINK_LINE = "line.me"
+var LINK_KAKAO = "kakao.com"
+var LINK_IMPORT = "IMPORT"
 
 var BSDTAR_BIN string
 var CONVERT_BIN string
@@ -67,8 +69,10 @@ type StickerData struct {
 }
 
 type LineData struct {
+	store      string
 	link       string
 	dLink      string
+	dLinks     []string
 	files      []string
 	category   string
 	id         string

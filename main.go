@@ -279,7 +279,7 @@ func handleNoState(c tele.Context) error {
 		ud := initUserData(c, "nostate", "recvCbSLinkD")
 		ud.stickerData.sticker = &ss.Stickers[0]
 		sendAskWantSDown(c)
-	case LINK_LINE:
+	case LINK_IMPORT:
 		ud := initUserData(c, "nostate", "recvCbImport")
 		if err := parseImportLink(link, ud.lineData); err != nil {
 			endSession(c)
@@ -319,7 +319,7 @@ func stateRecvCbImport(c tele.Context) error {
 		setCommand(c, "import")
 		setState(c, "recvTitle")
 		sendAskTitle_Import(c)
-		return prepLineStickers(users.data[c.Sender().ID], true)
+		return prepImportStickers(users.data[c.Sender().ID], true)
 	case "bye":
 		terminateSession(c)
 	}
@@ -422,13 +422,13 @@ func stateRecvSticker(c tele.Context) error {
 			return c.Send("bad link! try again or /quit")
 		}
 		err = downloadStickersToZip(&ss.Stickers[0], true, c)
-	case tp == LINK_LINE:
+	case tp == LINK_IMPORT:
 		c.Send("Please wait...")
 		err = parseImportLink(link, ud.lineData)
 		if err != nil {
 			return err
 		}
-		err = prepLineStickers(ud, false)
+		err = prepImportStickers(ud, false)
 		if err != nil {
 			return err
 		}
@@ -453,7 +453,7 @@ func cmdImport(c tele.Context) error {
 func stateRecvLink(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	link, tp := findLinkWithType(c.Message().Text)
-	if tp != LINK_LINE {
+	if tp != LINK_IMPORT {
 		return c.Send("invalid link! try again or /exit")
 	}
 
@@ -470,7 +470,7 @@ func stateRecvLink(c tele.Context) error {
 	setState(c, "recvTitle")
 	sendAskTitle_Import(c)
 
-	return prepLineStickers(users.data[c.Sender().ID], true)
+	return prepImportStickers(users.data[c.Sender().ID], true)
 }
 
 func stateRecvTitle(c tele.Context) error {
