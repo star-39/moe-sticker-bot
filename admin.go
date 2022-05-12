@@ -24,6 +24,7 @@ func sanitizeDatabase(c tele.Context) error {
 	status := 0
 	msg, _ := c.Bot().Send(c.Recipient(), "0")
 	ls := queryAllLineS()
+	log.Debugln(ls)
 	for i, l := range ls {
 		status++
 		log.Debugf("Scanning:%s", l.tg_id)
