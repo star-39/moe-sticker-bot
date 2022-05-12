@@ -374,7 +374,11 @@ func appendMedia(c tele.Context) error {
 		var cf string
 		var err error
 		if ud.stickerData.isVideo {
-			cf, err = ffToWebm(f)
+			if c.Message().Sticker != nil && c.Message().Sticker.Video {
+				cf = f
+			} else {
+				cf, err = ffToWebm(f)
+			}
 		} else {
 			cf, err = imToWebp(f)
 		}
