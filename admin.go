@@ -11,6 +11,9 @@ import (
 	tele "github.com/star-39/telebot"
 )
 
+// This command is to sanitize duplicated sticker in a set, or update its auto_emoji status.
+// You should not use this command unless you were using the python version before.
+// It takes forever to run for HUGE databases.
 func cmdSanitize(c tele.Context) error {
 	adminUID, _ := strconv.ParseInt(os.Getenv("ADMIN_UID"), 10, 64)
 	if adminUID != c.Sender().ID {
@@ -37,7 +40,7 @@ func sanitizeDatabase(c tele.Context) error {
 		for si, s := range ss.Stickers {
 			if si > 0 {
 				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
-					log.Debugln("Setting auto emoji to FALSE for ", l.tg_id)
+					log.Warnln("Setting auto emoji to FALSE for ", l.tg_id)
 					updateLineSAE(false, l.tg_id)
 				}
 			}
@@ -46,11 +49,12 @@ func sanitizeDatabase(c tele.Context) error {
 				fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webm")
 				f := filepath.Join(workdir, strconv.Itoa(si)+".webm")
 				c.Bot().Download(&s.File, f)
-				out, _ := exec.Command("compare", "-metric", "MAE", fp, f, "/dev/null").CombinedOutput()
+				out, _ := exec.Command("compare", "-metric", "MAE", fp+"[0]", f+"[0]", "/dev/null").CombinedOutput()
 				out2, _ := exec.Command("compare", "-metric", "MAE", fp+"[1]", f+"[1]", "/dev/null").CombinedOutput()
 				out3, _ := exec.Command("compare", "-metric", "MAE", fp+"[10]", f+"[10]", "/dev/null").CombinedOutput()
 				if strings.Contains(string(out), "0 (0)") && (string(out) == string(out2)) && (string(out) == string(out3)) {
 					c.Bot().DeleteSticker(s.FileID)
+					log.Warnf("Deleted on animated dup s!")
 					c.Send("Deleted on animated dup s from: https://t.me/addstickers/" + s.SetName + "  indexis: " + strconv.Itoa(si))
 				}
 				log.Debugf(string(out))
@@ -62,16 +66,14 @@ func sanitizeDatabase(c tele.Context) error {
 				log.Debugf(string(out))
 				if strings.Contains(string(out), "0 (0)") {
 					c.Bot().DeleteSticker(s.FileID)
+					log.Warnf("Deleted on animated dup s!")
 					c.Send("Deleted on dup s from: https://t.me/addstickers/" + s.SetName + "  indexis: " + strconv.Itoa(si))
 				}
 			}
 		}
 		os.RemoveAll(workdir)
 
-		if status == 50 {
-			status = 0
-			c.Bot().Edit(msg, strconv.Itoa(i))
-		}
+		go c.Bot().Edit(msg, strconv.Itoa(i))
 	}
 	c.Send("ALL SANITIZED!")
 	return nil

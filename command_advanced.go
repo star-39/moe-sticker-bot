@@ -41,7 +41,7 @@ func waitRegS(c tele.Context) error {
 		id = findLink(c.Message().Text)
 		id = path.Base(id)
 	}
-	if id == "" || !strings.HasSuffix(id, "_by_"+botName) || !strings.Contains(id, ud.lineData.id) {
+	if id == "" || !strings.HasSuffix(id, "_by_"+botName) {
 		return c.Send("Bad TG Sticker! Try again.")
 	}
 
@@ -74,8 +74,8 @@ INSERT_USER_S:
 	}
 	insertUserS(c.Sender().ID, id, ss.Title, time.Now().Unix())
 	c.Send("Insert to database OK!")
-	c.Send("Returning back to cmdRegister")
 
 RETURN:
+	c.Send("Returning back to cmdRegister")
 	return cmdRegister(c)
 }
