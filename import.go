@@ -195,7 +195,7 @@ func prepLineStickers(ud *UserData, needConvert bool) error {
 	defer ud.udWg.Done()
 	ud.stickerData.isVideo = ud.lineData.isAnimated
 
-	ud.stickerData.id = "line_" + ud.lineData.id + secNum(2) + "_by_" + botName
+	ud.stickerData.id = "line_" + ud.lineData.id + secNum(4) + "_by_" + botName
 	log.Debugf("Generated ID:%s", ud.stickerData.id)
 	ud.stickerData.title = ud.lineData.title + " @" + botName
 
