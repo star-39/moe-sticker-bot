@@ -45,7 +45,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			Title:  ud.stickerData.title,
 			Emojis: ud.stickerData.emojis[0],
 		}
-		go editProgressMsg(index, len(ud.stickerData.stickers), "", c)
+		go editProgressMsg(index, len(ud.stickerData.stickers), "", "", nil, c)
 		if index == 0 && createSet {
 			err = commitSticker(true, &flCount, false, sf, c, ss)
 			if err != nil {
@@ -82,7 +82,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
-	editProgressMsg(0, 0, "Success! /start", c)
+	editProgressMsg(0, 0, "Success! /start", "", nil, c)
 	sendSFromSS(c)
 	return nil
 }
@@ -292,7 +292,7 @@ func editStickerEmoji(c tele.Context, ud *UserData) error {
 	if e == "" {
 		return c.Send("Send emoji! try again or /quit")
 	}
-	workDir := ud.userDir
+	workDir := ud.workDir
 	os.MkdirAll(workDir, 0755)
 	f := filepath.Join(workDir, ud.stickerManage.pendingS.FileID)
 	ss, _ := c.Bot().StickerSet(ud.stickerData.id)
@@ -308,7 +308,7 @@ func editStickerEmoji(c tele.Context, ud *UserData) error {
 		return errors.New("unknow error when determining position")
 	}
 
-	f, _ = downloadSAndC(f, ud.stickerManage.pendingS, c)
+	f, _ = downloadSAndC(f, ud.stickerManage.pendingS, false, false, c)
 	sf := &StickerFile{
 		oPath: f,
 		cPath: f,
@@ -348,136 +348,6 @@ func editStickerEmoji(c tele.Context, ud *UserData) error {
 	return errors.New("error setting position after editing emoji")
 }
 
-func downloadSAndC(path string, s *tele.Sticker, c tele.Context) (string, string) {
-	var f string
-	var cf string
-	var err error
-	if s.Video {
-		f = path + ".webm"
-		err = c.Bot().Download(&s.File, f)
-		cf, _ = ffToGif(f)
-	} else if s.Animated {
-		f = path + ".tgs"
-		err = c.Bot().Download(&s.File, f)
-	} else {
-		f = path + ".webp"
-		err = c.Bot().Download(&s.File, f)
-		cf, _ = imToPng(f)
-
-	}
-	if err != nil {
-		return "", ""
-	}
-	return f, cf
-}
-
-func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error {
-	id := s.SetName
-	ud := users.data[c.Sender().ID]
-	ud.udWg.Add(1)
-	defer ud.udWg.Done()
-	workDir := filepath.Join(ud.userDir, id)
-	os.MkdirAll(workDir, 0755)
-	var flist []string
-	var cflist []string
-	var err error
-
-	if !wantSet {
-		_, cf := downloadSAndC(filepath.Join(workDir, id+"_"+s.Emoji), s, c)
-		log.Debugln("downloading:", cf)
-		if s.Video {
-			zip := filepath.Join(workDir, secHex(4)+".zip")
-			fCompress(zip, []string{cf})
-			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
-		} else {
-			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(cf), File: tele.FromDisk(cf)})
-		}
-		return err
-	}
-
-	ss, _ := c.Bot().StickerSet(id)
-	ud.stickerData.id = ss.Name
-	ud.stickerData.title = ss.Title
-	sendProcessStarted(c, "")
-	for index, s := range ss.Stickers {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("downloadStickersToZip received ctxDone!")
-			return nil
-		default:
-		}
-		go editProgressMsg(index, len(ss.Stickers), "", c)
-		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
-		f, cf := downloadSAndC(fName, &s, c)
-		if f == "" {
-			return errors.New("sticker download failed")
-		}
-		flist = append(flist, f)
-		if cf != "" {
-			cflist = append(cflist, cf)
-		}
-		log.Debugln("Download one sticker OK, path: ", f)
-	}
-	go editProgressMsg(0, 0, "Uploading...", c)
-
-	webmZipPath := filepath.Join(workDir, id+"_webm.zip")
-	webpZipPath := filepath.Join(workDir, id+"_webp.zip")
-	pngZipPath := filepath.Join(workDir, id+"_png.zip")
-	gifZipPath := filepath.Join(workDir, id+"_gif.zip")
-	tgsZipPath := filepath.Join(workDir, id+"_tgs.zip")
-
-	var zipPaths []string
-
-	if ss.Video {
-		zipPaths = append(zipPaths, fCompressVol(webmZipPath, flist)...)
-		zipPaths = append(zipPaths, fCompressVol(gifZipPath, cflist)...)
-	} else if ss.Animated {
-		zipPaths = append(zipPaths, fCompressVol(tgsZipPath, flist)...)
-	} else {
-		zipPaths = append(zipPaths, fCompressVol(webpZipPath, flist)...)
-		zipPaths = append(zipPaths, fCompressVol(pngZipPath, cflist)...)
-	}
-	for _, zipPath := range zipPaths {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("downloadStickersToZip received ctxDone!")
-			return nil
-		default:
-		}
-		_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zipPath), File: tele.FromDisk(zipPath)})
-		time.Sleep(1 * time.Second)
-		if err != nil {
-			return err
-		}
-	}
-
-	editProgressMsg(0, 0, "success! /start", c)
-	return nil
-}
-
-func downloadGifToZip(c tele.Context) error {
-	workDir := filepath.Join(users.data[c.Sender().ID].userDir, secHex(4))
-	os.MkdirAll(workDir, 0755)
-	f := filepath.Join(workDir, "gif.mp4")
-	err := c.Bot().Download(&c.Message().Animation.File, f)
-	cf, _ := ffToGif(f)
-	zip := secHex(4) + ".zip"
-	fCompress(zip, []string{cf})
-
-	c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
-
-	return err
-}
-
-func downloadLineSToZip(c tele.Context, ud *UserData) error {
-	workDir := filepath.Dir(ud.lineData.files[0])
-	zipName := ud.lineData.id + ".zip"
-	zipPath := filepath.Join(workDir, zipName)
-	fCompress(zipPath, ud.lineData.files)
-	_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: zipName, File: tele.FromDisk(zipPath)})
-	return err
-}
-
 // Accept telebot Media and Sticker only
 func appendMedia(c tele.Context) error {
 	log.Debugf("Received file, MType:%s, FileID:%s", c.Message().Media().MediaType(), c.Message().Media().MediaFile().FileID)
@@ -486,7 +356,7 @@ func appendMedia(c tele.Context) error {
 	ud.wg.Add(1)
 	defer ud.wg.Done()
 
-	workDir := users.data[c.Sender().ID].userDir
+	workDir := users.data[c.Sender().ID].workDir
 	savePath := filepath.Join(workDir, secHex(4))
 
 	err := c.Bot().Download(c.Message().Media().MediaFile(), savePath)

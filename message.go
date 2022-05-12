@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 	"time"
 
@@ -72,7 +71,7 @@ https://github.com/star-39/moe-sticker-bot</b>
 ------------------------------------
 <b>Q: Why ID has suffix: _by_%s ?
 為甚麼ID的末尾有: _by_%s ?</b>
-A: It's forced by Telegra, bot created sticker set must have its name in ID suffix.
+A: It's forced by Telegram, bot created sticker set must have its name in ID suffix.
 因為這個是Telegram的強制要求, 由bot創造的貼圖ID末尾必須有bot名字.
 
 <b>Q:  Can I add video sticker to static sticker set or vice versa?
@@ -295,10 +294,8 @@ func sendFatalError(err error, c tele.Context) {
 		errMsg += "\nThis is an internal error of Telegram server, we could do nothing but wait for its recover. Please try again later.\n" +
 			"此錯誤為Telegram伺服器之內部錯誤, 無法由bot解決, 只能等候官方修復. 建議您稍後再嘗試一次.\n"
 	}
-	errMsg += "\n" + escapeTagMark(string(debug.Stack()))
 	log.Error("User encountered fatal error!")
 	log.Errorln("Raw error:", err)
-	log.Errorln(errMsg)
 
 	c.Send("<b>Fatal error! Please try again. /start\n"+
 		"發生嚴重錯誤! 請您從頭再試一次. /start\n"+
@@ -307,7 +304,7 @@ func sendFatalError(err error, c tele.Context) {
 		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
 
-func sendProcessStarted(c tele.Context, optMsg string) error {
+func sendProcessStarted(c tele.Context, optMsg string) (string, *tele.Message, error) {
 	ud := users.data[c.Sender().ID]
 	message := fmt.Sprintf(`
 Preparing stickers, please wait...
@@ -331,27 +328,32 @@ TG Title:</code><a href="%s">%s</a>
 
 	teleMsg, err := c.Bot().Send(c.Recipient(), message, tele.ModeHTML)
 	ud.progressMsg = teleMsg
-	return err
+	return message, teleMsg, err
 }
 
-func editProgressMsg(cur int, total int, sp string, c tele.Context) error {
+func editProgressMsg(cur int, total int, sp string, originText string, teleMsg *tele.Message, c tele.Context) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error("editProgressMsg encountered panic! ignoring...")
 		}
 	}()
+
 	ud, exist := users.data[c.Sender().ID]
-	if !exist {
-		return nil
+	if teleMsg == nil {
+		if !exist {
+			return nil
+		}
+		select {
+		case <-ud.ctx.Done():
+			log.Warn("editProgressMsg received ctxDone!")
+			return nil
+		default:
+		}
+		originText = ud.progress
+		teleMsg = ud.progressMsg
 	}
-	select {
-	case <-ud.ctx.Done():
-		log.Warn("editProgressMsg received ctxDone!")
-		return nil
-	default:
-	}
-	origin := ud.progress
-	header := origin[:strings.LastIndex(origin, "<code>")]
+
+	header := originText[:strings.LastIndex(originText, "<code>")]
 	prog := ""
 
 	if sp != "" {
@@ -373,8 +375,8 @@ func editProgressMsg(cur int, total int, sp string, c tele.Context) error {
 		return nil
 	}
 SEND:
-	message := header + prog
-	c.Bot().Edit(ud.progressMsg, message, tele.ModeHTML)
+	messageText := header + prog
+	c.Bot().Edit(teleMsg, messageText, tele.ModeHTML)
 	return nil
 }
 
@@ -498,4 +500,26 @@ func sendFLWarning(c tele.Context) error {
 func sendTooManyFloodLimits(c tele.Context) error {
 	return c.Send("Sorry, you have triggered Telegram's flood limit for too many times, it's recommended try again after a while.\n" +
 		"抱歉, 您暫時超過了Telegram的貼圖製作次數限制, 建議您過一段時間後再試一次.")
+}
+
+func sendNoCbWarn(c tele.Context) error {
+	return c.Send("Please press a button! /quit\n請選擇按鈕!")
+}
+
+func sendBadIDWarn(c tele.Context) error {
+	return c.Send("Bad ID! try again or press Auto Generate. ID錯誤, 請試多一次或按下'自動生成'按鈕.")
+}
+
+func sendIDOccupiedWarn(c tele.Context) error {
+	return c.Send("ID already occupied! try another one. ID已經被占用, 請試試另一個.")
+}
+
+func sendBadImportLinkWarn(c tele.Context) error {
+	return c.Send("Invalid import link, make sure its a LINE Store link or kakao store link. Try again or /quit\n" +
+		"無效的連結, 請檢視是否為LINE貼圖商店的連結, 或是kakao emoticon的連結.")
+}
+
+func sendNotifySDOnBackground(c tele.Context) error {
+	return c.Send("Download has started on the background. It will notify you when done. You can continue to use other features of bot /start\n" +
+		"下載任務已開始在背景處理, 您可以繼續使用bot的其他功能. /start")
 }

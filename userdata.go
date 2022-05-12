@@ -4,17 +4,16 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	tele "github.com/star-39/telebot"
 )
 
-func forceCleanUserData(uid int64) bool {
+func cleanUserDataAndDir(uid int64) bool {
 	log.WithField("uid", uid).Debugln("Purging userdata...")
 	_, exist := users.data[uid]
 	if exist {
-		os.RemoveAll(users.data[uid].userDir)
+		os.RemoveAll(users.data[uid].workDir)
 		users.mu.Lock()
 		delete(users.data, uid)
 		users.mu.Unlock()
@@ -30,12 +29,10 @@ func cleanUserData(uid int64) bool {
 	log.WithField("uid", uid).Debugln("Purging userdata...")
 	_, exist := users.data[uid]
 	if exist {
-		os.RemoveAll(users.data[uid].userDir)
-		users.data[uid].command = ""
-		users.data[uid].state = ""
-		// DO NOT delete *UserData, may cause nil pointer hence fatalpanic!!!
-		// After workdir being removed, ongoing process shoud encounter fatal and quit.
-		log.WithField("uid", uid).Debugln("Userdata purged from map and disk.")
+		users.mu.Lock()
+		delete(users.data, uid)
+		users.mu.Unlock()
+		log.WithField("uid", uid).Debugln("Userdata purged from map.")
 		return true
 	} else {
 		log.WithField("uid", uid).Debugln("Userdata does not exist, do nothing.")
@@ -47,9 +44,12 @@ func initUserData(c tele.Context, command string, state string) *UserData {
 	uid := c.Sender().ID
 	users.mu.Lock()
 	ctx, cancel := context.WithCancel(context.Background())
+	sID := secHex(6)
 	users.data[uid] = &UserData{
-		state:         state,
-		userDir:       filepath.Join(dataDir, strconv.FormatInt(uid, 10)),
+		state:     state,
+		sessionID: sID,
+		// userDir:       filepath.Join(dataDir, strconv.FormatInt(uid, 10)),
+		workDir:       filepath.Join(dataDir, sID),
 		command:       command,
 		lineData:      &LineData{},
 		stickerData:   &StickerData{},
@@ -58,9 +58,9 @@ func initUserData(c tele.Context, command string, state string) *UserData {
 		cancel:        cancel,
 	}
 	users.mu.Unlock()
-	// Sanitize user work directory.
-	os.RemoveAll(users.data[uid].userDir)
-	os.MkdirAll(users.data[uid].userDir, 0755)
+	// Do not anitize user work directory.
+	// os.RemoveAll(users.data[uid].userDir)
+	os.MkdirAll(users.data[uid].workDir, 0755)
 	return users.data[uid]
 }
 

@@ -157,7 +157,7 @@ func prepKakaoStickers(ud *UserData, needConvert bool) error {
 	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
 	ud.stickerData.title = ud.lineData.title + " @" + botName
 
-	workDir := filepath.Join(ud.userDir, ud.lineData.id)
+	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
 	for range ud.lineData.dLinks {
 		sf := &StickerFile{}
@@ -201,7 +201,7 @@ func prepLineStickers(ud *UserData, needConvert bool) error {
 		return prepLineMessageS(ud)
 	}
 
-	workDir := filepath.Join(ud.userDir, ud.lineData.id)
+	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	savePath := filepath.Join(workDir, "line.zip")
 	os.MkdirAll(workDir, 0755)
 
@@ -288,7 +288,7 @@ func doConvert(ud *UserData) {
 }
 
 func prepLineMessageS(ud *UserData) error {
-	workDir := filepath.Join(ud.userDir, ud.lineData.id)
+	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
 
 	page, err := httpGet(ud.lineData.link)

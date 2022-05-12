@@ -194,7 +194,14 @@ func fCompressVol(f string, flist []string) []string {
 	}
 
 	for i, files := range zips {
-		zipBN := fmt.Sprintf("Vol%d_%s", i, basename)
+		var zipBN string
+		if len(files) == 1 {
+			zipBN = basename
+		} else {
+			zipBN = strings.TrimSuffix(basename, ".zip")
+			zipBN += fmt.Sprintf("_00%d.zip", i+1)
+		}
+
 		zipPath := filepath.Join(dir, zipBN)
 		err := fCompress(zipPath, files)
 		if err != nil {

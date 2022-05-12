@@ -5,14 +5,11 @@ import (
 	"encoding/hex"
 	mrand "math/rand"
 	"net/url"
-	"os"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/forPelevin/gomoji"
-	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
 	tele "github.com/star-39/telebot"
 	"mvdan.cc/xurls/v2"
@@ -92,40 +89,6 @@ func findEmojis(s string) string {
 	return eString
 }
 
-// func queryLinksByLineID(s string) []string {
-// 	_, ids, aes := queryLineS(s)
-// 	if ids == nil || aes == nil {
-// 		return nil
-// 	}
-// 	var links []string
-// 	for index, id := range ids {
-// 		if aes[index] {
-// 			links = append(links, "https://t.me/addstickers/"+id)
-// 		} else {
-// 			// append to top.
-// 			links = append([]string{"https://t.me/addstickers/" + id}, links...)
-// 		}
-// 	}
-// 	return links
-// }
-
-// func queryTitlesAndLinksByLineID(s string) ([]string, []string) {
-// 	titles, ids, aes := queryLineS(s)
-// 	if ids == nil || aes == nil {
-// 		return nil, nil
-// 	}
-// 	var links []string
-// 	for index, id := range ids {
-// 		if aes[index] {
-// 			links = append(links, "https://t.me/addstickers/"+id)
-// 		} else {
-// 			// append to top.
-// 			links = append([]string{"https://t.me/addstickers/" + id}, links...)
-// 		}
-// 	}
-// 	return titles, links
-// }
-
 func sanitizeCallback(next tele.HandlerFunc) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		log.Debug("Sanitizing callback data...")
@@ -144,68 +107,8 @@ func autoRespond(next tele.HandlerFunc) tele.HandlerFunc {
 	}
 }
 
-func initWorkspace(b *tele.Bot) {
-	botName = b.Me.Username
-	dataDir = botName + "_data"
-	users = Users{data: make(map[int64]*UserData)}
-	err := os.MkdirAll(dataDir, 0755)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	if os.Getenv("USE_DB") == "1" {
-		dbName := getEnv("DB_NAME", botName+"_db")
-		initDB(dbName)
-	} else {
-		log.Warn("Not using database because USE_DB is not set to 1.")
-	}
-
-	wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
-
-	if runtime.GOOS == "linux" {
-		BSDTAR_BIN = "bsdtar"
-		CONVERT_BIN = "convert"
-	} else {
-		BSDTAR_BIN = "tar"
-		CONVERT_BIN = "magick"
-		CONVERT_ARGS = []string{"convert"}
-	}
-}
-
 func escapeTagMark(s string) string {
 	s = strings.ReplaceAll(s, "<", "＜")
 	s = strings.ReplaceAll(s, ">", "＞")
 	return s
-}
-
-func initLogrus() {
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:            true,
-		DisableLevelTruncation: true,
-	})
-
-	level := os.Getenv("LOG_LEVEL")
-	switch level {
-	case "INFO":
-		log.SetLevel(log.InfoLevel)
-	case "WARNING":
-		log.SetLevel(log.WarnLevel)
-	case "ERROR":
-		log.SetLevel(log.ErrorLevel)
-	default:
-		log.SetLevel(log.TraceLevel)
-	}
-}
-
-func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
-	ss, err := c.Bot().StickerSet(id)
-	if err != nil {
-		return err
-	}
-	sd.title = ss.Title
-	sd.id = ss.Name
-	sd.cAmount = len(ss.Stickers)
-	sd.isVideo = ss.Video
-	return nil
 }

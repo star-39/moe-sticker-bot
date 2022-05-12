@@ -46,9 +46,9 @@ type StickerFile struct {
 	// path of original file
 	oPath string
 	// path of converted file
-	cPath   string
-	cError  error
-	onCloud bool
+	cPath  string
+	cError error
+	// onCloud bool
 }
 
 type StickerData struct {
@@ -59,9 +59,9 @@ type StickerData struct {
 	sticker  *tele.Sticker
 	stickers []*StickerFile
 	isVideo  bool
-	isTGS    bool
-	pos      int
-	upCount  int
+	// isTGS    bool
+	pos int
+	// upCount  int
 	// amount of local files
 	lAmount int
 	// amount on cloud
@@ -96,7 +96,9 @@ type UserData struct {
 	cancel context.CancelFunc
 
 	state         string
+	sessionID     string
 	userDir       string
+	workDir       string
 	command       string
 	progress      string
 	progressMsg   *tele.Message
