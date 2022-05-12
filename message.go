@@ -243,7 +243,7 @@ func sendInStateWarning(c tele.Context) error {
 }
 
 func sendNoStateWarning(c tele.Context) error {
-	return c.Send("Please use /start .")
+	return c.Send("Please use /start or send LINE/kakao/Telegram links or stickers.\n請使用 /start 或者傳送LINE/kakao/Telegram連結或貼圖.")
 }
 
 func sendAskSTypeToCreate(c tele.Context) error {
@@ -514,8 +514,11 @@ func sendIDOccupiedWarn(c tele.Context) error {
 }
 
 func sendBadImportLinkWarn(c tele.Context) error {
-	return c.Send("Invalid import link, make sure its a LINE Store link or kakao store link. Try again or /quit\n" +
-		"無效的連結, 請檢視是否為LINE貼圖商店的連結, 或是kakao emoticon的連結.")
+	return c.Send("Invalid import link, make sure its a LINE Store link or kakao store link. Try again or /quit\n"+
+		"無效的連結, 請檢視是否為LINE貼圖商店的連結, 或是kakao emoticon的連結.\n\n"+
+		"For example: 例如:\n"+
+		"<code>https://store.line.me/stickershop/product/7673/ja</code>\n"+
+		"<code>https://e.kakao.com/t/pretty-all-friends</code>", tele.ModeHTML)
 }
 
 func sendNotifySDOnBackground(c tele.Context) error {

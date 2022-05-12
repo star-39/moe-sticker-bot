@@ -26,7 +26,8 @@ func checkTitle(t string) bool {
 }
 
 func checkID(s string) bool {
-	if len(s) < 1 || len(s) > 63 {
+	maxL := 60 - len(botName)
+	if len(s) < 1 || len(s) > maxL {
 		return false
 	}
 	if _, err := strconv.Atoi(s[:1]); err == nil {
