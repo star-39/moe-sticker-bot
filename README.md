@@ -89,6 +89,12 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-9(20220512)
+  * Add an administrative command to _sanitize_ database, which purges duplicated stickers.
+  * Add an advanced command /register, to register your sticker to database.
+  * Minor bug fixes.
+  * This is the REAL final RC release, next one is stable!
+
 1.0 RC-8 GO(20220512)
   * Fix rand number in ID.
   * Major code refactor.
@@ -163,7 +169,7 @@ To deploy this feature. Set up mariadb-server and set the following env variable
   * Fix issue when line name has <> marks.
   * Fix issue adding video to static set.
   * Fix hang handling CallbackQuery.
-  * 
+
 5.0 RC-11 (20220303)
   * You can now delete a sticker set.
   * /manage_sticker_set will show sets you created.
