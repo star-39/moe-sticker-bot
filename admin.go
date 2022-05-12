@@ -41,10 +41,11 @@ func sanitizeDatabase(c tele.Context) error {
 					updateLineSAE(false, l.tg_id)
 				}
 			}
-			fp := filepath.Join(workdir, strconv.Itoa(si-1))
-			f := filepath.Join(workdir, strconv.Itoa(si))
-			c.Bot().Download(&s.File, f)
+
 			if ss.Video {
+				fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webm")
+				f := filepath.Join(workdir, strconv.Itoa(si)+".webm")
+				c.Bot().Download(&s.File, f)
 				out, _ := exec.Command("compare", "-metric", "MAE", fp, f, "/dev/null").CombinedOutput()
 				out2, _ := exec.Command("compare", "-metric", "MAE", fp+"[1]", f+"[1]", "/dev/null").CombinedOutput()
 				out3, _ := exec.Command("compare", "-metric", "MAE", fp+"[10]", f+"[10]", "/dev/null").CombinedOutput()
@@ -54,6 +55,9 @@ func sanitizeDatabase(c tele.Context) error {
 				}
 				log.Debugf(string(out))
 			} else {
+				fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
+				f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
+				c.Bot().Download(&s.File, f)
 				out, _ := exec.Command("compare", "-metric", "MAE", fp, f, "/dev/null").CombinedOutput()
 				log.Debugf(string(out))
 				if strings.Contains(string(out), "0 (0)") {
