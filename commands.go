@@ -13,7 +13,7 @@ func cmdCreate(c tele.Context) error {
 func cmdManage(c tele.Context) error {
 	err := sendUserOwnedS(c)
 	if err != nil {
-		return c.Send("Sorry you have not created any sticker set yet.")
+		return sendNoSToManage(c)
 	}
 
 	initUserData(c, "manage", "waitSManage")

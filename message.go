@@ -519,6 +519,11 @@ func sendBadImportLinkWarn(c tele.Context) error {
 }
 
 func sendNotifySDOnBackground(c tele.Context) error {
-	return c.Send("Download has started on the background. You can continue to use other features of bot /start\n" +
+	return c.Send("Download has been started on the background. You can continue using other features. /start\n" +
 		"下載任務已開始在背景處理, 您可以繼續使用bot的其他功能. /start")
+}
+
+func sendNoSToManage(c tele.Context) error {
+	return c.Send("Sorry, you have not created any sticker set yet. You can use /import or /create .\n" +
+		"抱歉, 您還未創建過貼圖包, 您可以使用 /create 或 /import .")
 }
