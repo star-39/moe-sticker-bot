@@ -51,6 +51,8 @@ func main() {
 	b.Handle("/create", cmdCreate, checkState)
 	b.Handle("/manage", cmdManage, checkState)
 
+	b.Handle("/register", cmdRegister, checkState)
+
 	b.Handle("/start", cmdStart, checkState)
 	// Handle contents.
 	b.Handle(tele.OnText, handleMessage)
@@ -147,6 +149,14 @@ func handleMessage(c tele.Context) error {
 			err = waitCbDelset(c)
 		case "process":
 			err = stateProcessing(c)
+		}
+
+	case "register":
+		switch state {
+		case "waitRegLineLink":
+			err = waitRegLineLink(c)
+		case "waitRegS":
+			err = waitRegS(c)
 		}
 	}
 	return err

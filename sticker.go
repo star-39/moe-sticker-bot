@@ -75,7 +75,6 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		log.Debugln("one sticker commited. count: ", committedStickers)
 	}
-
 	if createSet {
 		if ud.command == "import" {
 			insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, true)
