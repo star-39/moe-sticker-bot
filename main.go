@@ -222,22 +222,6 @@ func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
 	return nil
 }
 
-func purgeOutdatedUserDir(dataDir string) {
-	dirEntries, _ := os.ReadDir(dataDir)
-	var purgedDirs []string
-	for _, f := range dirEntries {
-		if !f.IsDir() {
-			continue
-		}
-		fInfo, _ := f.Info()
-		if fInfo.ModTime().Unix() < (time.Now().Unix() - 21600) {
-			os.RemoveAll(f.Name())
-			purgedDirs = append(purgedDirs, f.Name())
-		}
-	}
-	log.Infoln("Purged following outdated user dirs:", purgedDirs)
-}
-
 // This one never say goodbye.
 func endSession(c tele.Context) {
 	cleanUserDataAndDir(c.Sender().ID)

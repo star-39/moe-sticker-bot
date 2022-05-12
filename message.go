@@ -76,14 +76,13 @@ A: It's forced by Telegram, bot created sticker set must have its name in ID suf
 
 <b>Q:  Can I add video sticker to static sticker set or vice versa?
     我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
-A:  Of course. Video will be static in static set
+A:  Yes. Video will be static in static set
     and static sticker will remain static in video set.
     當然. 動態貼圖在靜態貼圖包裡會變成靜態, 靜態貼圖在動態貼圖包裡依然會是靜態.
 
 <b>Q:  Who owns the sticker sets the bot created?
     BOT創造的貼圖包由誰所有?</b>
-A:  It's you of course.
-    You can manage them through /manage or Telegram's official @Stickers bot.
+A:  It's you of course. You can manage them through /manage or Telegram's official @Stickers bot.
     當然是您. 您可以通過 /manage 指令或者Telegram官方的 @Stickers 管理您的貼圖包.
 
 `, botName, botName, botName), tele.ModeHTML)

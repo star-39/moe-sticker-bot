@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -210,19 +211,25 @@ func fCompressVol(f string, flist []string) []string {
 		zipPaths = append(zipPaths, zipPath)
 	}
 	return zipPaths
+}
 
-	// args := []string{"--strip-components", comps, "-avcf", f}
-	// // args := []string{"-avcf", f}
-	// args = append(args, flist...)
-
-	// log.Debugf("Compressing strip-comps:%s to file:%s for these files:%v", comps, f, flist)
-	// out, err := exec.Command(BSDTAR_BIN, args...).CombinedOutput()
-	// log.Debugln(string(out))
-	// if err != nil {
-	// 	log.Error("Compress error!")
-	// 	log.Errorln(string(out))
-	// }
-	// return err
+func purgeOutdatedUserDir(dataDir string) {
+	dirEntries, _ := os.ReadDir(dataDir)
+	var purgedDirs []string
+	for _, f := range dirEntries {
+		if !f.IsDir() {
+			continue
+		}
+		fInfo, _ := f.Info()
+		fMTime := fInfo.ModTime().Unix()
+		fPath := filepath.Join(dataDir, f.Name())
+		// 7 Days
+		if fMTime < (time.Now().Unix() - 604800) {
+			os.RemoveAll(fPath)
+			purgedDirs = append(purgedDirs, fPath)
+		}
+	}
+	log.Infoln("Purged following outdated user dirs:", purgedDirs)
 }
 
 func getEnv(env string, fallback string) string {
