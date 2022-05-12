@@ -14,9 +14,9 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
   * Top class performance with simultaneous execution to save your time.
 
   * 輕鬆匯入LINE/kakao貼圖包到Telegram, 可以統一或分開指定emoji.
-  * 下載Telegram貼圖包, 自動變換為常用格式, 並且保留原檔.
+  * 下載Telegram/LINE/kakao貼圖包, 自動變換為常用格式, 並且保留原檔.
   * 完整支援動態貼圖.
-  * 輕鬆使用自己的圖片,短片來創建自己的貼圖包.
+  * 輕鬆使用自己任意格式的圖片,短片來創建自己的貼圖包.
   * 可以管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
   * 擁有超高處理速度, 節省您的時間. 
 
@@ -89,6 +89,13 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.0 RC-8 GO(20220512)
+  * Fix rand number in ID.
+  * Major code refactor.
+  * Downlaod sticker now happens on background.
+  * Better documentation.
+  * This release should be the final RC... hopefully.
+
 1.0 RC-7 GO(20220511)
   * You can specify custom ID when /create.
   * Changed import ID naming scheme for cleaner look.
