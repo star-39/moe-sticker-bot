@@ -95,9 +95,9 @@ type UserData struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	state         string
-	sessionID     string
-	userDir       string
+	state     string
+	sessionID string
+	// userDir       string
 	workDir       string
 	command       string
 	progress      string

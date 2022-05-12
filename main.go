@@ -183,11 +183,11 @@ func initWorkspace(b *tele.Bot) {
 }
 
 func initUserDirGCTimer(dataDir string) {
-	ticker := time.NewTicker(6 * time.Hour)
+	ticker := time.NewTicker(48 * time.Hour)
 	for t := range ticker.C {
 		log.Infoln("UserDir GC Timter ticked at:", t)
 		log.Info("Purging outdated user dir...")
-		purgeOutdatedUserDir(dataDir)
+		purgeOutdatedUserData(dataDir)
 	}
 }
 
