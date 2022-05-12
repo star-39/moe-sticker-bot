@@ -74,23 +74,16 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	sendNotifySDOnBackground(c)
 	cleanUserData(c.Sender().ID)
 	for index, s := range ss.Stickers {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("downloadStickersToZip received ctxDone!")
-			return nil
-		default:
-		}
 		go editProgressMsg(index, len(ss.Stickers), "", pText, teleMsg, c)
 		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
 		f, cf := downloadSAndC(fName, &s, true, true, c)
-		if f == "" {
+		if f == "" || cf == "" {
 			return errors.New("sticker download failed")
 		}
 		flist = append(flist, f)
-		if cf != "" {
-			cflist = append(cflist, cf)
-		}
-		log.Debugln("Download one sticker OK, path: ", f)
+		cflist = append(cflist, cf)
+
+		log.Debugf("Download one sticker OK, path:%s cPath:%s", f, cf)
 	}
 	go editProgressMsg(0, 0, "Uploading...", pText, teleMsg, c)
 
@@ -119,7 +112,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 		}
 	}
 
-	editProgressMsg(0, 0, "success! /start", "", nil, c)
+	editProgressMsg(0, 0, "success! /start", pText, teleMsg, c)
 	return nil
 }
 

@@ -195,7 +195,7 @@ func fCompressVol(f string, flist []string) []string {
 
 	for i, files := range zips {
 		var zipBN string
-		if len(files) == 1 {
+		if len(zips) == 1 {
 			zipBN = basename
 		} else {
 			zipBN = strings.TrimSuffix(basename, ".zip")
