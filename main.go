@@ -111,7 +111,7 @@ func handleMessage(c tele.Context) error {
 		case "waitSTitle":
 			err = waitSTitle(c)
 		case "waitSID":
-			err = recvID(c)
+			err = waitSID(c)
 		case "waitSFile":
 			err = waitSFile(c)
 		case "waitEmojiChoice":

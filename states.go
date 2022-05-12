@@ -426,7 +426,7 @@ func waitSTitle(c tele.Context) error {
 	return nil
 }
 
-func recvID(c tele.Context) error {
+func waitSID(c tele.Context) error {
 	var id string
 	if c.Callback() != nil {
 		if c.Callback().Data == "auto" {
@@ -439,10 +439,10 @@ func recvID(c tele.Context) error {
 	if !checkID(id) {
 		return sendBadIDWarn(c)
 	}
+	id = id + "_by_" + botName
 	if _, err := c.Bot().StickerSet(id); err == nil {
 		return sendIDOccupiedWarn(c)
 	}
-
 	users.data[c.Sender().ID].stickerData.id = id
 
 NEXT:
