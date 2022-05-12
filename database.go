@@ -94,9 +94,6 @@ func queryLineS(id string) []*LineStickerQ {
 		return nil
 	}
 	var lines []*LineStickerQ
-	// var tgTitles []string
-	// var tgIDs []string
-	// var aEs []bool
 	var tgTitle string
 	var tgID string
 	var aE bool
@@ -117,16 +114,12 @@ func queryLineS(id string) []*LineStickerQ {
 			ae:       aE,
 		})
 		log.Debugf("Matched line record: id:%s | title:%s | ae:%v", tgID, tgTitle, aE)
-		// tgTitles = append(tgTitles, tgTitle)
-		// tgIDs = append(tgIDs, tgID)
-		// aEs = append(aEs, aE)
 	}
 	err := qs.Err()
 	if err != nil {
 		log.Errorln("error quering line db: ", id)
 		return nil
 	}
-
 	return lines
 }
 
@@ -214,4 +207,81 @@ func deleteUserS(tgID string) {
 		return
 	}
 	db.Exec("DELETE FROM stickers WHERE tg_id=?", tgID)
+}
+
+func queryAllUserS() []UserStickerQ {
+	var usq []UserStickerQ
+
+	var tgTitle string
+	var tgID string
+	var timestamp int64
+	qs, _ := db.Query("SELECT tg_title, tg_id, timestamp FROM stickers")
+	defer qs.Close()
+	for qs.Next() {
+		err := qs.Scan(&tgTitle, &tgID, &timestamp)
+		if err != nil {
+			return nil
+		}
+		// ignore empty entry
+		if tgID == "" {
+			continue
+		}
+		usq = append(usq, UserStickerQ{
+			tg_id:     tgID,
+			tg_title:  tgTitle,
+			timestamp: timestamp,
+		})
+	}
+	err := qs.Err()
+	if err != nil {
+		log.Errorln("error quering all user S")
+		return nil
+	}
+	return usq
+}
+
+func queryAllLineS() []LineStickerQ {
+	if db == nil {
+		return nil
+	}
+	var lines []LineStickerQ
+
+	var tgTitle string
+	var tgID string
+	var lineID string
+	var lineLink string
+	var aE bool
+	qs, _ := db.Query("SELECT tg_title, tg_id, line_id, line_link, auto_emoji FROM line")
+	defer qs.Close()
+	for qs.Next() {
+		err := qs.Scan(&tgTitle, &tgID, &lineID, &lineLink, &aE)
+		if err != nil {
+			return nil
+		}
+		// ignore empty entry
+		if tgID == "" {
+			continue
+		}
+		lines = append(lines, LineStickerQ{
+			tg_id:     tgID,
+			tg_title:  tgTitle,
+			line_id:   lineID,
+			line_link: lineLink,
+			ae:        aE,
+		})
+	}
+	err := qs.Err()
+	if err != nil {
+		log.Errorln("error quering line db all")
+		return nil
+	}
+	return lines
+}
+
+func updateLineSAE(ae bool, tgID string) error {
+	if db == nil {
+		return nil
+	}
+	_, err := db.Exec("UPDATE line SET auto_emoji=? WHERE tg_id=?", ae, tgID)
+	return err
 }

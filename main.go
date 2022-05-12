@@ -52,6 +52,7 @@ func main() {
 	b.Handle("/manage", cmdManage, checkState)
 
 	b.Handle("/register", cmdRegister, checkState)
+	b.Handle("/sanitize", cmdSanitize, checkState)
 
 	b.Handle("/start", cmdStart, checkState)
 	// Handle contents.

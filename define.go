@@ -36,9 +36,17 @@ var CONVERT_BIN string
 var CONVERT_ARGS []string
 
 type LineStickerQ struct {
-	tg_id    string
-	tg_title string
-	ae       bool
+	line_id   string
+	line_link string
+	tg_id     string
+	tg_title  string
+	ae        bool
+}
+
+type UserStickerQ struct {
+	tg_id     string
+	tg_title  string
+	timestamp int64
 }
 
 type StickerFile struct {
