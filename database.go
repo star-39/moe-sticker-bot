@@ -240,11 +240,11 @@ func queryAllUserS() []UserStickerQ {
 	return usq
 }
 
-func queryAllLineS() []LineStickerQ {
+func queryAllLineS() []*LineStickerQ {
 	if db == nil {
 		return nil
 	}
-	var lines []LineStickerQ
+	var lines []*LineStickerQ
 
 	var tgTitle string
 	var tgID string
@@ -256,13 +256,14 @@ func queryAllLineS() []LineStickerQ {
 	for qs.Next() {
 		err := qs.Scan(&tgTitle, &tgID, &lineID, &lineLink, &aE)
 		if err != nil {
+			log.Errorln("error scanning line db all", err)
 			return nil
 		}
 		// ignore empty entry
 		if tgID == "" {
 			continue
 		}
-		lines = append(lines, LineStickerQ{
+		lines = append(lines, &LineStickerQ{
 			tg_id:     tgID,
 			tg_title:  tgTitle,
 			line_id:   lineID,
