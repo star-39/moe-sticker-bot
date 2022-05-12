@@ -140,7 +140,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 		}
 		c.Send("Success! /start")
 		sendSFromSS(c)
-		terminateSession(c)
+		endSession(c)
 	} else {
 		sendAskEmojiAssign(c)
 	}
