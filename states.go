@@ -248,13 +248,13 @@ func waitCbImportChoice(c tele.Context) error {
 	if c.Callback() == nil {
 		return handleNoState(c)
 	}
-
+	ud := users.data[c.Sender().ID]
 	switch c.Callback().Data {
 	case "yes":
 		setCommand(c, "import")
 		setState(c, "waitSTitle")
 		sendAskTitle_Import(c)
-		return prepImportStickers(users.data[c.Sender().ID], true)
+		return prepImportStickers(ud, true)
 	case "bye":
 		terminateSession(c)
 	}
@@ -397,8 +397,8 @@ func waitImportLink(c tele.Context) error {
 
 	setState(c, "waitSTitle")
 	sendAskTitle_Import(c)
+	return prepImportStickers(ud, true)
 
-	return prepImportStickers(users.data[c.Sender().ID], true)
 }
 
 func waitSTitle(c tele.Context) error {
@@ -416,7 +416,8 @@ func waitSTitle(c tele.Context) error {
 	switch command {
 	case "import":
 		setState(c, "waitEmojiChoice")
-		sendAskEmoji(c)
+		return sendAskEmoji(c)
+		// return prepImportStickers(users.data[c.Sender().ID], true)
 	case "create":
 		setState(c, "waitSID")
 		sendAskID(c)

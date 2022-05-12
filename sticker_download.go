@@ -73,6 +73,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	pText, teleMsg, _ := sendProcessStarted(c, "")
 	sendNotifySDOnBackground(c)
 	cleanUserData(c.Sender().ID)
+	defer os.RemoveAll(workDir)
 	for index, s := range ss.Stickers {
 		go editProgressMsg(index, len(ss.Stickers), "", pText, teleMsg, c)
 		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))

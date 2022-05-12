@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/hex"
-	mrand "math/rand"
+	"math/big"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -48,7 +48,8 @@ func secHex(n int) string {
 func secNum(n int) string {
 	numbers := ""
 	for i := 0; i < n; i++ {
-		numbers += strconv.Itoa(mrand.Intn(10))
+		randInt, _ := rand.Int(rand.Reader, big.NewInt(10))
+		numbers += randInt.String()
 	}
 	return numbers
 }

@@ -154,13 +154,13 @@ func sendAskWhatToDownload(c tele.Context) error {
 		"請傳送想要下載的貼圖, 或者是貼圖包的分享連結(可以是Telegram或LINE連結).")
 }
 
-func sendAskTitle_Import(c tele.Context) {
+func sendAskTitle_Import(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnAuto := selector.Data("Auto", "autoTitle")
 	selector.Inline(selector.Row(btnAuto))
 	lineTitle := escapeTagMark(users.data[c.Sender().ID].lineData.title) + " @" + botName
 
-	c.Send("Please set a title for this sticker set. Press Auto button to set title from LINE Store as shown below:\n"+
+	return c.Send("Please set a title for this sticker set. Press Auto button to set title from LINE Store as shown below:\n"+
 		"請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中的標題如下:\n"+
 		"スタンプのタイトルを送信してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。\n\n"+
 		"<code>"+lineTitle+"</code>", selector, tele.ModeHTML)
