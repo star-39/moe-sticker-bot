@@ -158,6 +158,7 @@ func waitSDel(c tele.Context) error {
 	ud.stickerData.cAmount--
 	if ud.stickerData.cAmount == 0 {
 		deleteUserS(ud.stickerData.id)
+		deleteLineS(ud.stickerData.id)
 		terminateSession(c)
 		return nil
 	} else {
@@ -183,6 +184,7 @@ func waitCbDelset(c tele.Context) error {
 		c.Bot().DeleteSticker(s.FileID)
 	}
 	deleteUserS(ud.stickerData.id)
+	deleteLineS(ud.stickerData.id)
 	c.Send("Delete set OK. bye")
 	terminateSession(c)
 	return nil

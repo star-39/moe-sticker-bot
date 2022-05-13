@@ -387,17 +387,17 @@ func sendAskSToManage(c tele.Context) error {
 }
 
 func sendUserOwnedS(c tele.Context) error {
-	ids, titles, timestamps := queryUserS(c.Sender().ID)
-	if ids == nil {
+	usq := queryUserS(c.Sender().ID)
+	if usq == nil {
 		return errors.New("no sticker owned")
 	}
 
 	var entries []string
 
-	for i, id := range ids {
-		date := time.Unix(timestamps[i], 0).Format("2006-01-02 15:04")
-		title := strings.TrimSuffix(titles[i], " @"+botName)
-		entry := fmt.Sprintf(`<a href="https://t.me/addstickers/%s">%s</a>`, id, title)
+	for _, us := range usq {
+		date := time.Unix(us.timestamp, 0).Format("2006-01-02 15:04")
+		title := strings.TrimSuffix(us.tg_title, " @"+botName)
+		entry := fmt.Sprintf(`<a href="https://t.me/addstickers/%s">%s</a>`, us.tg_id, title)
 		entry += " | " + date
 		entries = append(entries, entry)
 	}

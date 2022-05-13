@@ -88,41 +88,6 @@ func createMariaDB(dbname string) error {
 	return nil
 }
 
-// return title, id, ae
-func queryLineS(id string) []*LineStickerQ {
-	if db == nil {
-		return nil
-	}
-	var lines []*LineStickerQ
-	var tgTitle string
-	var tgID string
-	var aE bool
-	qs, _ := db.Query("SELECT tg_title, tg_id, auto_emoji FROM line WHERE line_id=?", id)
-	defer qs.Close()
-	for qs.Next() {
-		err := qs.Scan(&tgTitle, &tgID, &aE)
-		if err != nil {
-			return nil
-		}
-		// ignore empty entry
-		if tgID == "" {
-			continue
-		}
-		lines = append(lines, &LineStickerQ{
-			tg_id:    tgID,
-			tg_title: tgTitle,
-			ae:       aE,
-		})
-		log.Debugf("Matched line record: id:%s | title:%s | ae:%v", tgID, tgTitle, aE)
-	}
-	err := qs.Err()
-	if err != nil {
-		log.Errorln("error quering line db: ", id)
-		return nil
-	}
-	return lines
-}
-
 func insertLineS(lineID string, lineLink string, tgID string, tgTitle string, aE bool) {
 	if db == nil {
 		return
@@ -135,7 +100,7 @@ func insertLineS(lineID string, lineLink string, tgID string, tgTitle string, aE
 		lineID, lineLink, tgID, tgTitle, aE)
 
 	if err != nil {
-		log.Warnln("Failed to insert line s:", lineID, lineLink)
+		log.Errorln("Failed to insert line s:", lineID, lineLink)
 	} else {
 		log.Infoln("Insert LineS OK ->", lineID, lineLink, tgID, tgTitle, aE)
 	}
@@ -153,44 +118,80 @@ func insertUserS(uid int64, tgID string, tgTitle string, timestamp int64) {
 		uid, tgID, tgTitle, timestamp)
 
 	if err != nil {
-		log.Warnln("Failed to insert user s:", tgID, tgTitle)
+		log.Errorln("Failed to insert user s:", tgID, tgTitle)
 	} else {
 		log.Infoln("Insert UserS OK ->", tgID, tgTitle, timestamp)
 	}
 }
 
-// tgIDs, tgTitles, timestamps
-func queryUserS(uid int64) ([]string, []string, []int64) {
+// Pass QUERY_ALL to select all rows.
+func queryLineS(id string) []LineStickerQ {
 	if db == nil {
-		return nil, nil, nil
+		return nil
 	}
-	var tgIDs []string
-	var tgTitles []string
-	var timestamps []int64
-	var tgID string
+	var qs *sql.Rows
+	var lines []LineStickerQ
 	var tgTitle string
-	var timestamp int64
-	qs, _ := db.Query("SELECT tg_id, tg_title, timestamp FROM stickers WHERE user_id=?", uid)
+	var tgID string
+	var aE bool
+	if id == "QUERY_ALL" {
+		qs, _ = db.Query("SELECT tg_title, tg_id, auto_emoji FROM line")
+	} else {
+		qs, _ = db.Query("SELECT tg_title, tg_id, auto_emoji FROM line WHERE line_id=?", id)
+	}
 	defer qs.Close()
 	for qs.Next() {
-		err := qs.Scan(&tgID, &tgTitle, &timestamp)
+		err := qs.Scan(&tgTitle, &tgID, &aE)
 		if err != nil {
-			return nil, nil, nil
+			return nil
 		}
-		// ignore empty entry
-		if tgID == "" {
-			continue
-		}
-		tgIDs = append(tgIDs, tgID)
-		tgTitles = append(tgTitles, tgTitle)
-		timestamps = append(timestamps, timestamp)
+		lines = append(lines, LineStickerQ{
+			tg_id:    tgID,
+			tg_title: tgTitle,
+			ae:       aE,
+		})
+		log.Debugf("Matched line record: id:%s | title:%s | ae:%v", tgID, tgTitle, aE)
 	}
 	err := qs.Err()
 	if err != nil {
-		log.Debugln("No userS match?")
-		return nil, nil, nil
+		log.Errorln("error quering line db: ", id)
+		return nil
 	}
-	return tgIDs, tgTitles, timestamps
+	return lines
+}
+
+// Pass -1 to query all rows.
+func queryUserS(uid int64) []UserStickerQ {
+	var usq []UserStickerQ
+	var q *sql.Rows
+	var tgTitle string
+	var tgID string
+	var timestamp int64
+
+	if uid == -1 {
+		q, _ = db.Query("SELECT tg_title, tg_id, timestamp FROM stickers")
+	} else {
+		q, _ = db.Query("SELECT tg_title, tg_id, timestamp FROM stickers WHERE user_id=?", uid)
+	}
+	defer q.Close()
+	for q.Next() {
+		err := q.Scan(&tgTitle, &tgID, &timestamp)
+		if err != nil {
+			log.Errorln("error scanning user db all", err)
+			return nil
+		}
+		usq = append(usq, UserStickerQ{
+			tg_id:     tgID,
+			tg_title:  tgTitle,
+			timestamp: timestamp,
+		})
+	}
+	err := q.Err()
+	if err != nil {
+		log.Errorln("error quering all user S")
+		return nil
+	}
+	return usq
 }
 
 func matchUserS(uid int64, id string) bool {
@@ -206,78 +207,96 @@ func deleteUserS(tgID string) {
 	if db == nil {
 		return
 	}
-	db.Exec("DELETE FROM stickers WHERE tg_id=?", tgID)
-}
-
-func queryAllUserS() []UserStickerQ {
-	var usq []UserStickerQ
-
-	var tgTitle string
-	var tgID string
-	var timestamp int64
-	qs, _ := db.Query("SELECT tg_title, tg_id, timestamp FROM stickers")
-	defer qs.Close()
-	for qs.Next() {
-		err := qs.Scan(&tgTitle, &tgID, &timestamp)
-		if err != nil {
-			return nil
-		}
-		// ignore empty entry
-		if tgID == "" {
-			continue
-		}
-		usq = append(usq, UserStickerQ{
-			tg_id:     tgID,
-			tg_title:  tgTitle,
-			timestamp: timestamp,
-		})
-	}
-	err := qs.Err()
+	_, err := db.Exec("DELETE FROM stickers WHERE tg_id=?", tgID)
 	if err != nil {
-		log.Errorln("error quering all user S")
-		return nil
+		log.Errorln("Delete user s err:", err)
+	} else {
+		log.Infoln("Deleted from database for user sticker:", tgID)
 	}
-	return usq
 }
 
-func queryAllLineS() []*LineStickerQ {
+func deleteLineS(tgID string) {
 	if db == nil {
-		return nil
+		return
 	}
-	var lines []*LineStickerQ
-
-	var tgTitle string
-	var tgID string
-	var lineID string
-	var lineLink string
-	var aE bool
-	qs, _ := db.Query("SELECT tg_title, tg_id, line_id, line_link, auto_emoji FROM line")
-	defer qs.Close()
-	for qs.Next() {
-		err := qs.Scan(&tgTitle, &tgID, &lineID, &lineLink, &aE)
-		if err != nil {
-			log.Errorln("error scanning line db all", err)
-			return nil
-		}
-		// ignore empty entry
-		if tgID == "" {
-			continue
-		}
-		lines = append(lines, &LineStickerQ{
-			tg_id:     tgID,
-			tg_title:  tgTitle,
-			line_id:   lineID,
-			line_link: lineLink,
-			ae:        aE,
-		})
-	}
-	err := qs.Err()
+	_, err := db.Exec("DELETE FROM line WHERE tg_id=?", tgID)
 	if err != nil {
-		log.Errorln("error quering line db all")
-		return nil
+		log.Errorln("Delete line s err:", err)
+	} else {
+		log.Infoln("Deleted from database for line sticker:", tgID)
 	}
-	return lines
 }
+
+// func queryAllUserS() []*UserStickerQ {
+// 	var usq []*UserStickerQ
+
+// 	var tgTitle string
+// 	var tgID string
+// 	var timestamp int64
+// 	qs, _ := db.Query("SELECT tg_title, tg_id, timestamp FROM stickers")
+// 	defer qs.Close()
+// 	for qs.Next() {
+// 		err := qs.Scan(&tgTitle, &tgID, &timestamp)
+// 		if err != nil {
+// 			log.Errorln("error scanning user db all", err)
+// 			return nil
+// 		}
+// 		// ignore empty entry
+// 		if tgID == "" {
+// 			continue
+// 		}
+// 		usq = append(usq, &UserStickerQ{
+// 			tg_id:     tgID,
+// 			tg_title:  tgTitle,
+// 			timestamp: timestamp,
+// 		})
+// 	}
+// 	err := qs.Err()
+// 	if err != nil {
+// 		log.Errorln("error quering all user S")
+// 		return nil
+// 	}
+// 	return usq
+// }
+
+// func queryAllLineS() []LineStickerQ {
+// 	if db == nil {
+// 		return nil
+// 	}
+// 	var lines []LineStickerQ
+
+// 	var tgTitle string
+// 	var tgID string
+// 	var lineID string
+// 	var lineLink string
+// 	var aE bool
+// 	qs, _ := db.Query("SELECT tg_title, tg_id, line_id, line_link, auto_emoji FROM line")
+// 	defer qs.Close()
+// 	for qs.Next() {
+// 		err := qs.Scan(&tgTitle, &tgID, &lineID, &lineLink, &aE)
+// 		if err != nil {
+// 			log.Errorln("error scanning line db all", err)
+// 			return nil
+// 		}
+// 		// ignore empty entry
+// 		if tgID == "" {
+// 			continue
+// 		}
+// 		lines = append(lines, LineStickerQ{
+// 			tg_id:     tgID,
+// 			tg_title:  tgTitle,
+// 			line_id:   lineID,
+// 			line_link: lineLink,
+// 			ae:        aE,
+// 		})
+// 	}
+// 	err := qs.Err()
+// 	if err != nil {
+// 		log.Errorln("error quering line db all")
+// 		return nil
+// 	}
+// 	return lines
+// }
 
 func updateLineSAE(ae bool, tgID string) error {
 	if db == nil {

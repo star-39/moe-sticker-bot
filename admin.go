@@ -20,19 +20,78 @@ func cmdSanitize(c tele.Context) error {
 		return c.Send("Admin only command. /start")
 	}
 
-	return sanitizeDatabase(c)
+	msgText := c.Message().Text
+	args := strings.Split(msgText, " ")
+	if len(args) <= 1 {
+		return c.Send("Missing subcommand! invalid / dup / all / ae")
+	}
+	switch args[1] {
+	case "invalid":
+		sanitizeInvalidSSinDB(c)
+	default:
+		sanitizeDatabase(c)
+	}
+	return nil
+}
+
+func sanitizeInvalidSSinDB(c tele.Context) error {
+	msg, _ := c.Bot().Send(c.Recipient(), "0")
+	ls := queryLineS("QUERY_ALL")
+	log.Infoln(ls)
+	for i, l := range ls {
+		log.Infof("Checking:%s", l.tg_id)
+		_, err := c.Bot().StickerSet(l.tg_id)
+		if err != nil {
+			if strings.Contains(err.Error(), "is invalid") {
+				log.Warnf("SS:%s is invalid. purging it from db...", l.tg_id)
+				go c.Send("purging: https://t.me/addstickers/" + l.tg_id)
+				deleteLineS(l.tg_id)
+				deleteUserS(l.tg_id)
+			} else {
+				go c.Send("Unknow error? " + err.Error())
+				log.Errorln(err)
+			}
+		}
+		go c.Bot().Edit(msg, "line sanitize invalid: "+strconv.Itoa(i))
+	}
+	us := queryUserS(-1)
+	log.Infoln(us)
+	for i, u := range us {
+		log.Infof("Checking:%s", u.tg_id)
+		_, err := c.Bot().StickerSet(u.tg_id)
+		if err != nil {
+			if strings.Contains(err.Error(), "is invalid") {
+				log.Warnf("SS:%s is invalid. purging it from db...", u.tg_id)
+				go c.Send("purging: https://t.me/addstickers/" + u.tg_id)
+				deleteUserS(u.tg_id)
+			} else {
+				go c.Send("Unknow error? " + err.Error())
+				log.Errorln(err)
+			}
+		}
+		go c.Bot().Edit(msg, "user S sanitize invalid: "+strconv.Itoa(i))
+	}
+	c.Send("Sanitize invalid done!")
+	return nil
 }
 
 func sanitizeDatabase(c tele.Context) error {
-	status := 0
 	msg, _ := c.Bot().Send(c.Recipient(), "0")
-	ls := queryAllLineS()
-	log.Debugln(ls)
+	ls := queryLineS("QUERY_ALL")
+	log.Infoln(ls)
 	for i, l := range ls {
-		status++
 		log.Debugf("Scanning:%s", l.tg_id)
 		ss, err := c.Bot().StickerSet(l.tg_id)
 		if err != nil {
+			if strings.Contains(err.Error(), "is invalid") {
+				log.Infof("SS:%s is invalid. purging it from db...", l.tg_id)
+				go c.Send("purging: https://t.me/addstickers/" + l.tg_id)
+				deleteLineS(l.tg_id)
+				deleteUserS(l.tg_id)
+			} else {
+				c.Send("Unknow error? " + err.Error())
+				log.Errorln(err)
+			}
 			continue
 		}
 		workdir := filepath.Join(dataDir, secHex(8))
@@ -73,7 +132,7 @@ func sanitizeDatabase(c tele.Context) error {
 		}
 		os.RemoveAll(workdir)
 
-		go c.Bot().Edit(msg, strconv.Itoa(i))
+		go c.Bot().Edit(msg, "line s sanitize all: "+strconv.Itoa(i))
 	}
 	c.Send("ALL SANITIZED!")
 	return nil

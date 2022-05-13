@@ -10,7 +10,7 @@ import (
 )
 
 func cmdRegister(c tele.Context) error {
-	c.Send("Entering advanced command: register.")
+	c.Send("Entering advanced command: register. You can use register your line sticker set to bot's database.")
 	c.Send("Use with care, if you are not sure, send /quit .")
 
 	initUserData(c, "register", "waitRegLineLink")
@@ -65,9 +65,9 @@ func waitRegS(c tele.Context) error {
 	insertLineS(ud.lineData.id, ud.lineData.link, id, ss.Title, ae)
 
 INSERT_USER_S:
-	qIDs, _, _ := queryUserS(c.Sender().ID)
-	for _, qID := range qIDs {
-		if qID == id {
+	usq := queryUserS(c.Sender().ID)
+	for _, us := range usq {
+		if us.tg_id == id {
 			c.Send("Already exists in user db! try another one")
 			goto RETURN
 		}
