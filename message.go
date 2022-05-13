@@ -225,12 +225,20 @@ func sendNotifySExist(c tele.Context) bool {
 }
 
 func sendAskStickerFile(c tele.Context) error {
-	return c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
+	c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
 		"or send an archive containing image files,\n" +
 		"wait until upload complete, then send a # mark.\n\n" +
 		"請傳送任意格式的圖片/照片/貼圖(少於120張)\n" +
 		"或者傳送內有貼圖檔案的歸檔,\n" +
 		"請等候所有檔案上載完成, 然後傳送 # 記號\n")
+
+	if users.data[c.Sender().ID].stickerData.isVideo {
+		c.Send("Special note: Sending GIF with transparent background will be converted to MP4 by Telegram client, losing transparent layer.\n" +
+			"To bypass this force conversion, you can compress your GIF into a ZIP file, then send it to bot.\n" +
+			"特別提示: 傳送帶有透明背景的GIF動圖會被Telegram客戶端強制轉換為MP4並且丟失透明層.\n" +
+			"您可以將貼圖放入ZIP歸檔中再傳送給bot來繞過這個限制.")
+	}
+	return nil
 }
 
 func sendInStateWarning(c tele.Context) error {
