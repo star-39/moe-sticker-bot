@@ -30,7 +30,7 @@ func cmdSanitize(c tele.Context) error {
 	case "invalid":
 		sanitizeInvalidSSinDB(startIndex, c)
 	default:
-		sanitizeDatabase(c)
+		sanitizeDatabase(startIndex, c)
 	}
 	return nil
 }
@@ -79,11 +79,14 @@ func sanitizeInvalidSSinDB(startIndex int, c tele.Context) error {
 	return nil
 }
 
-func sanitizeDatabase(c tele.Context) error {
+func sanitizeDatabase(startIndex int, c tele.Context) error {
 	msg, _ := c.Bot().Send(c.Recipient(), "0")
 	ls := queryLineS("QUERY_ALL")
 	log.Infoln(ls)
 	for i, l := range ls {
+		if i < startIndex {
+			continue
+		}
 		log.Debugf("Scanning:%s", l.tg_id)
 		ss, err := c.Bot().StickerSet(l.tg_id)
 		if err != nil {
@@ -113,8 +116,8 @@ func sanitizeDatabase(c tele.Context) error {
 				f := filepath.Join(workdir, strconv.Itoa(si)+".webm")
 				c.Bot().Download(&s.File, f)
 				out, _ := exec.Command("compare", "-metric", "MAE", fp+"[0]", f+"[0]", "/dev/null").CombinedOutput()
-				out2, _ := exec.Command("compare", "-metric", "MAE", fp+"[1]", f+"[1]", "/dev/null").CombinedOutput()
-				out3, _ := exec.Command("compare", "-metric", "MAE", fp+"[10]", f+"[10]", "/dev/null").CombinedOutput()
+				out2, _ := exec.Command("compare", "-metric", "MAE", fp+"[-1]", f+"[-1]", "/dev/null").CombinedOutput()
+				out3, _ := exec.Command("compare", "-metric", "MAE", fp+"[15]", f+"[15]", "/dev/null").CombinedOutput()
 				if strings.Contains(string(out), "0 (0)") && (string(out) == string(out2)) && (string(out) == string(out3)) {
 					c.Bot().DeleteSticker(s.FileID)
 					log.Warnf("Deleted on animated dup s!")
