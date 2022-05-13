@@ -25,20 +25,24 @@ func cmdSanitize(c tele.Context) error {
 	if len(args) <= 1 {
 		return c.Send("Missing subcommand! invalid / dup / all / ae")
 	}
+	startIndex, _ := strconv.Atoi(args[2])
 	switch args[1] {
 	case "invalid":
-		sanitizeInvalidSSinDB(c)
+		sanitizeInvalidSSinDB(startIndex, c)
 	default:
 		sanitizeDatabase(c)
 	}
 	return nil
 }
 
-func sanitizeInvalidSSinDB(c tele.Context) error {
+func sanitizeInvalidSSinDB(startIndex int, c tele.Context) error {
 	msg, _ := c.Bot().Send(c.Recipient(), "0")
 	ls := queryLineS("QUERY_ALL")
 	log.Infoln(ls)
 	for i, l := range ls {
+		if i < startIndex {
+			continue
+		}
 		log.Infof("Checking:%s", l.tg_id)
 		_, err := c.Bot().StickerSet(l.tg_id)
 		if err != nil {
