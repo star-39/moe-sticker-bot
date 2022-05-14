@@ -136,7 +136,7 @@ func lottieToGIF(f string) (string, error) {
 	bin := "lottie_convert.py"
 
 	fOut := f + ".gif"
-	args := []string{f, fOut}
+	args := []string{"--width", "256", "--height", "256", f, fOut}
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {

@@ -177,7 +177,7 @@ func fCompressVol(f string, flist []string) []string {
 	for _, f := range flist {
 		st, err := os.Stat(f)
 		if err != nil {
-			return nil
+			continue
 		}
 		fSize := st.Size()
 		if curSize == 0 {

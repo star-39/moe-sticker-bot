@@ -60,7 +60,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	if !wantSet {
 		_, cf := downloadSAndC(filepath.Join(workDir, id+"_"+s.Emoji), s, true, false, c)
 		log.Debugln("downloading:", cf)
-		if s.Video {
+		if s.Video || s.Animated {
 			zip := filepath.Join(workDir, secHex(4)+".zip")
 			fCompress(zip, []string{cf})
 			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
