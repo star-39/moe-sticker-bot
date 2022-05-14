@@ -78,7 +78,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 		go editProgressMsg(index, len(ss.Stickers), "", pText, teleMsg, c)
 		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
 		f, cf := downloadSAndC(fName, &s, true, true, c)
-		if f == "" || cf == "" {
+		if f == "" {
 			return errors.New("sticker download failed")
 		}
 		flist = append(flist, f)
