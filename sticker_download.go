@@ -28,6 +28,9 @@ func downloadSAndC(path string, s *tele.Sticker, needConvert bool, shrinkGif boo
 	} else if s.Animated {
 		f = path + ".tgs"
 		err = c.Bot().Download(&s.File, f)
+		if needConvert {
+			cf, _ = lottieToGIF(f)
+		}
 	} else {
 		f = path + ".webp"
 		err = c.Bot().Download(&s.File, f)
@@ -101,6 +104,7 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 		zipPaths = append(zipPaths, fCompressVol(gifZipPath, cflist)...)
 	} else if ss.Animated {
 		zipPaths = append(zipPaths, fCompressVol(tgsZipPath, flist)...)
+		zipPaths = append(zipPaths, fCompressVol(gifZipPath, cflist)...)
 	} else {
 		zipPaths = append(zipPaths, fCompressVol(webpZipPath, flist)...)
 		zipPaths = append(zipPaths, fCompressVol(pngZipPath, cflist)...)

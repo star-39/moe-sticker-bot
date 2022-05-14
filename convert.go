@@ -131,3 +131,18 @@ func imStackToWebp(base string, overlay string) (string, error) {
 		return fOut, nil
 	}
 }
+
+func lottieToGIF(f string) (string, error) {
+	bin := "lottie_convert.py"
+
+	fOut := f + ".gif"
+	args := []string{f, fOut}
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Errorln("lottieToGIF ERROR!", string(out))
+		return "", err
+	} else {
+		return fOut, nil
+	}
+}
