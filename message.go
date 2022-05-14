@@ -21,13 +21,13 @@ Send me links or stickers to import or download them, or, use a command below:
 <b>/import</b> LINE or kakao stickers to Telegram<code>
   匯入LINE/kakao貼圖包至Telegram
 </code>
-<b>/download</b> Telegram sticker(s)<code>
-  下載貼圖包
+<b>/download</b> Telegram/LINE/kakao sticker(s)<code>
+  下載Telegram/LINE/kakao貼圖包
 </code>
 <b>/create</b> new sticker set<code>
   創建新的Telegram的貼圖包.
 </code>
-<b>/manage</b> exsting sticker set<code>
+<b>/manage</b> exsting sticker set (add/delete/reorder)<code>
   管理Telegram貼圖包(增添/刪除/排序).
 </code>
 <b>/faq  /about</b><code>

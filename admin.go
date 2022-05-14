@@ -1,8 +1,8 @@
 package main
 
 import (
+	"hash/crc32"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -15,8 +15,7 @@ import (
 // You should not use this command unless you were using the python version before.
 // It takes forever to run for HUGE databases.
 func cmdSanitize(c tele.Context) error {
-	adminUID, _ := strconv.ParseInt(os.Getenv("ADMIN_UID"), 10, 64)
-	if adminUID != c.Sender().ID {
+	if ADMIN_UID != c.Sender().ID {
 		return c.Send("Admin only command. /start")
 	}
 
@@ -92,7 +91,7 @@ func sanitizeDatabase(startIndex int, c tele.Context) error {
 		if err != nil {
 			if strings.Contains(err.Error(), "is invalid") {
 				log.Infof("SS:%s is invalid. purging it from db...", l.tg_id)
-				go c.Send("purging: https://t.me/addstickers/" + l.tg_id)
+				go c.Send("purging invalid: https://t.me/addstickers/" + l.tg_id)
 				deleteLineS(l.tg_id)
 				deleteUserS(l.tg_id)
 			} else {
@@ -111,31 +110,16 @@ func sanitizeDatabase(startIndex int, c tele.Context) error {
 				}
 			}
 
-			if ss.Video {
-				fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webm")
-				f := filepath.Join(workdir, strconv.Itoa(si)+".webm")
-				c.Bot().Download(&s.File, f)
-				out, _ := exec.Command("compare", "-metric", "MAE", fp+"[0]", f+"[0]", "/dev/null").CombinedOutput()
-				out2, _ := exec.Command("compare", "-metric", "MAE", fp+"[-1]", f+"[-1]", "/dev/null").CombinedOutput()
-				out3, _ := exec.Command("compare", "-metric", "MAE", fp+"[15]", f+"[15]", "/dev/null").CombinedOutput()
-				if strings.Contains(string(out), "0 (0)") && (string(out) == string(out2)) && (string(out) == string(out3)) {
-					c.Bot().DeleteSticker(s.FileID)
-					log.Warnf("Deleted on animated dup s!")
-					c.Send("Deleted on animated dup s from: https://t.me/addstickers/" + s.SetName + "  indexis: " + strconv.Itoa(si))
-				}
-				log.Debugf(string(out))
-			} else {
-				fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
-				f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
-				c.Bot().Download(&s.File, f)
-				out, _ := exec.Command("compare", "-metric", "MAE", fp, f, "/dev/null").CombinedOutput()
-				log.Debugf(string(out))
-				if strings.Contains(string(out), "0 (0)") {
-					c.Bot().DeleteSticker(s.FileID)
-					log.Warnf("Deleted on animated dup s!")
-					c.Send("Deleted on dup s from: https://t.me/addstickers/" + s.SetName + "  indexis: " + strconv.Itoa(si))
-				}
+			fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
+			f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
+			c.Bot().Download(&s.File, f)
+
+			if compCRC32(f, fp) {
+				c.Bot().DeleteSticker(s.FileID)
+				log.Warnf("Deleted on animated dup s!")
+				c.Send("Deleted dup S from: https://t.me/addstickers/" + s.SetName + "  indexis: " + strconv.Itoa(si))
 			}
+
 		}
 		os.RemoveAll(workdir)
 
@@ -143,4 +127,26 @@ func sanitizeDatabase(startIndex int, c tele.Context) error {
 	}
 	c.Send("ALL SANITIZED!")
 	return nil
+}
+
+func compCRC32(f1 string, f2 string) bool {
+	fb1, err := os.ReadFile(f1)
+	if err != nil {
+		return false
+	}
+	fb2, err := os.ReadFile(f2)
+	if err != nil {
+		return false
+	}
+
+	c1 := crc32.ChecksumIEEE(fb1)
+	c2 := crc32.ChecksumIEEE(fb2)
+	log.Debugf("File:%s, C:%v", f1, c1)
+	log.Debugf("File:%s, C:%v", f2, c2)
+
+	if c1 == c2 {
+		return true
+	} else {
+		return false
+	}
 }

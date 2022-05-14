@@ -35,6 +35,8 @@ var BSDTAR_BIN string
 var CONVERT_BIN string
 var CONVERT_ARGS []string
 
+var ADMIN_UID int64
+
 type LineStickerQ struct {
 	line_id   string
 	line_link string

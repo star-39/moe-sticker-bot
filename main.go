@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/panjf2000/ants/v2"
@@ -181,6 +182,7 @@ func initWorkspace(b *tele.Bot) {
 		log.Warn("Not using database because USE_DB is not set to 1.")
 	}
 
+	ADMIN_UID, _ = strconv.ParseInt(os.Getenv("ADMIN_UID"), 10, 64)
 	wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
 
 	if runtime.GOOS == "linux" {

@@ -100,10 +100,14 @@ func waitSManage(c tele.Context) error {
 		}
 		ud.stickerData.id = path.Base(link)
 	}
+	if c.Sender().ID == ADMIN_UID {
+		goto NEXT
+	}
 	if !matchUserS(c.Sender().ID, ud.stickerData.id) {
 		return c.Send("Not owned by you. try again or /quit")
 	}
 
+NEXT:
 	err := retrieveSSDetails(c, ud.stickerData.id, ud.stickerData)
 	if err != nil {
 		return c.Send("sticker set wrong! try again or /quit")
