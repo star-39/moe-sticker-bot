@@ -124,3 +124,15 @@ func getSIDFromMessage(m *tele.Message) string {
 	link := findLink(m.Text)
 	return path.Base(link)
 }
+
+func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
+	ss, err := c.Bot().StickerSet(id)
+	if err != nil {
+		return err
+	}
+	sd.title = ss.Title
+	sd.id = ss.Name
+	sd.cAmount = len(ss.Stickers)
+	sd.isVideo = ss.Video
+	return nil
+}

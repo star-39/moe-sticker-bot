@@ -298,7 +298,7 @@ func waitSFile(c tele.Context) error {
 	if c.Message().Media() != nil {
 		err := appendMedia(c)
 		if err != nil {
-			c.Reply("Failed processing this file. ERR:" + err.Error())
+			c.Reply("Failed processing this file. 處理此檔案時錯誤:\n" + err.Error())
 		}
 		return nil
 	}
@@ -309,7 +309,7 @@ func waitSFile(c tele.Context) error {
 		return c.Send("No image received. try again or /quit")
 	}
 
-	users.data[c.Sender().ID].stickerData.lAmount = len(users.data[c.Sender().ID].stickerData.stickers)
+	// users.data[c.Sender().ID].stickerData.lAmount = len(users.data[c.Sender().ID].stickerData.stickers)
 	setState(c, "waitEmojiChoice")
 	sendAskEmoji(c)
 

@@ -355,6 +355,12 @@ func appendMedia(c tele.Context) error {
 	ud.wg.Add(1)
 	defer ud.wg.Done()
 
+	if ud.stickerData.isVideo && ud.stickerData.cAmount+len(ud.stickerData.stickers) > 50 {
+		return errors.New("sticker set already full 此貼圖包已滿")
+	} else if ud.stickerData.cAmount+len(ud.stickerData.stickers) > 120 {
+		return errors.New("sticker set already full 此貼圖包已滿")
+	}
+
 	workDir := users.data[c.Sender().ID].workDir
 	savePath := filepath.Join(workDir, secHex(4))
 
@@ -398,6 +404,7 @@ func appendMedia(c tele.Context) error {
 	}
 
 	ud.stickerData.stickers = append(ud.stickerData.stickers, sfs...)
+	ud.stickerData.lAmount = len(ud.stickerData.stickers)
 	c.Reply(fmt.Sprintf("File OK. Got %d stickers. Continue sending or send # mark to stop adding.\n"+
 		"檔案OK. 已收到%d份貼圖. 請繼續傳送檔案或傳送 # 記號來停止增添.", len(ud.stickerData.stickers), len(ud.stickerData.stickers)))
 	return nil
