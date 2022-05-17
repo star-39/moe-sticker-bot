@@ -25,7 +25,8 @@ func handleNoSession(c tele.Context) error {
 			if err == nil {
 				return sendAskEditChoice(c)
 			} else {
-				c.Send("Wrong stickter set?")
+				endSession(c)
+				return c.Send("Wrong stickter set?")
 			}
 		case "yesimport":
 			ud := initUserData(c, "import", "waitSTitle")
@@ -44,19 +45,28 @@ func handleNoSession(c tele.Context) error {
 		}
 	}
 
+	if c.Message().Animation != nil {
+		return downloadGifToZip(c)
+	}
+
 	// bare message, we expect a link.
 	link, tp := findLinkWithType(c.Message().Text)
 	switch tp {
 	case LINK_TG:
-		return sendAskWantSDown(c)
+		if matchUserS(c.Sender().ID, path.Base(link)) {
+			return sendAskTGLinkChoice(c)
+		} else {
+			return sendAskWantSDown(c)
+		}
 	case LINK_IMPORT:
 		ld := &LineData{}
 		err := parseImportLink(link, ld)
-		if err == nil {
+		if err != nil {
+			return sendBadImportLinkWarn(c)
+		} else {
 			sendNotifySExist(c, ld.id)
 			return sendAskWantImport(c)
 		}
-		fallthrough
 	default:
 		return sendNoSessionWarning(c)
 	}

@@ -106,8 +106,7 @@ func sendAskSDownloadChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnRand := selector.Data("This sticker/這張貼圖", "single")
 	btnManu := selector.Data("Whole sticker set/整個貼圖包", "whole")
-	btnBye := selector.Data("Exit/退出", "bye")
-	selector.Inline(selector.Row(btnRand), selector.Row(btnManu), selector.Row(btnBye))
+	selector.Inline(selector.Row(btnRand), selector.Row(btnManu))
 	return c.Reply(`
 You can download this sticker or the whole sticker set, please select below.
 您可以下載這個貼圖或者其所屬的整個貼圖包, 請選擇:
@@ -119,8 +118,18 @@ func sendAskSChoice(c tele.Context) error {
 	btnRand := selector.Data("This sticker/下載這張貼圖", "single")
 	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", "whole")
 	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", "manage")
-	btnBye := selector.Data("Exit/退出", "bye")
-	selector.Inline(selector.Row(btnRand), selector.Row(btnManu), selector.Row(btnMan), selector.Row(btnBye))
+	selector.Inline(selector.Row(btnRand), selector.Row(btnManu), selector.Row(btnMan))
+	return c.Reply(`
+You own this sticker set. You can download or manage this sticker set, please select below.
+您擁有這個貼圖包. 您可以下載或者管理這個貼圖包, 請選擇:
+`, selector)
+}
+
+func sendAskTGLinkChoice(c tele.Context) error {
+	selector := &tele.ReplyMarkup{}
+	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", "whole")
+	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", "manage")
+	selector.Inline(selector.Row(btnManu), selector.Row(btnMan))
 	return c.Reply(`
 You own this sticker set. You can download or manage this sticker set, please select below.
 您擁有這個貼圖包. 您可以下載或者管理這個貼圖包, 請選擇:

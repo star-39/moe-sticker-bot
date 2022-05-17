@@ -131,16 +131,16 @@ func downloadStickersToZip(s *tele.Sticker, setID string, c tele.Context) error 
 }
 
 func downloadGifToZip(c tele.Context) error {
-	workDir := filepath.Join(users.data[c.Sender().ID].workDir, secHex(4))
+	workDir := filepath.Join(dataDir, secHex(4))
 	os.MkdirAll(workDir, 0755)
 	f := filepath.Join(workDir, "gif.mp4")
 	err := c.Bot().Download(&c.Message().Animation.File, f)
 	cf, _ := ffToGif(f)
-	zip := secHex(4) + ".zip"
+	zip := filepath.Join(workDir, secHex(4)+".zip")
 	fCompress(zip, []string{cf})
 
 	c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
-
+	os.RemoveAll(workDir)
 	return err
 }
 
