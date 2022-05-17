@@ -89,6 +89,16 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.1 (20220517)
+  * Code refactors.
+  * UX improvements.
+  * Skip error on TGS to GIF due to lottie issues.
+
+1.0 (20220513)
+  * First stable release in go version.(Python one never got stablized btw)
+  * Added support for downloading TGS and convert to GIF.
+  * Backing database for @moe_sticker_bot has gone complete sanitization.
+
 1.0 RC-9(20220512)
   * Add an administrative command to _sanitize_ database, which purges duplicated stickers.
   * Add an advanced command /register, to register your sticker to database.
