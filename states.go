@@ -8,6 +8,60 @@ import (
 	tele "github.com/star-39/telebot"
 )
 
+func handleNoSession(c tele.Context) error {
+	log.Debugf("user %d entered no session with message: %s", c.Sender().ID, c.Message().Text)
+
+	if c.Callback() != nil && c.Message().ReplyTo != nil {
+		switch c.Callback().Data {
+		case "single":
+			return downloadStickersToZip(c.Message().ReplyTo.Sticker, "", c)
+		case "whole":
+			id := getSIDFromMessage(c.Message().ReplyTo)
+			return downloadStickersToZip(nil, id, c)
+		case "manage":
+			ud := initUserData(c, "manage", "waitCbEditChoice")
+			id := getSIDFromMessage(c.Message().ReplyTo)
+			err := retrieveSSDetails(c, id, ud.stickerData)
+			if err == nil {
+				return sendAskEditChoice(c)
+			} else {
+				c.Send("Wrong stickter set?")
+			}
+		case "yesimport":
+			ud := initUserData(c, "import", "waitSTitle")
+			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
+			sendAskTitle_Import(c)
+			return prepImportStickers(ud, true)
+		}
+	}
+
+	// bare sticker, ask user's choice.
+	if c.Message().Sticker != nil {
+		if matchUserS(c.Sender().ID, c.Message().Sticker.SetName) {
+			return sendAskSChoice(c)
+		} else {
+			return sendAskSDownloadChoice(c)
+		}
+	}
+
+	// bare message, we expect a link.
+	link, tp := findLinkWithType(c.Message().Text)
+	switch tp {
+	case LINK_TG:
+		return sendAskWantSDown(c)
+	case LINK_IMPORT:
+		ld := &LineData{}
+		err := parseImportLink(link, ld)
+		if err == nil {
+			sendNotifySExist(c, ld.id)
+			return sendAskWantImport(c)
+		}
+		fallthrough
+	default:
+		return sendNoSessionWarning(c)
+	}
+}
+
 func stateProcessing(c tele.Context) error {
 	if c.Callback() != nil {
 		if c.Callback().Data == "bye" {
@@ -100,6 +154,7 @@ func waitSManage(c tele.Context) error {
 		}
 		ud.stickerData.id = path.Base(link)
 	}
+	// Allow admin to manage all sticker sets.
 	if c.Sender().ID == ADMIN_UID {
 		goto NEXT
 	}
@@ -194,69 +249,13 @@ func waitCbDelset(c tele.Context) error {
 	return nil
 }
 
-func handleNoState(c tele.Context) error {
-	log.Debugf("user %d entered nostate with message: %s", c.Sender().ID, c.Message().Text)
-
-	if c.Message().Sticker != nil {
-		ud := initUserData(c, "nostate", "waitCbSChoice")
-		ud.stickerData.sticker = c.Message().Sticker
-		ud.stickerData.id = c.Message().Sticker.SetName
-		ud.stickerData.isVideo = c.Message().Sticker.Video
-		if matchUserS(c.Sender().ID, c.Message().Sticker.SetName) {
-			return sendAskSChoice(c)
-		} else {
-			return sendAskSDownloadChoice(c)
-		}
-	}
-
-	// bare message, we expect a link.
-	link, tp := findLinkWithType(c.Message().Text)
-	switch tp {
-	case LINK_TG:
-		ss, err := c.Bot().StickerSet(path.Base(link))
-		if err != nil {
-			return nil
-		}
-		ud := initUserData(c, "nostate", "waitCbSLinkDChoice")
-		ud.stickerData.sticker = &ss.Stickers[0]
-		sendAskWantSDown(c)
-	case LINK_IMPORT:
-		ud := initUserData(c, "nostate", "waitCbImportChoice")
-		if err := parseImportLink(link, ud.lineData); err != nil {
-			endSession(c)
-			return nil
-		}
-		sendNotifySExist(c)
-		sendAskWantImport(c)
-	default:
-		log.Debug("bad link sent barely, purging ud.")
-		return sendNoStateWarning(c)
-	}
-	return nil
-}
-
-func waitCbSLinkDChoice(c tele.Context) error {
-	if c.Callback() == nil {
-		return handleNoState(c)
-	}
-
-	switch c.Callback().Data {
-	case "yes":
-		setCommand(c, "download")
-		downloadStickersToZip(users.data[c.Sender().ID].stickerData.sticker, true, c)
-	case "bye":
-		terminateSession(c)
-	}
-	return nil
-}
-
 func waitCbImportChoice(c tele.Context) error {
 	if c.Callback() == nil {
-		return handleNoState(c)
+		return handleNoSession(c)
 	}
 	ud := users.data[c.Sender().ID]
 	switch c.Callback().Data {
-	case "yes":
+	case "yesimport":
 		setCommand(c, "import")
 		setState(c, "waitSTitle")
 		sendAskTitle_Import(c)
@@ -265,37 +264,6 @@ func waitCbImportChoice(c tele.Context) error {
 		terminateSession(c)
 	}
 	return nil
-}
-
-func waitCbSChoice(c tele.Context) error {
-	if c.Callback() == nil {
-		return handleNoState(c)
-	}
-	ud := users.data[c.Sender().ID]
-	var err error
-
-	switch c.Callback().Data {
-	case "single":
-		setCommand(c, "download")
-		setState(c, "process")
-		err = downloadStickersToZip(ud.stickerData.sticker, false, c)
-	case "whole":
-		return downloadStickersToZip(ud.stickerData.sticker, true, c)
-	case "manage":
-		err := retrieveSSDetails(c, ud.stickerData.id, ud.stickerData)
-		if err == nil && matchUserS(c.Sender().ID, ud.stickerData.id) {
-			setCommand(c, "manage")
-			setState(c, "waitCbEditChoice")
-			return sendAskEditChoice(c)
-		} else {
-			c.Send("Wrong stickter set?")
-		}
-	case "bye":
-	default:
-		return c.Send("bad callback, try again or /quit")
-	}
-	terminateSession(c)
-	return err
 }
 
 func waitSType(c tele.Context) error {
@@ -338,11 +306,6 @@ func waitSFile(c tele.Context) error {
 	return nil
 }
 
-func cmdDownload(c tele.Context) error {
-	initUserData(c, "download", "waitSDownload")
-	return sendAskWhatToDownload(c)
-}
-
 func waitSDownload(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	var err error
@@ -352,8 +315,8 @@ func waitSDownload(c tele.Context) error {
 	case c.Message().Animation != nil:
 		err = downloadGifToZip(c)
 	case c.Message().Sticker != nil:
-		ud.stickerData.sticker = c.Message().Sticker
-		setState(c, "waitCbSChoice")
+		// We handle this in "handleNoSession"
+		endSession(c)
 		return sendAskSDownloadChoice(c)
 	case tp == LINK_TG:
 		ud.stickerData.id = path.Base(link)
@@ -361,7 +324,7 @@ func waitSDownload(c tele.Context) error {
 		if sserr != nil {
 			return c.Send("bad link! try again or /quit")
 		}
-		err = downloadStickersToZip(&ss.Stickers[0], true, c)
+		err = downloadStickersToZip(nil, ss.Name, c)
 	case tp == LINK_IMPORT:
 		c.Send("Please wait...")
 		err = parseImportLink(link, ud.lineData)
@@ -396,7 +359,7 @@ func waitImportLink(c tele.Context) error {
 		return err
 	}
 
-	if sendNotifySExist(c) {
+	if sendNotifySExist(c, ud.lineData.id) {
 		setState(c, "waitCbImportChoice")
 		return sendAskWantImport(c)
 	}
@@ -457,13 +420,13 @@ NEXT:
 }
 
 func waitEmojiChoice(c tele.Context) error {
-	command := users.data[c.Sender().ID].command
+	ud := users.data[c.Sender().ID]
 	if c.Callback() != nil {
 		switch c.Callback().Data {
 		case "random":
 			users.data[c.Sender().ID].stickerData.emojis = []string{"🌟"}
 		case "manual":
-			sendProcessStarted(c, "preparing...")
+			sendProcessStarted(ud, c, "preparing...")
 			setState(c, "waitSEmojiAssign")
 			return sendAskEmojiAssign(c)
 		default:
@@ -479,7 +442,7 @@ func waitEmojiChoice(c tele.Context) error {
 
 	setState(c, "process")
 
-	err := execAutoCommit(!(command == "manage"), c)
+	err := execAutoCommit(!(ud.command == "manage"), c)
 	endSession(c)
 	if err != nil {
 		return err

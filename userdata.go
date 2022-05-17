@@ -75,14 +75,12 @@ func getState(c tele.Context) (string, string) {
 
 func checkState(next tele.HandlerFunc) tele.HandlerFunc {
 	return func(c tele.Context) error {
-		state, _ := getState(c)
-		// if user sent something and we are waiting for callback, user entered "nostate"
-		// We should allow user entering other command during "nostate"
-		if state == "" || state == "nostate" {
+		command, _ := getState(c)
+		if command == "" {
 			log.Debugf("User %d entering command with message: %s", c.Sender().ID, c.Message().Text)
 			return next(c)
 		} else {
-			log.Debugf("User %d already in phase: %v", c.Sender().ID, state)
+			log.Debugf("User %d already in command: %v", c.Sender().ID, command)
 			return sendInStateWarning(c)
 		}
 	}
@@ -93,7 +91,7 @@ func setState(c tele.Context, state string) {
 	users.data[uid].state = state
 }
 
-func setCommand(c tele.Context, state string) {
+func setCommand(c tele.Context, command string) {
 	uid := c.Sender().ID
-	users.data[uid].command = state
+	users.data[uid].command = command
 }

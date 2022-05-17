@@ -18,7 +18,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 
-	sendProcessStarted(c, "")
+	sendProcessStarted(ud, c, "")
 	ud.wg.Wait()
 
 	if len(ud.stickerData.stickers) == 0 {

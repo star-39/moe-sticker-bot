@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"math/big"
 	"net/url"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -113,4 +114,13 @@ func escapeTagMark(s string) string {
 	s = strings.ReplaceAll(s, "<", "＜")
 	s = strings.ReplaceAll(s, ">", "＞")
 	return s
+}
+
+func getSIDFromMessage(m *tele.Message) string {
+	if m.Sticker != nil {
+		return m.Sticker.SetName
+	}
+
+	link := findLink(m.Text)
+	return path.Base(link)
 }

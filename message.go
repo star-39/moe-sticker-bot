@@ -129,7 +129,7 @@ You own this sticker set. You can download or manage this sticker set, please se
 
 func sendAskWantSDown(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btn1 := selector.Data("Yes", "yes")
+	btn1 := selector.Data("Yes", "whole")
 	btnNo := selector.Data("No", "bye")
 	selector.Inline(selector.Row(btn1), selector.Row(btnNo))
 	return c.Reply(`
@@ -140,7 +140,7 @@ You can download this sticker set. Press Yes to continue.
 
 func sendAskWantImport(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btn1 := selector.Data("Yes", "yes")
+	btn1 := selector.Data("Yes", "yesimport")
 	btnNo := selector.Data("No", "bye")
 	selector.Inline(selector.Row(btn1), selector.Row(btnNo))
 	return c.Reply(`
@@ -198,8 +198,8 @@ func sendAskImportLink(c tele.Context) error {
 		"請傳送貼圖包的LINE/kakao Store連結.")
 }
 
-func sendNotifySExist(c tele.Context) bool {
-	lines := queryLineS(users.data[c.Sender().ID].lineData.id)
+func sendNotifySExist(c tele.Context, lineID string) bool {
+	lines := queryLineS(lineID)
 	if len(lines) == 0 {
 		return false
 	}
@@ -250,7 +250,7 @@ func sendInStateWarning(c tele.Context) error {
 
 }
 
-func sendNoStateWarning(c tele.Context) error {
+func sendNoSessionWarning(c tele.Context) error {
 	return c.Send("Please use /start or send LINE/kakao/Telegram links or stickers.\n請使用 /start 或者傳送LINE/kakao/Telegram連結或貼圖.")
 }
 
@@ -311,8 +311,7 @@ func sendFatalError(err error, c tele.Context) {
 		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
 
-func sendProcessStarted(c tele.Context, optMsg string) (string, *tele.Message, error) {
-	ud := users.data[c.Sender().ID]
+func sendProcessStarted(ud *UserData, c tele.Context, optMsg string) (string, *tele.Message, error) {
 	message := fmt.Sprintf(`
 Preparing stickers, please wait...
 正在準備貼圖, 請稍後...

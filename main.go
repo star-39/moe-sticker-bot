@@ -72,18 +72,9 @@ func handleMessage(c tele.Context) error {
 	var err error
 	command, state := getState(c)
 	if command == "" {
-		return handleNoState(c)
+		return handleNoSession(c)
 	}
 	switch command {
-	case "nostate":
-		switch state {
-		case "waitCbSLinkDChoice":
-			err = waitCbSLinkDChoice(c)
-		case "waitCbSChoice":
-			err = waitCbSChoice(c)
-		case "waitCbImportChoice":
-			err = waitCbImportChoice(c)
-		}
 	case "import":
 		switch state {
 		case "waitImportLink":
@@ -103,8 +94,6 @@ func handleMessage(c tele.Context) error {
 		switch state {
 		case "waitSDownload":
 			err = waitSDownload(c)
-		case "waitCbSChoice":
-			err = waitCbSChoice(c)
 		case "process":
 			err = stateProcessing(c)
 		}
@@ -209,6 +198,7 @@ func initLogrus() {
 		ForceColors:            true,
 		DisableLevelTruncation: true,
 	})
+	log.SetReportCaller(true)
 
 	level := os.Getenv("LOG_LEVEL")
 	switch level {

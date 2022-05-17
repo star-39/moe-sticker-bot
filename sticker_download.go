@@ -44,11 +44,20 @@ func downloadSAndC(path string, s *tele.Sticker, needConvert bool, shrinkGif boo
 	return f, cf
 }
 
-func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error {
-	cache := *s
-	s = &cache
-	id := s.SetName
-	ud := users.data[c.Sender().ID]
+func downloadStickersToZip(s *tele.Sticker, setID string, c tele.Context) error {
+	var id string
+	if s != nil {
+		id = s.SetName
+	} else {
+		id = setID
+	}
+	sID := secHex(8)
+	ud := &UserData{
+		workDir:       filepath.Join(dataDir, sID),
+		stickerData:   &StickerData{},
+		lineData:      &LineData{},
+		stickerManage: &StickerManage{},
+	}
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 	workDir := filepath.Join(ud.workDir, id)
@@ -57,8 +66,8 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	var cflist []string
 	var err error
 
-	if !wantSet {
-		_, cf := downloadSAndC(filepath.Join(workDir, id+"_"+s.Emoji), s, true, false, c)
+	if s != nil {
+		_, cf := downloadSAndC(filepath.Join(workDir, s.SetName+"_"+s.Emoji), s, true, false, c)
 		log.Debugln("downloading:", cf)
 		if s.Video || s.Animated {
 			zip := filepath.Join(workDir, secHex(4)+".zip")
@@ -70,16 +79,16 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 		return err
 	}
 
-	ss, _ := c.Bot().StickerSet(id)
+	ss, _ := c.Bot().StickerSet(setID)
 	ud.stickerData.id = ss.Name
 	ud.stickerData.title = ss.Title
-	pText, teleMsg, _ := sendProcessStarted(c, "")
+	pText, teleMsg, _ := sendProcessStarted(ud, c, "")
 	sendNotifySDOnBackground(c)
 	cleanUserData(c.Sender().ID)
 	defer os.RemoveAll(workDir)
 	for index, s := range ss.Stickers {
 		go editProgressMsg(index, len(ss.Stickers), "", pText, teleMsg, c)
-		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", id, index+1, s.Emoji))
+		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", setID, index+1, s.Emoji))
 		f, cf := downloadSAndC(fName, &s, true, true, c)
 		if f == "" {
 			return errors.New("sticker download failed")
@@ -91,11 +100,11 @@ func downloadStickersToZip(s *tele.Sticker, wantSet bool, c tele.Context) error 
 	}
 	go editProgressMsg(0, 0, "Uploading...", pText, teleMsg, c)
 
-	webmZipPath := filepath.Join(workDir, id+"_webm.zip")
-	webpZipPath := filepath.Join(workDir, id+"_webp.zip")
-	pngZipPath := filepath.Join(workDir, id+"_png.zip")
-	gifZipPath := filepath.Join(workDir, id+"_gif.zip")
-	tgsZipPath := filepath.Join(workDir, id+"_tgs.zip")
+	webmZipPath := filepath.Join(workDir, setID+"_webm.zip")
+	webpZipPath := filepath.Join(workDir, setID+"_webp.zip")
+	pngZipPath := filepath.Join(workDir, setID+"_png.zip")
+	gifZipPath := filepath.Join(workDir, setID+"_gif.zip")
+	tgsZipPath := filepath.Join(workDir, setID+"_tgs.zip")
 
 	var zipPaths []string
 

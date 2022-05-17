@@ -205,6 +205,7 @@ func prepLineStickers(ud *UserData, needConvert bool) error {
 	savePath := filepath.Join(workDir, "line.zip")
 	os.MkdirAll(workDir, 0755)
 
+	ud.wg.Add(1)
 	err := fDownload(ud.lineData.dLink, savePath)
 	if err != nil {
 		return err
@@ -214,6 +215,7 @@ func prepLineStickers(ud *UserData, needConvert bool) error {
 	if len(pngFiles) == 0 {
 		return errors.New("no line image")
 	}
+	ud.wg.Done()
 
 	ud.lineData.files = pngFiles
 	ud.lineData.amount = len(pngFiles)

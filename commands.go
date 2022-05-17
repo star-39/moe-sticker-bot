@@ -27,6 +27,12 @@ func cmdImport(c tele.Context) error {
 	sendAskImportLink(c)
 	return nil
 }
+
+func cmdDownload(c tele.Context) error {
+	initUserData(c, "download", "waitSDownload")
+	return sendAskWhatToDownload(c)
+}
+
 func cmdAbout(c tele.Context) error {
 	sendAboutMessage(c)
 	return nil
