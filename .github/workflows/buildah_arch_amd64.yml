@@ -30,8 +30,8 @@ jobs:
           go version
           export PATH=/opt/hostedtoolcache/go/1.18.1/x64/bin/:$PATH
           go version
-          chmod +x buildah_arch_amd64.sh
-          ./buildah_arch_amd64.sh ${{ secrets.GITHUB_TOKEN }}
+          chmod +x .github/workflows/buildah_arch_amd64.sh
+          .github/workflows/buildah_arch_amd64.sh ${{ secrets.GITHUB_TOKEN }}
 
       # - name: Build fedora OCI container aarch64
       #   run: |
