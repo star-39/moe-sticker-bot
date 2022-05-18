@@ -434,7 +434,7 @@ func waitEmojiChoice(c tele.Context) error {
 	if c.Callback() != nil {
 		switch c.Callback().Data {
 		case "random":
-			users.data[c.Sender().ID].stickerData.emojis = []string{"🌟"}
+			users.data[c.Sender().ID].stickerData.emojis = []string{"⭐"}
 		case "manual":
 			sendProcessStarted(ud, c, "preparing...")
 			setState(c, "waitSEmojiAssign")

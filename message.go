@@ -90,15 +90,17 @@ A:  It's you of course. You can manage them through /manage or Telegram's offici
 
 func sendAskEmoji(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnRand := selector.Data("🌟Random", "random")
-	btnManu := selector.Data("Manual", "manual")
-	selector.Inline(selector.Row(btnRand, btnManu))
+	btnRand := selector.Data("Random/隨機一併設定 (⭐)", "random")
+	btnManu := selector.Data("★ Manual/分別設定", "manual")
+	selector.Inline(selector.Row(btnRand), selector.Row(btnManu))
 
 	return c.Send(`
 Please send an emoji representing all stickers in this sticker set,
-to assign different emoji for each sticker, press Manual button below.
+to assign different emoji for each sticker, press Manual button below,
+you can also press Random btn to assign ⭐ emoji for the whole set.
 請傳送用於表示整個貼圖包的emoji,
-如果想要為每個貼圖分別設定不同的emoji, 請按下Manual按鈕.
+如果想要為每個貼圖分別設定不同的emoji, 請按下Manual按鈕,
+您也可以按下Random按鈕為把整個貼圖包設定為⭐emoji圖案.
 `, selector)
 }
 
@@ -170,8 +172,7 @@ func sendAskTitle_Import(c tele.Context) error {
 	lineTitle := escapeTagMark(users.data[c.Sender().ID].lineData.title) + " @" + botName
 
 	return c.Send("Please set a title for this sticker set. Press Auto button to set title from LINE Store as shown below:\n"+
-		"請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中的標題如下:\n"+
-		"スタンプのタイトルを送信してください。Autoボタンを押すと、LINE STOREに表記されているタイトルが設定されます。\n\n"+
+		"請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中的標題如下:\n\n"+
 		"<code>"+lineTitle+"</code>", selector, tele.ModeHTML)
 }
 
@@ -203,8 +204,11 @@ ID通常不重要, 建議您按下下方的"自動生成"按鈕.
 }
 
 func sendAskImportLink(c tele.Context) error {
-	return c.Send("Please send LINE/kakao store link of the sticker set\n" +
-		"請傳送貼圖包的LINE/kakao Store連結.")
+	return c.Send("Please send LINE/kakao store link of the sticker set.\n"+
+		"請傳送貼圖包的LINE/kakao Store連結. 您可以在LINE App貼圖商店按右上角的分享->複製連結來取得連結.\n\n"+
+		"For example: 例如:\n"+
+		"<code>https://store.line.me/stickershop/product/7673/ja</code>\n"+
+		"<code>https://e.kakao.com/t/pretty-all-friends</code>", tele.ModeHTML)
 }
 
 func sendNotifySExist(c tele.Context, lineID string) bool {
