@@ -114,7 +114,16 @@ func parseLineLink(link string, ld *LineData) error {
 			a = true
 		} else {
 			c = LINE_STICKER_STATIC
-			d += "stickers@2x.zip"
+			// According to collected logs, LINE ID befre exact 775 have special PNG encodings,
+			// which are not parsable with libpng.
+			// You will get -> CgBI: unhandled critical chunk <- from IM.
+			// Workaround is to take the lower resolution "android" ones.
+			if id, _ := strconv.Atoi(i); id < 775 && id != 0 {
+				d = "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/android/" +
+					"stickers.zip"
+			} else {
+				d += "stickers@2x.zip"
+			}
 		}
 	} else if strings.Contains(u, "emojishop") {
 		if strings.Contains(page, "MdIcoPlay_b") {
