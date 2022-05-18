@@ -89,6 +89,11 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.2 (20220518)
+  * Fix import error for LINE ID < 775 
+  * Improved UX during /import.
+  * Warn user if sticker set is already full.
+
 1.1 (20220517)
   * Code refactors.
   * UX improvements.
