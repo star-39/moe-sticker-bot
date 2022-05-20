@@ -101,10 +101,11 @@ func waitEmojiEdit(c tele.Context) error {
 	c.Send("please wait...")
 	err := editStickerEmoji(c, ud)
 	if err != nil {
-		return err
+		c.Send("Edit Error! try again or /quit\n\n" + err.Error())
+	} else {
+		sendEditEmojiOK(c)
 	}
 	setState(c, "waitCbEditChoice")
-	c.Send("Edit emoji OK.")
 	return sendAskEditChoice(c)
 }
 

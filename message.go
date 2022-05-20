@@ -550,3 +550,8 @@ func sendNoSToManage(c tele.Context) error {
 	return c.Send("Sorry, you have not created any sticker set yet. You can use /import or /create .\n" +
 		"抱歉, 您還未創建過貼圖包, 您可以使用 /create 或 /import .")
 }
+
+func sendEditEmojiOK(c tele.Context) error {
+	return c.Send("Edit emoji OK. Note that you might not be able to see the change immediately.\n" +
+		"成功修改emoji. 更新後的emoji可能無法即刻看到, 需稍等其更新.")
+}

@@ -289,7 +289,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 func editStickerEmoji(c tele.Context, ud *UserData) error {
 	e := findEmojis(c.Message().Text)
 	if e == "" {
-		return c.Send("Send emoji! try again or /quit")
+		return errors.New("no emoji received")
 	}
 	workDir := ud.workDir
 	os.MkdirAll(workDir, 0755)
@@ -320,7 +320,8 @@ func editStickerEmoji(c tele.Context, ud *UserData) error {
 	}
 	log.Debugln("Edit eomji ready to commit ss:", ss)
 
-	err := commitSticker(false, new(int), false, sf, c, *ss)
+	flCount := 0
+	err := commitSticker(false, &flCount, false, sf, c, *ss)
 	if err != nil {
 		return errors.New("error commiting temp sticker " + err.Error())
 	}
@@ -332,10 +333,10 @@ func editStickerEmoji(c tele.Context, ud *UserData) error {
 			return nil
 		default:
 		}
-		time.Sleep(2 * time.Second)
 		ssNew, _ := c.Bot().StickerSet(ud.stickerData.id)
 		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
 		if commitedFID == lastFID {
+			time.Sleep(1 * time.Second)
 			continue
 		}
 		err = c.Bot().SetStickerPosition(commitedFID, pos)
