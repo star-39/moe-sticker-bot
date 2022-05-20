@@ -355,9 +355,8 @@ func appendMedia(c tele.Context) error {
 	ud.wg.Add(1)
 	defer ud.wg.Done()
 
-	if ud.stickerData.isVideo && ud.stickerData.cAmount+len(ud.stickerData.stickers) > 50 {
-		return errors.New("sticker set already full 此貼圖包已滿")
-	} else if ud.stickerData.cAmount+len(ud.stickerData.stickers) > 120 {
+	if (ud.stickerData.isVideo && ud.stickerData.cAmount+len(ud.stickerData.stickers) > 50) ||
+		(ud.stickerData.cAmount+len(ud.stickerData.stickers) > 120) {
 		return errors.New("sticker set already full 此貼圖包已滿")
 	}
 

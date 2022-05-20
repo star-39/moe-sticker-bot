@@ -33,9 +33,6 @@ func httpDownload(link string, f string) error {
 }
 
 func httpGet(link string) (string, error) {
-	// cmd := exec.Command("curl", link)
-	// output, err := cmd.CombinedOutput()
-	// return string(output), err
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", link, nil)
 	req.Header.Set("User-Agent", "curl/7.61.1")
@@ -78,9 +75,6 @@ func archiveExtract(f string) []string {
 func lsFilesR(dir string, mustHave []string, mustNotHave []string) []string {
 	var files []string
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		// if info.IsDir() {
-		// 	return nil
-		// }
 		accept := true
 		confidence := 0
 		for _, kw := range mustHave {
@@ -145,7 +139,6 @@ func lsFiles(dir string, mustHave []string, mustNotHave []string) []string {
 }
 
 func fCompress(f string, flist []string) error {
-	// dir := filepath.Dir(f)
 	// strip data dir in zip.
 	// comps are 2
 	comps := "2"
@@ -168,10 +161,8 @@ func fCompressVol(f string, flist []string) []string {
 	basename := filepath.Base(f)
 	dir := filepath.Dir(f)
 	zipIndex := 0
-	// var zipFiles []string
 	var zips [][]string
 	var zipPaths []string
-	// var err error
 	var curSize int64 = 0
 
 	for _, f := range flist {
