@@ -44,7 +44,19 @@ func sanitizeAE(startIndex int, c tele.Context) error {
 			continue
 		}
 		log.Infof("Checking:%s", l.tg_id)
-		ss, _ := c.Bot().StickerSet(l.tg_id)
+		ss, err := c.Bot().StickerSet(l.tg_id)
+		if err != nil {
+			if strings.Contains(err.Error(), "is invalid") {
+				log.Infof("SS:%s is invalid. purging it from db...", l.tg_id)
+				go c.Send("purging invalid: https://t.me/addstickers/" + l.tg_id)
+				deleteLineS(l.tg_id)
+				deleteUserS(l.tg_id)
+			} else {
+				c.Send("Unknow error? " + err.Error())
+				log.Errorln(err)
+			}
+			continue
+		}
 		for si := range ss.Stickers {
 			if si > 0 {
 				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
