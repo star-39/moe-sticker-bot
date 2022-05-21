@@ -28,9 +28,33 @@ func cmdSanitize(c tele.Context) error {
 	switch args[1] {
 	case "invalid":
 		sanitizeInvalidSSinDB(startIndex, c)
+	case "ae":
+		sanitizeAE(startIndex, c)
 	default:
 		sanitizeDatabase(startIndex, c)
 	}
+	return nil
+}
+
+func sanitizeAE(startIndex int, c tele.Context) error {
+	c.Send("Started.")
+	ls := queryLineS("QUERY_ALL")
+	for i, l := range ls {
+		if i < startIndex {
+			continue
+		}
+		log.Infof("Checking:%s", l.tg_id)
+		ss, _ := c.Bot().StickerSet(l.tg_id)
+		for si, _ := range ss.Stickers {
+			if si > 0 {
+				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
+					log.Warnln("Setting auto emoji to FALSE for ", l.tg_id)
+					updateLineSAE(false, l.tg_id)
+				}
+			}
+		}
+	}
+	c.Send("Sanitize AE done!")
 	return nil
 }
 
