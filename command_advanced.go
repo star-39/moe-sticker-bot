@@ -51,8 +51,12 @@ func waitRegS(c tele.Context) error {
 	}
 
 	ae := true
-	if ss.Stickers[0].Emoji != ss.Stickers[1].Emoji || ss.Stickers[1].Emoji != ss.Stickers[2].Emoji || ss.Stickers[2].Emoji != ss.Stickers[3].Emoji {
-		ae = false
+	for si := range ss.Stickers {
+		if si > 0 {
+			if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
+				ae = false
+			}
+		}
 	}
 
 	lsqs := queryLineS(ud.lineData.id)

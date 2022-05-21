@@ -45,7 +45,7 @@ func sanitizeAE(startIndex int, c tele.Context) error {
 		}
 		log.Infof("Checking:%s", l.tg_id)
 		ss, _ := c.Bot().StickerSet(l.tg_id)
-		for si, _ := range ss.Stickers {
+		for si := range ss.Stickers {
 			if si > 0 {
 				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
 					log.Warnln("Setting auto emoji to FALSE for ", l.tg_id)
