@@ -292,8 +292,8 @@ func waitSType(c tele.Context) error {
 }
 
 func waitSFile(c tele.Context) error {
-	if c.Callback() != nil {
-		return nil
+	if c.Callback() != nil && c.Callback().Data == "done" {
+		goto NEXT
 	}
 
 	if c.Message().Media() != nil {
@@ -304,13 +304,14 @@ func waitSFile(c tele.Context) error {
 		return nil
 	}
 	if !strings.Contains(c.Message().Text, "#") {
-		return c.Send("please send # mark.")
+		return sendPromptStopAdding(c)
 	}
+
+NEXT:
 	if len(users.data[c.Sender().ID].stickerData.stickers) == 0 {
 		return c.Send("No image received. try again or /quit")
 	}
 
-	// users.data[c.Sender().ID].stickerData.lAmount = len(users.data[c.Sender().ID].stickerData.stickers)
 	setState(c, "waitEmojiChoice")
 	sendAskEmoji(c)
 

@@ -90,17 +90,17 @@ A:  It's you of course. You can manage them through /manage or Telegram's offici
 
 func sendAskEmoji(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnRand := selector.Data("Random/隨機一併設定 (⭐)", "random")
-	btnManu := selector.Data("★ Manual/分別設定", "manual")
-	selector.Inline(selector.Row(btnRand), selector.Row(btnManu))
+	btnManu := selector.Data("Assign separately/分別設定", "manual")
+	btnRand := selector.Data(`Batch assign as/一併設定為 "⭐"`, "random")
+	selector.Inline(selector.Row(btnManu), selector.Row(btnRand))
 
 	return c.Send(`
-Please send an emoji representing all stickers in this sticker set,
-to assign different emoji for each sticker, press Manual button below,
-you can also press Random btn to assign ⭐ emoji for the whole set.
-請傳送用於表示整個貼圖包的emoji,
-如果想要為每個貼圖分別設定不同的emoji, 請按下Manual按鈕,
-您也可以按下Random按鈕為把整個貼圖包設定為⭐emoji圖案.
+Telegram sticker requires emoji to represent it.
+Press "Assign separately" to assign emoji one by one.
+You can also do batch assign, send a emoji or press button below.
+Telegram要求為貼圖設定emoji來表示它.
+按下"分別設定"來為每個貼圖都分別設定相應的emoji.
+您也一口氣為全部貼圖設定一樣的emoji, 傳送emoji或者按下方按鈕.
 `, selector)
 }
 
@@ -554,4 +554,11 @@ func sendNoSToManage(c tele.Context) error {
 func sendEditEmojiOK(c tele.Context) error {
 	return c.Send("Edit emoji OK. Note that you might not be able to see the change immediately.\n" +
 		"成功修改emoji. 更新後的emoji可能無法即刻看到, 需稍等其更新.")
+}
+
+func sendPromptStopAdding(c tele.Context) error {
+	selector := &tele.ReplyMarkup{}
+	btnDone := selector.Data("Next step/下一步", "done")
+	selector.Inline(selector.Row(btnDone))
+	return c.Send("Please send # mark or press button below to end adding.\n請傳送 # 記號或者按下方按鈕來停止增添貼圖.", selector)
 }
