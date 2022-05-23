@@ -37,6 +37,9 @@ func checkID(s string) bool {
 	if strings.Contains(s, "__") {
 		return false
 	}
+	if strings.Contains(s, " ") {
+		return false
+	}
 
 	return true
 }
