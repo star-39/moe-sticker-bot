@@ -198,7 +198,6 @@ func initLogrus() {
 		ForceColors:            true,
 		DisableLevelTruncation: true,
 	})
-	log.SetReportCaller(true)
 
 	level := os.Getenv("LOG_LEVEL")
 	switch level {

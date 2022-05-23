@@ -558,7 +558,17 @@ func sendEditEmojiOK(c tele.Context) error {
 
 func sendPromptStopAdding(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnDone := selector.Data("Next step/下一步", "done")
+	btnDone := selector.Data("Done adding/停止添加", "done")
 	selector.Inline(selector.Row(btnDone))
-	return c.Send("Please send # mark or press button below to end adding.\n請傳送 # 記號或者按下方按鈕來停止增添貼圖.", selector)
+	return c.Send("Continue sending files or press button below to stop adding.\n"+
+		"請繼續傳送檔案. 或者按下方按鈕來停止增添.", selector)
+}
+
+func replySFileOK(c tele.Context, count int) error {
+	selector := &tele.ReplyMarkup{}
+	btnDone := selector.Data("Done adding/停止添加", "done")
+	selector.Inline(selector.Row(btnDone))
+	return c.Reply(
+		fmt.Sprintf("File OK. Got %d stickers. Continue sending files or press button below to stop adding.\n"+
+			"檔案OK. 已收到%d份貼圖. 請繼續傳送檔案. 或者按下方按鈕來停止增添.", count, count), selector)
 }

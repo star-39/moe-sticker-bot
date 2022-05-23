@@ -292,21 +292,26 @@ func waitSType(c tele.Context) error {
 }
 
 func waitSFile(c tele.Context) error {
-	if c.Callback() != nil && c.Callback().Data == "done" {
-		goto NEXT
+	if c.Callback() != nil {
+		switch c.Callback().Data {
+		case "done":
+			goto NEXT
+		case "bye":
+			terminateSession(c)
+			return nil
+		default:
+			return sendPromptStopAdding(c)
+		}
 	}
-
 	if c.Message().Media() != nil {
 		err := appendMedia(c)
 		if err != nil {
 			c.Reply("Failed processing this file. 處理此檔案時錯誤:\n" + err.Error())
 		}
 		return nil
-	}
-	if !strings.Contains(c.Message().Text, "#") {
+	} else {
 		return sendPromptStopAdding(c)
 	}
-
 NEXT:
 	if len(users.data[c.Sender().ID].stickerData.stickers) == 0 {
 		return c.Send("No image received. try again or /quit")

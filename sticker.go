@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -405,8 +404,7 @@ func appendMedia(c tele.Context) error {
 
 	ud.stickerData.stickers = append(ud.stickerData.stickers, sfs...)
 	ud.stickerData.lAmount = len(ud.stickerData.stickers)
-	c.Reply(fmt.Sprintf("File OK. Got %d stickers. Continue sending or send # mark to stop adding.\n"+
-		"檔案OK. 已收到%d份貼圖. 請繼續傳送檔案或傳送 # 記號來停止增添.", len(ud.stickerData.stickers), len(ud.stickerData.stickers)))
+	replySFileOK(c, len(ud.stickerData.stickers))
 	return nil
 }
 
