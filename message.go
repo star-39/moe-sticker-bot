@@ -191,12 +191,12 @@ func sendAskID(c tele.Context) error {
 Please set an ID for sticker set, used in share link.
 Can contain only english letters, digits and underscores.
 Must begin with a letter, can't contain consecutive underscores.
-請給此貼圖包設定一個ID, 用於分享連結.
+請設定貼圖包的ID, 用於分享連結.
 ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.",
 For example, share link below: 例如以下分享連結:<code>
 https://t.me/addstickers/LoveRinneForever_by_%s</code>
-<code>LoveRinneForever</code> part is the ID you will set.
-<code>LoveRinneForever</code> 部分便是您將要設定的ID.
+<code>LoveRinneForever</code> is the ID you will set.
+<code>LoveRinneForever</code> 便是您將要設定的ID.
 
 This is usually not important, it's recommended to press "Auto Generate" button.
 ID通常不重要, 建議您按下下方的"自動生成"按鈕.
@@ -246,8 +246,8 @@ func sendAskStickerFile(c tele.Context) error {
 		"請等候所有檔案上載完成, 然後傳送 # 記號\n")
 
 	if users.data[c.Sender().ID].stickerData.isVideo {
-		c.Send("Special note: Sending GIF with transparent background will be converted to MP4 by Telegram client, losing transparent layer.\n" +
-			"To bypass this force conversion, you can compress your GIF into a ZIP file, then send it to bot.\n" +
+		c.Send("Special note: Sending GIF with transparent background will lose transparent due to Telegram client problem.\n" +
+			"You can compress your GIF into a ZIP file then send it to bot to bypass.\n" +
 			"特別提示: 傳送帶有透明背景的GIF動圖會被Telegram客戶端強制轉換為MP4並且丟失透明層.\n" +
 			"您可以將貼圖放入ZIP歸檔中再傳送給bot來繞過這個限制.")
 	}
@@ -551,10 +551,10 @@ func sendNoSToManage(c tele.Context) error {
 		"抱歉, 您還未創建過貼圖包, 您可以使用 /create 或 /import .")
 }
 
-func sendEditEmojiOK(c tele.Context) error {
-	return c.Send("Edit emoji OK. Note that you might not be able to see the change immediately.\n" +
-		"成功修改emoji. 更新後的emoji可能無法即刻看到, 需稍等其更新.")
-}
+// func sendEditEmojiOK(c tele.Context) error {
+// 	return c.Send("Edit emoji OK. Note that you might not be able to see the change immediately.\n" +
+// 		"成功修改emoji. 更新後的emoji可能無法即刻看到, 需稍等其更新.")
+// }
 
 func sendPromptStopAdding(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
@@ -571,4 +571,9 @@ func replySFileOK(c tele.Context, count int) error {
 	return c.Reply(
 		fmt.Sprintf("File OK. Got %d stickers. Continue sending files or press button below to stop adding.\n"+
 			"檔案OK. 已收到%d份貼圖. 請繼續傳送檔案. 或者按下方按鈕來停止增添.", count, count), selector)
+}
+
+func sendSEditOK(c tele.Context) error {
+	return c.Send("It might take some time for your client to reflect the change if on iOS/macOS.\n" +
+		"請知悉如果使用iOS/macOS, 您可能無法即刻看到修改後的變化, 可能需要稍等一下.")
 }

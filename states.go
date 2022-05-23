@@ -103,7 +103,8 @@ func waitEmojiEdit(c tele.Context) error {
 	if err != nil {
 		c.Send("Edit Error! try again or /quit\n\n" + err.Error())
 	} else {
-		sendEditEmojiOK(c)
+		c.Send("Edit emoji OK.")
+		sendSEditOK(c)
 	}
 	setState(c, "waitCbEditChoice")
 	return sendAskEditChoice(c)
@@ -149,6 +150,7 @@ func waitSMovTo(c tele.Context) error {
 	}
 
 	c.Send("Move sticker OK.")
+	sendSEditOK(c)
 	setState(c, "waitCbEditChoice")
 	return sendAskEditChoice(c)
 }
@@ -225,6 +227,7 @@ func waitSDel(c tele.Context) error {
 		return err
 	}
 	c.Send("Delete OK.")
+	sendSEditOK(c)
 	ud.stickerData.cAmount--
 	if ud.stickerData.cAmount == 0 {
 		deleteUserS(ud.stickerData.id)
