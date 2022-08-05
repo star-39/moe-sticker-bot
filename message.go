@@ -151,12 +151,24 @@ You can download this sticker set. Press Yes to continue.
 
 func sendAskWantImport(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btn1 := selector.Data("Yes", "yesimport")
-	btnNo := selector.Data("No", "bye")
+	btn1 := selector.Data("Yes", CB_OK_IMPORT)
+	btnNo := selector.Data("Bye", CB_BYE)
 	selector.Inline(selector.Row(btn1), selector.Row(btnNo))
 	return c.Reply(`
-You can import this sticker set. Press Yes to continue.
-您可以匯入這個貼圖包, 按下Yes來繼續.
+You can import this sticker set. Please confirm.
+您可以匯入這個貼圖包, 請確認.
+`, selector)
+}
+
+func sendAskWantImportOrDownload(c tele.Context) error {
+	selector := &tele.ReplyMarkup{}
+	btn1 := selector.Data("Import to Telegram/匯入到Telegram", CB_OK_IMPORT)
+	btn2 := selector.Data("下載/Download", CB_OK_DN)
+	btnNo := selector.Data("Bye", CB_BYE)
+	selector.Inline(selector.Row(btn1), selector.Row(btn2), selector.Row(btnNo))
+	return c.Reply(`
+You can import or download this sticker set. Please choose.
+您可以匯入或下載這個貼圖包, 請選擇.
 `, selector)
 }
 
@@ -494,8 +506,8 @@ func sendAskEmojiEdit(c tele.Context) error {
 
 func sendConfirmDelset(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnYes := selector.Data("Yes", "yes")
-	btnNo := selector.Data("No", "no")
+	btnYes := selector.Data("Yes", CB_YES)
+	btnNo := selector.Data("No", CB_NO)
 	selector.Inline(selector.Row(btnYes), selector.Row(btnNo))
 
 	return c.Send("You are attempting to delete the whole sticker set, please confirm.\n"+
@@ -558,7 +570,7 @@ func sendNoSToManage(c tele.Context) error {
 
 func sendPromptStopAdding(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnDone := selector.Data("Done adding/停止添加", "done")
+	btnDone := selector.Data("Done adding/停止添加", CB_DONE_ADDING)
 	selector.Inline(selector.Row(btnDone))
 	return c.Send("Continue sending files or press button below to stop adding.\n"+
 		"請繼續傳送檔案. 或者按下方按鈕來停止增添.", selector)
@@ -566,7 +578,7 @@ func sendPromptStopAdding(c tele.Context) error {
 
 func replySFileOK(c tele.Context, count int) error {
 	selector := &tele.ReplyMarkup{}
-	btnDone := selector.Data("Done adding/停止添加", "done")
+	btnDone := selector.Data("Done adding/停止添加", CB_DONE_ADDING)
 	selector.Inline(selector.Row(btnDone))
 	return c.Reply(
 		fmt.Sprintf("File OK. Got %d stickers. Continue sending files or press button below to stop adding.\n"+

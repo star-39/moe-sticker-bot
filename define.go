@@ -37,6 +37,16 @@ var CONVERT_ARGS []string
 
 var ADMIN_UID int64
 
+var CB_DN_WHOLE = "dall"
+var CB_DN_SINGLE = "dsingle"
+var CB_OK_IMPORT = "yesimport"
+var CB_OK_DN = "yesd"
+var CB_BYE = "bye"
+var CB_MANAGE = "manage"
+var CB_DONE_ADDING = "done"
+var CB_YES = "yes"
+var CB_NO = "no"
+
 type LineStickerQ struct {
 	line_id   string
 	line_link string

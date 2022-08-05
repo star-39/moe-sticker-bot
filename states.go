@@ -28,12 +28,20 @@ func handleNoSession(c tele.Context) error {
 				endSession(c)
 				return c.Send("Wrong stickter set?")
 			}
-		case "yesimport":
+		case CB_OK_IMPORT:
 			ud := initUserData(c, "import", "waitSTitle")
 			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
 			sendAskTitle_Import(c)
 			return prepImportStickers(ud, true)
+		case CB_OK_DN:
+			ud := initUserData(c, "download", "process")
+			c.Send("Please wait...")
+			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
+			return downloadLineSToZip(c, ud)
+		case CB_BYE:
+			return c.Send("Bye. /start")
 		}
+
 	}
 
 	// bare sticker, ask user's choice.
@@ -65,7 +73,7 @@ func handleNoSession(c tele.Context) error {
 			return sendBadImportLinkWarn(c)
 		} else {
 			sendNotifySExist(c, ld.id)
-			return sendAskWantImport(c)
+			return sendAskWantImportOrDownload(c)
 		}
 	default:
 		return sendNoSessionWarning(c)
@@ -297,9 +305,9 @@ func waitSType(c tele.Context) error {
 func waitSFile(c tele.Context) error {
 	if c.Callback() != nil {
 		switch c.Callback().Data {
-		case "done":
+		case CB_DONE_ADDING:
 			goto NEXT
-		case "bye":
+		case CB_BYE:
 			terminateSession(c)
 			return nil
 		default:
@@ -351,10 +359,7 @@ func waitSDownload(c tele.Context) error {
 		if err != nil {
 			return err
 		}
-		err = prepImportStickers(ud, false)
-		if err != nil {
-			return err
-		}
+
 		err = downloadLineSToZip(c, ud)
 	default:
 		return c.Send("send link or sticker or GIF or /exit ")

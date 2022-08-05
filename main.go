@@ -11,13 +11,13 @@ import (
 	tele "github.com/star-39/telebot"
 )
 
-// main.go should only handle states and basic response,
+// main.go handles states and basic response,
 // complex operations are done in other files.
 
 func main() {
 	initLogrus()
 
-	log.Debug("Warn: Log level below DEBUG might print sensitive information, including passwords. Use with care.")
+	log.Debug("Warn: Log level below DEBUG might print sensitive information, including passwords.")
 	token := os.Getenv("BOT_TOKEN")
 	if token == "" {
 		log.Fatal("Please set BOT_TOKEN environment variable!! Exiting...")

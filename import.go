@@ -140,6 +140,7 @@ func parseLineLink(link string, ld *LineData) error {
 	if ld == nil {
 		return nil
 	}
+
 	ld.link = u
 	ld.category = c
 	ld.dLink = d

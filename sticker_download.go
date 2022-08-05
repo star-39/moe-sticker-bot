@@ -145,10 +145,14 @@ func downloadGifToZip(c tele.Context) error {
 }
 
 func downloadLineSToZip(c tele.Context, ud *UserData) error {
+	err := prepImportStickers(ud, false)
+	if err != nil {
+		return err
+	}
 	workDir := filepath.Dir(ud.lineData.files[0])
 	zipName := ud.lineData.id + ".zip"
 	zipPath := filepath.Join(workDir, zipName)
 	fCompress(zipPath, ud.lineData.files)
-	_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: zipName, File: tele.FromDisk(zipPath)})
+	_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: zipName, File: tele.FromDisk(zipPath)})
 	return err
 }
