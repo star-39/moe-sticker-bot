@@ -2,6 +2,7 @@ package main
 
 import (
 	"path"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -401,6 +402,13 @@ func waitSTitle(c tele.Context) error {
 
 	if c.Callback() == nil {
 		ud.stickerData.title = c.Message().Text
+	} else {
+		titleIndex, atoiErr := strconv.Atoi(c.Callback().Data)
+		if atoiErr == nil && titleIndex != -1 {
+			ud.stickerData.title = ud.lineData.i18nTitles[titleIndex] + " @" + botName
+		} else {
+			ud.stickerData.title = ud.lineData.title + " @" + botName
+		}
 	}
 
 	if !checkTitle(ud.stickerData.title) {

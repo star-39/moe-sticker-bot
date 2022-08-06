@@ -46,6 +46,7 @@ var CB_MANAGE = "manage"
 var CB_DONE_ADDING = "done"
 var CB_YES = "yes"
 var CB_NO = "no"
+var CB_DEFAULT_TITLE = "titledefault"
 
 type LineStickerQ struct {
 	line_id   string
@@ -91,14 +92,32 @@ type StickerData struct {
 type LineData struct {
 	store      string
 	link       string
+	i18nLinks  []string
 	dLink      string
 	dLinks     []string
 	files      []string
 	category   string
 	id         string
 	title      string
+	i18nTitles []string
+	titleWg    sync.WaitGroup
 	isAnimated bool
 	amount     int
+}
+
+type LineJson struct {
+	Name string
+	Sku  string
+	Url  string
+}
+
+type KakaoJsonResult struct {
+	Title         string
+	ThumbnailUrls []string
+}
+
+type KakaoJson struct {
+	Result KakaoJsonResult
 }
 
 type StickerManage struct {

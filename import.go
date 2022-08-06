@@ -40,14 +40,6 @@ func parseKakaoLink(link string, ld *LineData) error {
 		return err
 	}
 
-	type KakaoJsonResult struct {
-		Title         string
-		ThumbnailUrls []string
-	}
-	type KakaoJson struct {
-		Result KakaoJsonResult
-	}
-
 	var kakaoJson KakaoJson
 	err = json.Unmarshal([]byte(page), &kakaoJson)
 	if err != nil {
@@ -68,6 +60,29 @@ func parseKakaoLink(link string, ld *LineData) error {
 	return nil
 }
 
+func fetchLineI18nLinks(doc *goquery.Document) []string {
+	var i18nLinks []string
+	doc.Find("link").Each(func(i int, s *goquery.Selection) {
+		hreflang, exist := s.Attr("hreflang")
+		if !exist {
+			return
+		}
+		href, exist2 := s.Attr("href")
+		if !exist2 {
+			return
+		}
+		switch hreflang {
+		case "zh-Hant":
+			fallthrough
+		case "ja":
+			fallthrough
+		case "en":
+			i18nLinks = append(i18nLinks, href)
+		}
+	})
+	return i18nLinks
+}
+
 func parseLineLink(link string, ld *LineData) error {
 	page, err := httpGet(link)
 	if err != nil {
@@ -79,16 +94,18 @@ func parseLineLink(link string, ld *LineData) error {
 		return err
 	}
 
-	var jsonData map[string]interface{}
+	var lineJson LineJson
 	// For LINE STORE, the first script is always sticker's metadata in JSON.
-	err = json.Unmarshal([]byte(doc.Find("script").First().Text()), &jsonData)
+	err = json.Unmarshal([]byte(doc.Find("script").First().Text()), &lineJson)
 	if err != nil {
 		log.Errorln("Failed json parsing line link!", err)
 		return err
 	}
-	t := jsonData["name"].(string)
-	i := jsonData["sku"].(string)
-	u := jsonData["url"].(string)
+
+	t := lineJson.Name
+	i := lineJson.Sku
+	u := lineJson.Url
+	ls := fetchLineI18nLinks(doc)
 	a := false
 	c := ""
 	d := "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/"
@@ -142,12 +159,15 @@ func parseLineLink(link string, ld *LineData) error {
 	}
 
 	ld.link = u
+	ld.i18nLinks = ls
 	ld.category = c
 	ld.dLink = d
 	ld.id = i
 	ld.title = t
 	ld.isAnimated = a
 	log.Debugln("line data parsed:", ld)
+	ld.titleWg.Add(1)
+	go fetchLineI18nTitles(ld)
 	return nil
 }
 
@@ -165,7 +185,7 @@ func prepKakaoStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
-	ud.stickerData.title = ud.lineData.title + " @" + botName
+	// ud.stickerData.title = ud.lineData.title + " @" + botName
 
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
@@ -205,7 +225,7 @@ func prepLineStickers(ud *UserData, needConvert bool) error {
 	defer ud.udWg.Done()
 	ud.stickerData.isVideo = ud.lineData.isAnimated
 	ud.stickerData.id = "line_" + ud.lineData.id + secNum(4) + "_by_" + botName
-	ud.stickerData.title = ud.lineData.title + " @" + botName
+	// ud.stickerData.title = ud.lineData.title + " @" + botName
 
 	if ud.lineData.category == LINE_STICKER_MESSAGE {
 		return prepLineMessageS(ud)
@@ -368,4 +388,40 @@ func prepLineMessageS(ud *UserData) error {
 	}
 
 	return nil
+}
+
+func fetchLineI18nTitles(ld *LineData) {
+	log.Debugln("Fetching LINE i18n titles...")
+	log.Debugln(ld.i18nLinks)
+	defer ld.titleWg.Done()
+
+	var i18nTitles []string
+
+	for _, l := range ld.i18nLinks {
+		page, err := httpGet(l)
+		if err != nil {
+			continue
+		}
+		doc, err := goquery.NewDocumentFromReader(strings.NewReader(page))
+		var lineJson LineJson
+		err = json.Unmarshal([]byte(doc.Find("script").First().Text()), &lineJson)
+		if err != nil {
+			continue
+		}
+
+		for _, t := range i18nTitles {
+			// if title duplicates, skip loop
+			if t == lineJson.Name {
+				goto CONTINUE
+			}
+		}
+
+		i18nTitles = append(i18nTitles, lineJson.Name)
+	CONTINUE:
+		continue
+	}
+
+	ld.i18nTitles = i18nTitles
+	log.Debugln("I18N titles are:")
+	log.Debugln(ld.i18nTitles)
 }

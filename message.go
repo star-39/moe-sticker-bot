@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -178,13 +179,32 @@ func sendAskWhatToDownload(c tele.Context) error {
 }
 
 func sendAskTitle_Import(c tele.Context) error {
+	ld := users.data[c.Sender().ID].lineData
+	ld.titleWg.Wait()
+	log.Debug("titles are::")
+	log.Debugln(ld.i18nTitles)
 	selector := &tele.ReplyMarkup{}
-	btnAuto := selector.Data("Auto", "autoTitle")
-	selector.Inline(selector.Row(btnAuto))
-	lineTitle := escapeTagMark(users.data[c.Sender().ID].lineData.title) + " @" + botName
 
-	return c.Send("Please set a title for this sticker set. Press Auto button to set title from LINE Store as shown below:\n"+
-		"請設定貼圖包的標題.按下Auto按鈕可以自動設為LINE Store中的標題如下:\n\n"+
+	var titleButtons []tele.Row
+	for i, t := range ld.i18nTitles {
+		if t == "" {
+			continue
+		}
+		btn := selector.Data(escapeTagMark(t)+" @"+botName, strconv.Itoa(i))
+		row := selector.Row(btn)
+		titleButtons = append(titleButtons, row)
+	}
+
+	if len(titleButtons) == 0 {
+		btnDefault := selector.Data(escapeTagMark(ld.title)+" @"+botName, CB_DEFAULT_TITLE)
+		titleButtons = []tele.Row{selector.Row(btnDefault)}
+	}
+	selector.Inline(titleButtons...)
+
+	lineTitle := escapeTagMark(ld.title) + " @" + botName
+
+	return c.Send("Please send a title for this sticker set. You can also select a appropriate original title below:\n"+
+		"請傳送貼圖包的標題.您也可以按下面的按鈕自動填上合適的原版標題:\n\n"+
 		"<code>"+lineTitle+"</code>", selector, tele.ModeHTML)
 }
 
