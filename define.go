@@ -113,6 +113,7 @@ type LineJson struct {
 
 type KakaoJsonResult struct {
 	Title         string
+	TitleUrl      string
 	ThumbnailUrls []string
 }
 

@@ -33,7 +33,9 @@ func parseImportLink(link string, ld *LineData) error {
 }
 
 func parseKakaoLink(link string, ld *LineData) error {
-	kakaoID := path.Base(link)
+	url, _ := url.Parse(link)
+	kakaoID := path.Base(url.Path)
+
 	apiUrl := "https://e.kakao.com/api/v1/items/t/" + kakaoID
 	page, err := httpGet(apiUrl)
 	if err != nil {
@@ -46,6 +48,7 @@ func parseKakaoLink(link string, ld *LineData) error {
 		log.Errorln("Failed json parsing kakao link!", err)
 		return err
 	}
+	kakaoID = kakaoJson.Result.TitleUrl
 
 	log.Debugln("Parsed kakao link:", link)
 	log.Debugln(kakaoJson.Result)
