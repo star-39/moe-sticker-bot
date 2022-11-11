@@ -9,7 +9,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	tele "github.com/star-39/telebot"
+	tele "gopkg.in/telebot.v3"
 )
 
 func sendStartMessage(c tele.Context) error {

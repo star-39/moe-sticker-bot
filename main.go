@@ -8,7 +8,7 @@ import (
 
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
-	tele "github.com/star-39/telebot"
+	tele "gopkg.in/telebot.v3"
 )
 
 // main.go handles states and basic response,

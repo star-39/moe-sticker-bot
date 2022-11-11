@@ -2,7 +2,7 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
-	tele "github.com/star-39/telebot"
+	tele "gopkg.in/telebot.v3"
 )
 
 func cmdCreate(c tele.Context) error {

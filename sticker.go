@@ -9,7 +9,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	tele "github.com/star-39/telebot"
+	tele "gopkg.in/telebot.v3"
 )
 
 func execAutoCommit(createSet bool, c tele.Context) error {

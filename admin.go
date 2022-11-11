@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	tele "github.com/star-39/telebot"
+	tele "gopkg.in/telebot.v3"
 )
 
 // This command is to sanitize duplicated sticker in a set, or update its auto_emoji status.

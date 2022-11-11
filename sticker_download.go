@@ -8,7 +8,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	tele "github.com/star-39/telebot"
+	tele "gopkg.in/telebot.v3"
 )
 
 func downloadSAndC(path string, s *tele.Sticker, needConvert bool, shrinkGif bool, c tele.Context) (string, string) {

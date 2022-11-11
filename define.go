@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/panjf2000/ants/v2"
-	tele "github.com/star-39/telebot"
+	tele "gopkg.in/telebot.v3"
 )
 
 // Workers pool for converting webm
