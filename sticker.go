@@ -185,29 +185,25 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 				sendTooManyFloodLimits(c)
 				return errors.New("too many flood limits")
 			}
-			// This Error is NASTY.
-			// It only happens to specific user at specific time.
+			// Telegram's flood limit is strange.
+			// It only happens to specific user at a specific time.
 			// It is "fake" most of time, since TDLib in API Server will automatically retry.
 			// However! API always return 429 without mentioning its self retry.
-			// As a workaround, we need to verify whether this error is "genuine".
-			// This leads to another problem, API sometimes return the sticker set before self retry being made,
-			// or the result was being cached in API.
-			// We need to wait long enough to verify the actual result.
-			//
-			// EDIT: No! Seems API side will always do retry at TDLib level, message_id was also being kept so
-			// no position shifting will happen.
-			// Yep, we are gonna ignore the FLOOD_LIMIT!
+			// Since API side will always do retry at TDLib level, message_id was also being kept so
+			// no position shift will happen.
+			// Flood limit error could be probably ignored.
 			sendFLWarning(c)
 			log.Warnf("Flood limit encountered for user:%d for set:%s", c.Sender().ID, ss.Name)
 			log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
 			log.Warn("sleeping...zzz")
 			if floodErr.RetryAfter > 60 {
-				log.Error("RA too crazy! should be framework bug.")
-				log.Error("Attempt to sleep for 65 seconds.")
-				time.Sleep(65 * time.Second)
+				log.Error("RA too long! Telegram's bug?")
+				log.Error("Attempt to sleep for 90 seconds.")
+				time.Sleep(90 * time.Second)
 			} else {
-				// Sleep for extra 5 seconds than RA.
-				time.Sleep(time.Duration((floodErr.RetryAfter + 10) * int(time.Second)))
+				// Sleep with some extra seconds due to bugs being reported.
+				extraRA := 20 * *flCount
+				time.Sleep(time.Duration((floodErr.RetryAfter + extraRA) * int(time.Second)))
 			}
 
 			log.Warn("woke up from RA sleep. ignoring this error.")

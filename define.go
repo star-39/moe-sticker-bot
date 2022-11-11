@@ -12,7 +12,7 @@ import (
 var wpConvertWebm *ants.PoolWithFunc
 var dataDir string
 var botName string
-var botVersion = "1.2.3-GO"
+var botVersion = "1.2.4-GO"
 var users Users
 
 // Line sticker types

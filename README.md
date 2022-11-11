@@ -89,6 +89,11 @@ To deploy this feature. Set up mariadb-server and set the following env variable
 `USE_DB=1`
 
 ## CHANGELOG
+1.2.4 (20221111)
+  * Minor improvements.
+  * Fixed(almost) floot limit.
+  * Fixed kakao link with queries.
+
 1.2.2 (20220523)
   * Improved user experience.
 
@@ -106,7 +111,7 @@ To deploy this feature. Set up mariadb-server and set the following env variable
   * Skip error on TGS to GIF due to lottie issues.
 
 1.0 (20220513)
-  * First stable release in go version.(Python one never got stablized btw)
+  * First stable release in go version.
   * Added support for downloading TGS and convert to GIF.
   * Backing database for @moe_sticker_bot has gone complete sanitization.
 
