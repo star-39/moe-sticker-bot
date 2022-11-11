@@ -44,7 +44,7 @@ Send me links or stickers to import or download them, or, use a command below:
 func sendAboutMessage(c tele.Context) {
 	c.Send(fmt.Sprintf(`
 @%s by @plow283
-<b>Please hit Star for this project on Github if you like this bot!
+<b>Please star for this project on Github if you like this bot!
 如果您喜歡這個bot, 歡迎Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
 Thank you @StickerGroup for feedbacks and advices!
@@ -56,7 +56,6 @@ Comes with ABSOLUTELY NO WARRANTY! All rights reserved.
 </code><b>
 Please send /start to start using
 請傳送 /start 來開始
-始めるには /start を送信してください
 </b><code>
 BOT_VERSION: %s
 </code>
@@ -210,8 +209,7 @@ func sendAskTitle_Import(c tele.Context) error {
 
 func sendAskTitle(c tele.Context) {
 	c.Send("Please set a title for this sticker set.\n" +
-		"請設定貼圖包的標題.\n" +
-		"スタンプのタイトルを送信してください。")
+		"請設定貼圖包的標題.")
 }
 
 func sendAskID(c tele.Context) error {
@@ -350,8 +348,7 @@ func sendFatalError(err error, c tele.Context) {
 	log.Errorln("Raw error:", err)
 
 	c.Send("<b>Fatal error! Please try again. /start\n"+
-		"發生嚴重錯誤! 請您從頭再試一次. /start\n"+
-		"深刻なエラーが発生しました！もう一度やり直してください /start </b>\n\n"+
+		"發生嚴重錯誤! 請您從頭再試一次. /start </b>\n\n"+
 		"You can report this error to @plow283 or https://github.com/star-39/moe-sticker-bot/issues\n\n"+
 		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
@@ -360,7 +357,6 @@ func sendProcessStarted(ud *UserData, c tele.Context, optMsg string) (string, *t
 	message := fmt.Sprintf(`
 Preparing stickers, please wait...
 正在準備貼圖, 請稍後...
-作業が開始しています、少々お時間を...
 <code>
 LINE Cat:%s
 LINE ID:%s
@@ -607,5 +603,5 @@ func replySFileOK(c tele.Context, count int) error {
 
 func sendSEditOK(c tele.Context) error {
 	return c.Send("It might take some time for your client to reflect the change if on iOS/macOS.\n" +
-		"請知悉如果使用iOS/macOS, 您可能無法即刻看到修改後的變化, 可能需要稍等一下.")
+		"提示: 如果使用iOS/macOS, 您可能無法即刻看到修改後的變化, 可能需要稍等一下.")
 }

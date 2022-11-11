@@ -212,15 +212,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 
 			log.Warn("woke up from RA sleep. ignoring this error.")
 			break
-			// do this check AFTER sleep.
-			// if verifyRetryAfterIsFake(amountSupposed, c, ss) {
-			// 	log.Warn("The RA is fake, breaking retry loop...")
-			// 	// Break retry loop if RA is fake.
-			// 	break
-			// } else {
-			// 	log.Warn("Oops! The flood limit is real, retrying...")
-			// 	continue
-			// }
+
 		} else if strings.Contains(strings.ToLower(err.Error()), "video_long") {
 			// Redo with safe mode on.
 			// This should happen only one time.
@@ -251,39 +243,6 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 	}
 	return nil
 }
-
-// Completely useless!
-// API server caches the SS result and always return a outdated value!
-// They also silently do retry at TDLib level after getting "can_retry" from TG.
-// Goodbye! Duplicated stickers!
-// func verifyRetryAfterIsFake(amountSupposed int, c tele.Context, ss tele.StickerSet) bool {
-// 	var isFake bool
-// 	// go crazy! let's check it FIVE TIMES!
-// 	// How dare you https://github.com/tdlib/telegram-bot-api
-// 	for i := 0; i < 5; i++ {
-// 		time.Sleep(5 * time.Second)
-// 		log.Warnln("Check RA... loop:", i)
-// 		cloudSS, err := c.Bot().StickerSet(ss.Name)
-// 		// if RA is fake, return immediately! so we can continue operation.
-// 		if amountSupposed == 1 {
-// 			if err != nil {
-// 				// Sticker set exists.
-// 				return true
-// 			} else {
-// 				isFake = false
-// 			}
-// 		} else {
-// 			log.Warnln("Checked cAmount is :", len(cloudSS.Stickers))
-// 			log.Warnln("We suppose :", amountSupposed)
-// 			if len(cloudSS.Stickers) == amountSupposed {
-// 				return true
-// 			} else {
-// 				isFake = false
-// 			}
-// 		}
-// 	}
-// 	return isFake
-// }
 
 func editStickerEmoji(c tele.Context, ud *UserData) error {
 	e := findEmojis(c.Message().Text)

@@ -9,6 +9,7 @@ import (
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
+	"gopkg.in/telebot.v3/middleware"
 )
 
 // main.go handles states and basic response,
@@ -17,7 +18,7 @@ import (
 func main() {
 	initLogrus()
 
-	log.Debug("Warn: Log level below DEBUG might print sensitive information, including passwords.")
+	log.Debug("Warning: Log level below DEBUG might print sensitive information, including passwords.")
 	token := os.Getenv("BOT_TOKEN")
 	if token == "" {
 		log.Fatal("Please set BOT_TOKEN environment variable!! Exiting...")
@@ -40,6 +41,9 @@ func main() {
 
 	initWorkspace(b)
 	log.WithFields(log.Fields{"botName": botName, "dataDir": dataDir}).Info("Bot OK.")
+
+	// introduced in telebot v3.1
+	b.Use(middleware.Recover())
 
 	b.Handle("/quit", cmdQuit)
 	b.Handle("/cancel", cmdQuit)
