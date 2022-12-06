@@ -33,5 +33,5 @@ jobs:
       - name: Build MSB OCI container amd64
         run: |
           go version
-          bash .github/workflows/buildah_arch_amd64 ${{ secrets.GITHUB_TOKEN }}
+          bash .github/workflows/buildah_arch_amd64.sh ${{ secrets.GITHUB_TOKEN }}
 
