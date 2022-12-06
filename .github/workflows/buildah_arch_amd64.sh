@@ -27,7 +27,7 @@ c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base)
 
 # Build MSB go bin
 go version
-go build cmd/main.go moe-sticker-bot
+go build -o moe-sticker-bot cmd/main.go 
 buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
 # Build react app

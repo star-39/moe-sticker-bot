@@ -27,7 +27,7 @@ c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base_aarch64)
 
 # Build MSB go bin
 go version
-GOOS=linux GOARCH=arm64 go build cmd/main.go moe-sticker-bot
+GOOS=linux GOARCH=arm64 go build -o moe-sticker-bot cmd/main.go 
 buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
 # Build react app
