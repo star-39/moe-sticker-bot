@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"context"
@@ -8,11 +8,15 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-// Workers pool for converting webm
-var wpConvertWebm *ants.PoolWithFunc
+var BOT_VERSION = "2.0.0-GO-RC1"
+var DB_VER string = "1"
+
+// The telegram bot.
+var b *tele.Bot
+
 var dataDir string
 var botName string
-var botVersion = "1.2.4-GO"
+
 var users Users
 
 // Line sticker types
@@ -48,6 +52,9 @@ var CB_YES = "yes"
 var CB_NO = "no"
 var CB_DEFAULT_TITLE = "titledefault"
 
+var ST_WAIT_WEBAPP = "waitWebApp"
+var ST_PROCESSING = "process"
+
 type LineStickerQ struct {
 	line_id   string
 	line_link string
@@ -75,14 +82,15 @@ type StickerFile struct {
 type StickerData struct {
 	id string
 	// link     string
-	title    string
-	emojis   []string
-	sticker  *tele.Sticker
-	stickers []*StickerFile
-	isVideo  bool
-	// isTGS    bool
-	pos int
-	// upCount  int
+	title      string
+	emojis     []string
+	sticker    *tele.Sticker
+	stickers   []*StickerFile
+	stickerSet *tele.StickerSet
+	// Currently only for WebApp
+	sDnObjects []*StickerDownloadObject
+	isVideo    bool
+	pos        int
 	// amount of local files
 	lAmount int
 	// amount on cloud
@@ -121,8 +129,20 @@ type KakaoJson struct {
 	Result KakaoJsonResult
 }
 
-type StickerManage struct {
-	pendingS *tele.Sticker
+// deprecated
+// type StickerManage struct {
+// 	pendingS *tele.Sticker
+// }
+
+type WebAppUser struct {
+	Id            int
+	Is_bot        bool
+	First_name    string
+	Last_name     string
+	Username      string
+	Language_code string
+	Is_premium    bool
+	Photo_url     string
 }
 
 type UserData struct {
@@ -138,16 +158,45 @@ type UserData struct {
 	state     string
 	sessionID string
 	// userDir       string
-	workDir       string
-	command       string
-	progress      string
-	progressMsg   *tele.Message
-	lineData      *LineData
-	stickerData   *StickerData
-	stickerManage *StickerManage
+	workDir     string
+	command     string
+	progress    string
+	progressMsg *tele.Message
+	lineData    *LineData
+	stickerData *StickerData
+	// stickerManage *StickerManage
+
+	//WebApp
+	webAppUser       *WebAppUser
+	webAppQID        string
+	webAppWorkerPool *ants.PoolWithFunc
+	lastContext      tele.Context
+
+	//functions
+	// ud.udSetState
 }
 
 type Users struct {
 	mu   sync.Mutex
 	data map[int64]*UserData
+}
+
+type StickerDownloadObject struct {
+	wg      sync.WaitGroup
+	bot     *tele.Bot
+	sticker tele.Sticker
+	dest    string
+	err     error
+}
+
+type StickerMoveObject struct {
+	wg       sync.WaitGroup
+	err      error
+	sd       *StickerData
+	oldIndex int
+	newIndex int
+}
+
+func (ud *UserData) udSetState(state string) {
+	ud.state = state
 }

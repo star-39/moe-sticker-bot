@@ -1,9 +1,7 @@
-package main
+package core
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -18,33 +16,6 @@ func fDownload(link string, savePath string) error {
 	cmd := exec.Command("curl", "-o", savePath, link)
 	_, err := cmd.CombinedOutput()
 	return err
-}
-
-func httpDownload(link string, f string) error {
-	res, err := http.Get(link)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	fp, _ := os.Create(f)
-	defer fp.Close()
-	_, err = io.Copy(fp, res.Body)
-	return err
-}
-
-func httpGet(link string) (string, error) {
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", link, nil)
-	req.Header.Set("User-Agent", "curl/7.61.1")
-	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	content, _ := io.ReadAll(res.Body)
-
-	return string(content), nil
 }
 
 func fExtract(f string) string {

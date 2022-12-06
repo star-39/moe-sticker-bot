@@ -1,14 +1,14 @@
-package main
+package core
 
 import (
 	"errors"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -167,6 +167,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 
 	log.Debugln("sticker file path:", sf.cPath)
 	log.Debugln("attempt commiting:", ss)
+	log.Debugln("target emoji is:", ss.Emojis)
 	// Retry loop.
 	for i := 0; i < 3; i++ {
 		if createSet {
@@ -240,42 +241,28 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 	return nil
 }
 
-func editStickerEmoji(c tele.Context, ud *UserData) error {
-	e := findEmojis(c.Message().Text)
-	if e == "" {
-		return errors.New("no emoji received")
-	}
-	workDir := ud.workDir
-	os.MkdirAll(workDir, 0755)
-	f := filepath.Join(workDir, ud.stickerManage.pendingS.FileID)
-	ss, _ := c.Bot().StickerSet(ud.stickerData.id)
+func editStickerEmoji(newEmoji string, index int, fid string, ud *UserData) error {
+	c := ud.lastContext
+	ss := *ud.stickerData.stickerSet
+	f := filepath.Join(config.Config.WebappDataDir, "data", ss.Name, fid+".webp")
 	lastFID := ss.Stickers[len(ss.Stickers)-1].FileID
 
-	pos := -1
-	for i, s := range ss.Stickers {
-		if s.FileID == ud.stickerManage.pendingS.FileID {
-			pos = i
-		}
-	}
-	if pos == -1 {
-		return errors.New("unknow error when determining position")
-	}
-
-	f, _ = downloadSAndC(f, ud.stickerManage.pendingS, false, false, c)
 	sf := &StickerFile{
 		oPath: f,
 		cPath: f,
 	}
-	ss.Emojis = e
+
 	if ss.Video {
 		ss.WebM = &tele.File{FileLocal: f}
 	} else {
 		ss.PNG = &tele.File{FileLocal: f}
 	}
-	log.Debugln("Edit eomji ready to commit ss:", ss)
+
+	ss.Emojis = newEmoji
+	ss.Stickers = nil
 
 	flCount := 0
-	err := commitSticker(false, &flCount, false, sf, c, *ss)
+	err := commitSticker(false, &flCount, false, sf, c, ss)
 	if err != nil {
 		return errors.New("error commiting temp sticker " + err.Error())
 	}
@@ -287,17 +274,19 @@ func editStickerEmoji(c tele.Context, ud *UserData) error {
 			return nil
 		default:
 		}
+		time.Sleep(1 * time.Second)
 		ssNew, _ := c.Bot().StickerSet(ud.stickerData.id)
 		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
 		if commitedFID == lastFID {
-			time.Sleep(1 * time.Second)
 			continue
 		}
-		err = c.Bot().SetStickerPosition(commitedFID, pos)
+		//commit back the lastest set.
+		ud.stickerData.stickerSet = ssNew
+		err = c.Bot().SetStickerPosition(commitedFID, index)
 		if err != nil {
-			return errors.New("error setting position after editing emoji")
+			return errors.New("error setting position after editing emoji" + err.Error())
 		}
-		return c.Bot().DeleteSticker(ud.stickerManage.pendingS.FileID)
+		return c.Bot().DeleteSticker(fid)
 	}
 	return errors.New("error setting position after editing emoji")
 }
@@ -372,4 +361,9 @@ func guessIsArchive(f string) bool {
 		}
 	}
 	return false
+}
+
+func moveSticker(oldIndex int, newIndex int, ud *UserData) error {
+	sid := ud.stickerData.stickerSet.Stickers[oldIndex].FileID
+	return b.SetStickerPosition(sid, newIndex)
 }

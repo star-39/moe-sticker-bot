@@ -1,11 +1,14 @@
-package main
+package core
 
 import (
+	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -14,21 +17,13 @@ func handleNoSession(c tele.Context) error {
 
 	if c.Callback() != nil && c.Message().ReplyTo != nil {
 		switch c.Callback().Data {
-		case "single":
+		case CB_DN_SINGLE:
 			return downloadStickersToZip(c.Message().ReplyTo.Sticker, "", c)
-		case "whole":
+		case CB_DN_WHOLE:
 			id := getSIDFromMessage(c.Message().ReplyTo)
 			return downloadStickersToZip(nil, id, c)
-		case "manage":
-			ud := initUserData(c, "manage", "waitCbEditChoice")
-			id := getSIDFromMessage(c.Message().ReplyTo)
-			err := retrieveSSDetails(c, id, ud.stickerData)
-			if err == nil {
-				return sendAskEditChoice(c)
-			} else {
-				endSession(c)
-				return c.Send("Wrong stickter set?")
-			}
+		case CB_MANAGE:
+			return prepareSManage(c)
 		case CB_OK_IMPORT:
 			ud := initUserData(c, "import", "waitSTitle")
 			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
@@ -90,105 +85,43 @@ func stateProcessing(c tele.Context) error {
 	return c.Send("processing, please wait... 作業中, 請稍後... /quit")
 }
 
-func waitSEmojiEdit(c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	if c.Message().Sticker == nil {
-		return c.Send("Send sticker! try again or /quit")
-	}
-	if c.Message().Sticker.SetName != ud.stickerData.id {
-		return c.Send("Sticker from wrong set! try again or /quit")
-	}
-	ud.stickerManage.pendingS = c.Message().Sticker
-	setState(c, "waitEmojiEdit")
-	return sendAskEmojiEdit(c)
-}
-
-func waitEmojiEdit(c tele.Context) error {
-	log.Debug("Attempting edit emoji.")
-	ud := users.data[c.Sender().ID]
-	setState(c, "process")
-	c.Send("please wait...")
-	err := editStickerEmoji(c, ud)
-	if err != nil {
-		c.Send("Edit Error! try again or /quit\n\n" + err.Error())
+func prepareSManage(c tele.Context) error {
+	var ud *UserData
+	if c.Callback() != nil && c.Message().ReplyTo != nil {
+		if c.Callback().Data == CB_MANAGE {
+			ud = initUserData(c, "manage", "waitCbEditChoice")
+			id := getSIDFromMessage(c.Message().ReplyTo)
+			ud.stickerData.id = id
+		}
 	} else {
-		c.Send("Edit emoji OK.")
-		sendSEditOK(c)
-	}
-	setState(c, "waitCbEditChoice")
-	return sendAskEditChoice(c)
-}
-
-func waitSMovFrom(c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	if c.Message().Sticker == nil {
-		return c.Send("Send sticker! try again or /quit")
-	}
-	if c.Message().Sticker.SetName != ud.stickerData.id {
-		return c.Send("Sticker from wrong set! try again or /quit")
-	}
-
-	ud.stickerManage.pendingS = c.Message().Sticker
-	setState(c, "waitSMovTo")
-	return sendAskMovTarget(c)
-}
-
-func waitSMovTo(c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	if c.Message().Sticker == nil {
-		return c.Send("Send sticker! try again or /quit")
-	}
-	if c.Message().Sticker.SetName != ud.stickerData.id {
-		return c.Send("Sticker from wrong set! try again or /quit")
-	}
-
-	ss, err := c.Bot().StickerSet(c.Message().Sticker.SetName)
-	if err != nil {
-		return err
-	}
-	targetPos := -1
-	for i, s := range ss.Stickers {
-		if s.FileID == c.Message().Sticker.FileID {
-			targetPos = i
+		ud = users.data[c.Sender().ID]
+		if c.Message().Sticker != nil {
+			ud.stickerData.sticker = c.Message().Sticker
+			ud.stickerData.id = c.Message().Sticker.SetName
+		} else {
+			link, tp := findLinkWithType(c.Message().Text)
+			if tp != LINK_TG {
+				return c.Send("Send correct telegram sticker link!")
+			}
+			ud.stickerData.id = path.Base(link)
 		}
 	}
-	log.Debugf("Moving sticker to %d", targetPos)
-	err = c.Bot().SetStickerPosition(ud.stickerManage.pendingS.FileID, targetPos)
-	if err != nil {
-		return err
-	}
-
-	c.Send("Move sticker OK.")
-	sendSEditOK(c)
-	setState(c, "waitCbEditChoice")
-	return sendAskEditChoice(c)
-}
-
-func waitSManage(c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	if c.Message().Sticker != nil {
-		ud.stickerData.sticker = c.Message().Sticker
-		ud.stickerData.id = c.Message().Sticker.SetName
-	} else {
-		link, tp := findLinkWithType(c.Message().Text)
-		if tp != LINK_TG {
-			return c.Send("Send correct telegram sticker link!")
-		}
-		ud.stickerData.id = path.Base(link)
-	}
+	ud.lastContext = c
 	// Allow admin to manage all sticker sets.
 	if c.Sender().ID == ADMIN_UID {
 		goto NEXT
 	}
 	if !matchUserS(c.Sender().ID, ud.stickerData.id) {
-		return c.Send("Not owned by you. try again or /quit")
+		return c.Send("Sorry, this sticker set cannot be edited. try another or /quit")
 	}
 
 NEXT:
 	err := retrieveSSDetails(c, ud.stickerData.id, ud.stickerData)
 	if err != nil {
-		return c.Send("sticker set wrong! try again or /quit")
+		return c.Send("bad sticker set! try again or /quit")
 	}
+
+	err = prepareSManWebApp(c, users.data[c.Sender().ID])
 
 	setState(c, "waitCbEditChoice")
 	return sendAskEditChoice(c)
@@ -209,12 +142,6 @@ func waitCbEditChoice(c tele.Context) error {
 	case "delset":
 		setState(c, "waitCbDelset")
 		return sendConfirmDelset(c)
-	case "mov":
-		setState(c, "waitSMovFrom")
-		return sendAskSFrom(c)
-	case "emoji":
-		setState(c, "waitSEmojiEdit")
-		return sendSEditEmoji(c)
 	case "bye":
 		terminateSession(c)
 	}
@@ -489,4 +416,22 @@ func waitSEmojiAssign(c tele.Context) error {
 		return c.Send("send emoji! try again or /quit")
 	}
 	return execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), emojis, c)
+}
+
+func prepareSManWebApp(c tele.Context, ud *UserData) error {
+	dest := filepath.Join(config.Config.WebappDataDir, "data", ud.stickerData.id)
+	os.RemoveAll(dest)
+	os.MkdirAll(dest, 0755)
+
+	for _, s := range ud.stickerData.stickerSet.Stickers {
+		obj := &StickerDownloadObject{
+			bot:     c.Bot(),
+			dest:    filepath.Join(dest, s.FileID+".webp"),
+			sticker: s,
+		}
+		obj.wg.Add(1)
+		ud.stickerData.sDnObjects = append(ud.stickerData.sDnObjects, obj)
+		go wpDownloadStickerSet.Invoke(obj)
+	}
+	return nil
 }

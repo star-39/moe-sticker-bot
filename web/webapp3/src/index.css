@@ -1,0 +1,159 @@
+.div {
+  touch-action: auto;
+}
+
+body {
+  font-family: sans-serif;
+  background-color: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #222222);
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  color-scheme: var(--tg-color-scheme);
+}
+
+a {
+  color: var(--tg-theme-link-color, #2678b6);
+}
+
+button {
+  display: block;
+  width: 100%;
+  font-size: 14px;
+  margin: 15px 0;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--tg-theme-button-color, #50a8eb);
+  color: var(--tg-theme-button-text-color, #ffffff);
+  cursor: pointer;
+}
+
+button[disabled] {
+  opacity: 0.6;
+  cursor: auto;
+  pointer-events: none;
+}
+
+button.close_btn {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 16px 20px;
+  text-transform: uppercase;
+}
+
+section {
+  padding: 15px 15px 65px;
+  text-align: center;
+}
+
+p {
+  margin: 40px 0 15px;
+}
+
+ul {
+  text-align: left;
+}
+
+li {
+  color: var(--tg-theme-hint-color, #a8a8a8);
+}
+
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px;
+}
+
+pre {
+  background: rgba(0, 0, 0, .07);
+  border-radius: 4px;
+  padding: 4px;
+  margin: 7px 0;
+  word-break: break-all;
+  word-break: break-word;
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.dark pre {
+  background: rgba(255, 255, 255, .15);
+}
+
+.hint {
+  font-size: .8em;
+  color: var(--tg-theme-hint-color, #a8a8a8);
+}
+
+.ok {
+  color: green;
+}
+
+.err {
+  color: red;
+}
+
+#fixed_wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  transform: translateY(100vh);
+}
+
+.viewport_border,
+.viewport_stable_border {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--tg-viewport-height, 100vh);
+  pointer-events: none;
+}
+
+.viewport_stable_border {
+  height: var(--tg-viewport-stable-height, 100vh);
+}
+
+.viewport_border:before,
+.viewport_stable_border:before {
+  content: attr(text);
+  display: inline-block;
+  position: absolute;
+  background: gray;
+  right: 0;
+  top: 0;
+  font-size: 7px;
+  padding: 2px 4px;
+  vertical-align: top;
+}
+
+.viewport_stable_border:before {
+  background: green;
+  left: 0;
+  right: auto;
+}
+
+.viewport_border:after,
+.viewport_stable_border:after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border: 2px dashed gray;
+}
+
+.viewport_stable_border:after {
+  border-color: green;
+}
+
+small {
+  font-size: 12px;
+}

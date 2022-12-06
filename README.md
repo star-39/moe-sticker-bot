@@ -7,17 +7,17 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 
 ## Features
   * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
-  * Batch download and convert Telegram stickers to original or common formats.
+  * Batch download and convert Telegram stickers or GIFs to original or common formats.
   * Full support of video stickers.
   * Create your own sticker set with your own images easily.
-  * Manage your sticker set: add or remove sticker, change order, edit emoji.
+  * Manage your sticker set interactively through WebApp: add/move/remove/edit sticker and emoji.
   * Top class performance with simultaneous execution to save your time.
 
   * 輕鬆匯入LINE/kakao貼圖包到Telegram, 可以統一或分開指定emoji.
-  * 下載Telegram/LINE/kakao貼圖包, 自動變換為常用格式, 並且保留原檔.
+  * 下載Telegram/LINE/kakao貼圖包和GIF, 自動變換為常用格式, 並且保留原檔.
   * 完整支援動態貼圖.
   * 輕鬆使用自己任意格式的圖片,短片來創建自己的貼圖包.
-  * 可以管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
+  * 使用互動式WebApp輕鬆管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
   * 擁有超高處理速度, 節省您的時間. 
 
 ## Screenshots
@@ -36,16 +36,35 @@ Telegram用萌え萌えのスタンプBOTです。LINEストアからスタン�
 
 ## Deployment
 ### Deploy with pre-built containers
+It is __highly recommended__ to deploy moe-sticker-bot using containers.
 A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
 
 Simply run:
 ```
-docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:latest
+docker run -dt ghcr.io/star-39/moe-sticker-bot --bot_token="..."
 ```
-If you are on ARM64(AArch64) arch, use `aarch64` tag:
+
+To deploy all the features, it is recommended through podman and pods.
 ```
-docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:aarch64
+podman pod create p-moe-sticker-bot --port 443
+podman volume create moe-sticker-bot-db
+
+podman run -dt --pod p-moe-sticker-bot \
+-v moe-sticker-bot-db:/var/lib/mysql -e MARIADB_ROOT_PASSWORD=ROOT_PASS docker://mariadb:10.6
+
+podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:py_emoji
+
+podman run -dt --pod p-moe-sticker-bot -v CERT_LOCATION:/certs ghcr.io/star-39/moe-sticker-bot \
+        --bot_token=YOUR_TOKEN_HERE \
+        --webapp --webapp_url https://example.com/webapp/ \
+        --webapp_api_url https://example.com/webapp/ \
+        --webapp_data_dir /moe-sticker-bot/web/webapp3/build \
+        --webapp_cert /certs/fullchain.pem \
+        --webapp_privkey /certs/privkey.pem \
+        --use_db --db_addr 127.0.0.1:3306 --db_user root --db_pass ROOT_PASS
 ```
+If you are on ARM64(AArch64) arch, `aarch64` tag is also available:
+
 
 ### System Dependencies
 * ImageMagick
@@ -54,8 +73,12 @@ docker run -dt -e BOT_TOKEN=your_bot_token ghcr.io/star-39/moe-sticker-bot:aarch
 * curl
 * mariadb-server (optional)
 
-### Manual deployment
-#### Linux/macOS
+### Build Dependencies
+ * golang v18+
+ * nodejs v18+
+ * react-js v18+
+
+### Build
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
 dnf install git ImageMagick libwebp bsdtar curl ffmpeg go
@@ -65,30 +88,41 @@ apt install git imagemagick libarchive-tools curl ffmpeg go
 pacman -S install git ffmpeg imagemagick curl libarchive go
 # For macOS
 brew install git imagemagick ffmpeg curl go
+# For Windows, please install scoop and use Windows Powershell:
+scoop install ffmpeg imagemagick go
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
-go build
-BOT_TOKEN=your_bot_token ./moe-sticker-bot
-```
-#### Windows
-Please install scoop(https://scoop.sh) first, using Windows Powershell:
-```
-scoop install ffmpeg imagemagick go
-git clone https://github.com/star-39/moe-sticker-bot ; cd moe-sticker-bot
-go build
-$ENV:BOT_TOKEN=your_bot_token ; .\moe-sticker-bot
+
+go build cmd/main.go moe-sticker-bot
 ```
 
 #### mariadb
-Bot supports saving imported line stickers into a database and will notify user that a already imported set is available.
+moe-sticker-bot can save imported line stickers into database and will notify user that a already imported set is available.
 
-To deploy this feature. Set up mariadb-server and set the following env variables:
+This also serves the `/manage` function.
 
-`DB_USER DB_PASS DB_NAME DB_ADDR`
+To deploy this feature. You will need a mariadb or mysql server. Check `--help` for detailed config.
 
-`USE_DB=1`
+#### WebApp
+Since 2.0 version of moe-sticker-bot, managing sticker set's order and emoji is now through Telegram's
+new WebApp technology. 
+
+To build WebApp components:
+
+```
+cd web/webapp3
+npm install
+npm build
+```
+Check `--help` for detailed webapp configs. Please note that you need a valid TLS certificate to serve.
 
 ## CHANGELOG
+2.0.0 RC-1 (20221206)
+  * WebApp support for edit stickers.
+  * Code structure refactored.
+  * Now accepts options from cmdline instead of env var.
+  * Support parallel sticker download.
+
 1.2.4 (20221111)
   * Minor improvements.
   * Fixed(almost) floot limit.

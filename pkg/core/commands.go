@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -51,7 +51,7 @@ func cmdQuit(c tele.Context) error {
 	log.Debug("Received user quit request.")
 	ud, exist := users.data[c.Sender().ID]
 	if !exist {
-		return c.Send("Please use /start")
+		return c.Send("Please use /start", &tele.ReplyMarkup{RemoveKeyboard: true})
 	}
 	c.Send("Please wait...")
 	ud.cancel()

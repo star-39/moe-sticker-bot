@@ -1,14 +1,16 @@
-package main
+package core
 
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -59,7 +61,7 @@ Please send /start to start using
 </b><code>
 BOT_VERSION: %s
 </code>
-`, botName, botVersion), tele.ModeHTML)
+`, botName, BOT_VERSION), tele.ModeHTML)
 }
 
 func sendFAQ(c tele.Context) {
@@ -117,9 +119,9 @@ You can download this sticker or the whole sticker set, please select below.
 
 func sendAskSChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnRand := selector.Data("This sticker/下載這張貼圖", "single")
-	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", "whole")
-	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", "manage")
+	btnRand := selector.Data("This sticker/下載這張貼圖", CB_DN_SINGLE)
+	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", CB_DN_WHOLE)
+	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
 	selector.Inline(selector.Row(btnRand), selector.Row(btnManu), selector.Row(btnMan))
 	return c.Reply(`
 You own this sticker set. You can download or manage this sticker set, please select below.
@@ -129,8 +131,8 @@ You own this sticker set. You can download or manage this sticker set, please se
 
 func sendAskTGLinkChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", "whole")
-	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", "manage")
+	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", CB_DN_WHOLE)
+	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
 	selector.Inline(selector.Row(btnManu), selector.Row(btnMan))
 	return c.Reply(`
 You own this sticker set. You can download or manage this sticker set, please select below.
@@ -140,8 +142,8 @@ You own this sticker set. You can download or manage this sticker set, please se
 
 func sendAskWantSDown(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btn1 := selector.Data("Yes", "whole")
-	btnNo := selector.Data("No", "bye")
+	btn1 := selector.Data("Yes", CB_DN_WHOLE)
+	btnNo := selector.Data("No", CB_BYE)
 	selector.Inline(selector.Row(btn1), selector.Row(btnNo))
 	return c.Reply(`
 You can download this sticker set. Press Yes to continue.
@@ -223,10 +225,8 @@ Can contain only english letters, digits and underscores.
 Must begin with a letter, can't contain consecutive underscores.
 請設定貼圖包的ID, 用於分享連結.
 ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.",
-For example, share link below: 例如以下分享連結:<code>
-https://t.me/addstickers/LoveRinneForever_by_%s</code>
-<code>LoveRinneForever</code> is the ID you will set.
-<code>LoveRinneForever</code> 便是您將要設定的ID.
+For example: 例如:
+<code>My_favSticker21</code>
 
 This is usually not important, it's recommended to press "Auto Generate" button.
 ID通常不重要, 建議您按下下方的"自動生成"按鈕.
@@ -465,60 +465,57 @@ func sendUserOwnedS(c tele.Context) error {
 	return nil
 }
 
-func chunkSlice(slice []string, chunkSize int) [][]string {
-	var chunks [][]string
-	for {
-		if len(slice) == 0 {
-			break
-		}
-
-		if len(slice) < chunkSize {
-			chunkSize = len(slice)
-		}
-
-		chunks = append(chunks, slice[0:chunkSize])
-		slice = slice[chunkSize:]
-	}
-	return chunks
-}
-
 func sendAskEditChoice(c tele.Context) error {
+	//WebApp URL Request Parameters:
+	//ss=sticker set ID
+	//dt=DateTime when WebApp link generated
+	ud := users.data[c.Sender().ID]
 	selector := &tele.ReplyMarkup{}
 	btnAdd := selector.Data("Add sticker/增添貼圖", "add")
 	btnDel := selector.Data("Delete sticker/刪除貼圖", "del")
-	btnMov := selector.Data("Change order/調整順序", "mov")
-	btnEmoji := selector.Data("Change emoji/修改Emoji", "emoji")
+	baseUrl, _ := url.JoinPath(config.Config.WebappUrl, "edit", "index.html")
+	url := fmt.Sprintf("%s?ss=%s&dt=%d",
+		baseUrl,
+		ud.stickerData.id,
+		time.Now().Unix())
+	log.Debugln("WebApp URL is : ", url)
+	webApp := &tele.WebApp{
+		URL: url,
+	}
+	btnEdit := selector.WebApp("Change order or emoji/修改順序或Emoji", webApp)
+	// btnMov := selector.Data("Change order/調整順序", "mov")
+	// btnEmoji := selector.Data("Change emoji/修改Emoji", "emoji")
 	btnDelset := selector.Data("Delete sticker set/刪除貼圖包", "delset")
 	btnExit := selector.Data("Exit/退出", "bye")
-	selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnMov), selector.Row(btnEmoji), selector.Row(btnExit))
+	selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnEdit), selector.Row(btnExit))
 
 	return c.Send(fmt.Sprintf("<code>ID: %s</code>\n\n", users.data[c.Sender().ID].stickerData.id)+
 		"What do you want to edit? Please select below:\n"+
 		"您想要修改貼圖包的甚麼內容? 請選擇:", selector, tele.ModeHTML)
 }
 
-func sendAskSFrom(c tele.Context) error {
-	return c.Send("Which sticker do you want to move? Please send it.\n" +
-		"傳送您想要移動的那個貼圖.")
-}
+// func sendAskSFrom(c tele.Context) error {
+// 	return c.Send("Which sticker do you want to move? Please send it.\n" +
+// 		"傳送您想要移動的那個貼圖.")
+// }
 
-func sendAskMovTarget(c tele.Context) error {
-	return c.Send("Where do you want to move the sticker to? Please send the sticker that holds the target position.\n" +
-		"請傳送目標位置上所在的貼圖.")
-}
+// func sendAskMovTarget(c tele.Context) error {
+// 	return c.Send("Where do you want to move the sticker to? Please send the sticker that holds the target position.\n" +
+// 		"請傳送目標位置上所在的貼圖.")
+// }
 
 func sendAskSDel(c tele.Context) error {
 	return c.Send("Which sticker do you want to delete? Please send it.\n" +
 		"您想要刪除哪一個貼圖? 請傳送那個貼圖")
 }
 
-func sendSEditEmoji(c tele.Context) error {
-	return c.Send("Please the sticker that you want to edit.\n請傳送想要修改的貼圖")
-}
+// func sendSEditEmoji(c tele.Context) error {
+// 	return c.Send("Please the sticker that you want to edit.\n請傳送想要修改的貼圖")
+// }
 
-func sendAskEmojiEdit(c tele.Context) error {
-	return c.Send("Please send emoji(s)\n請傳送emoji(可以多個)")
-}
+// func sendAskEmojiEdit(c tele.Context) error {
+// 	return c.Send("Please send emoji(s)\n請傳送emoji(可以多個)")
+// }
 
 func sendConfirmDelset(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
@@ -528,7 +525,6 @@ func sendConfirmDelset(c tele.Context) error {
 
 	return c.Send("You are attempting to delete the whole sticker set, please confirm.\n"+
 		"您將要刪除整個貼圖包, 請確認.", selector)
-
 }
 
 func sendSFromSS(c tele.Context) error {
@@ -579,11 +575,6 @@ func sendNoSToManage(c tele.Context) error {
 		"抱歉, 您還未創建過貼圖包, 您可以使用 /create 或 /import .")
 }
 
-// func sendEditEmojiOK(c tele.Context) error {
-// 	return c.Send("Edit emoji OK. Note that you might not be able to see the change immediately.\n" +
-// 		"成功修改emoji. 更新後的emoji可能無法即刻看到, 需稍等其更新.")
-// }
-
 func sendPromptStopAdding(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnDone := selector.Data("Done adding/停止添加", CB_DONE_ADDING)
@@ -602,6 +593,34 @@ func replySFileOK(c tele.Context, count int) error {
 }
 
 func sendSEditOK(c tele.Context) error {
-	return c.Send("It might take some time for your client to reflect the change if on iOS/macOS.\n" +
-		"提示: 如果使用iOS/macOS, 您可能無法即刻看到修改後的變化, 可能需要稍等一下.")
+	return c.Send(
+		"Successfully edited emojis. /start\n" +
+			"成功修改emoji. /start")
+}
+
+// func sendSManWebApp(c tele.Context) error {
+// 	// ud := users.data[c.Sender().ID]
+// 	// url := fmt.Sprintf("%s/index.html?ss=%s&sl=%s&sa=%d",
+// 	// 	botSettings.webappUrl,
+// 	// 	ud.stickerData.id,
+// 	// 	ud.stickerData.id,
+// 	// 	ud.stickerData.cAmount)
+// 	// log.Debugln("WebApp URL is : ", url)
+
+// 	// webApp := &tele.WebApp{
+// 	// 	URL: url,
+// 	// }
+// 	// webAppInline := &tele.ReplyMarkup{
+// 	// 	ResizeKeyboard:  true,
+// 	// 	OneTimeKeyboard: true,
+// 	// }
+// 	// webAppButton := webAppInline.WebApp("Open WebApp", webApp)
+// 	// webAppInline.Reply(webAppInline.Row(webAppButton))
+
+// 	// return c.Send("Tap the button below to open WebApp to Edit", webAppInline)
+// 	return nil
+// }
+
+func sendEditingEmoji(c tele.Context) error {
+	return c.Send("Commiting changes...\n正在套用變更，請稍候...")
 }

@@ -1,8 +1,4 @@
-__pycache__
-line_sticker
-tg_sticker
 .vscode
-config.ini
 .env
 .venv
 moe-sticker-bot

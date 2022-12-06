@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"errors"
@@ -53,10 +53,10 @@ func downloadStickersToZip(s *tele.Sticker, setID string, c tele.Context) error 
 	}
 	sID := secHex(8)
 	ud := &UserData{
-		workDir:       filepath.Join(dataDir, sID),
-		stickerData:   &StickerData{},
-		lineData:      &LineData{},
-		stickerManage: &StickerManage{},
+		workDir:     filepath.Join(dataDir, sID),
+		stickerData: &StickerData{},
+		lineData:    &LineData{},
+		// stickerManage: &StickerManage{},
 	}
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()

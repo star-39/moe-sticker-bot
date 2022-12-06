@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"context"
@@ -49,13 +49,13 @@ func initUserData(c tele.Context, command string, state string) *UserData {
 		state:     state,
 		sessionID: sID,
 		// userDir:       filepath.Join(dataDir, strconv.FormatInt(uid, 10)),
-		workDir:       filepath.Join(dataDir, sID),
-		command:       command,
-		lineData:      &LineData{},
-		stickerData:   &StickerData{},
-		stickerManage: &StickerManage{},
-		ctx:           ctx,
-		cancel:        cancel,
+		workDir:     filepath.Join(dataDir, sID),
+		command:     command,
+		lineData:    &LineData{},
+		stickerData: &StickerData{},
+		// stickerManage: &StickerManage{},
+		ctx:    ctx,
+		cancel: cancel,
 	}
 	users.mu.Unlock()
 	// Do not anitize user work directory.

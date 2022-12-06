@@ -1,20 +1,19 @@
-package main
+package core
 
 import (
 	"database/sql"
-	"os"
 
 	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/config"
 )
 
-var DB_VER = 1
 var db *sql.DB
 
 func initDB(dbname string) error {
-	addr := os.Getenv("DB_ADDR")
-	user := os.Getenv("DB_USER")
-	pass := os.Getenv("DB_PASS")
+	addr := config.Config.DbAddr
+	user := config.Config.DbUser
+	pass := config.Config.DbPass
 	params := make(map[string]string)
 	params["autocommit"] = "1"
 	dsn := &mysql.Config{
@@ -26,65 +25,65 @@ func initDB(dbname string) error {
 		Params:               params,
 	}
 	db, _ = sql.Open("mysql", dsn.FormatDSN())
-	err := db.Ping()
+
+	err := verifyDB(dsn, dbname)
 	if err != nil {
-		log.Error("Error connecting to mariadb!! DSN:")
-		log.Errorln(dsn.FormatDSN())
-		db = nil
 		return err
 	}
 
-	err = verifyDB(dsn, dbname)
-	if err != nil {
-		db = nil
-		return err
-	}
-
-	log.Info("MariaDB OK.")
-	log.Infoln("DBName: ", dbname)
-
-	return nil
-}
-
-func verifyDB(dsn *mysql.Config, dbname string) error {
-	_, err := db.Exec("SHOW DATABASES;")
-	if err != nil {
-		err2 := createMariaDB(dbname)
-		if err2 != nil {
-			log.Errorln("Error initializing mariadb!! DSN:")
-			log.Errorln(dsn.FormatDSN())
-			return err2
-		}
-	}
 	db.Close()
 	dsn.DBName = dbname
 	db, _ = sql.Open("mysql", dsn.FormatDSN())
 	log.Debugln("DB DSN:", dsn.FormatDSN())
 
-	db.Exec("CREATE TABLE line (line_id VARCHAR(128), tg_id VARCHAR(128), tg_title VARCHAR(255), line_link VARCHAR(512), auto_emoji BOOL)")
-	db.Exec("CREATE TABLE properties (name VARCHAR(128) PRIMARY KEY, value VARCHAR(128))")
-	db.Exec("CREATE TABLE stickers (user_id BIGINT, tg_id VARCHAR(128), tg_title VARCHAR(255), timestamp BIGINT)")
-
 	var dbVer string
-	errQ := db.QueryRow("SELECT value FROM properties WHERE name=?", "DB_VER").Scan(&dbVer)
-	if errQ != nil {
-		log.Debugln("error quering db ver:", errQ)
-		db.Exec("INSERT properties (name, value) VALUES (?, ?)", "DB_VER", DB_VER)
-		log.Infoln("Initialized dbVer to :", DB_VER)
-		return nil
-	}
-
-	log.Infoln("Queried dbVer is :", dbVer)
-	// Do upgrade here.
-	return nil
-}
-
-func createMariaDB(dbname string) error {
-	_, err := db.Exec("CREATE DATABASE " + dbname + " CHARACTER SET utf8mb4")
+	err = db.QueryRow("SELECT value FROM properties WHERE name=?", "DB_VER").Scan(&dbVer)
 	if err != nil {
+		log.Errorln("Error quering dbVer, database corrupt? :", err)
 		return err
 	}
 
+	log.Infoln("Queried dbVer is :", dbVer)
+	log.WithFields(log.Fields{"Addr": addr, "DBName": dbname}).Info("MariaDB OK.")
+
+	return nil
+}
+
+func verifyDB(dsn *mysql.Config, dbname string) error {
+	err := db.Ping()
+	if err != nil {
+		log.Errorln("Error connecting to mariadb!! DSN: ", dsn.FormatDSN())
+		return err
+	}
+
+	_, err = db.Exec("USE " + dbname)
+	if err != nil {
+		log.Infoln("Can't USE database!", err)
+		log.Infof("Database name:%s does not seem to exist, attempting to create.", dbname)
+		err2 := createMariadb(dsn, dbname)
+		if err2 != nil {
+			log.Errorln("Error creating mariadb database!! DSN:", dsn.FormatDSN())
+			return err2
+		}
+	}
+	return nil
+
+}
+
+func createMariadb(dsn *mysql.Config, dbname string) error {
+	_, err := db.Exec("CREATE DATABASE " + dbname + " CHARACTER SET utf8mb4")
+	if err != nil {
+		log.Errorln("Error CREATE DATABASE!", err)
+		return err
+	}
+	db.Close()
+	dsn.DBName = dbname
+	db, _ = sql.Open("mysql", dsn.FormatDSN())
+	db.Exec("CREATE TABLE line (line_id VARCHAR(128), tg_id VARCHAR(128), tg_title VARCHAR(255), line_link VARCHAR(512), auto_emoji BOOL)")
+	db.Exec("CREATE TABLE properties (name VARCHAR(128) PRIMARY KEY, value VARCHAR(128))")
+	db.Exec("CREATE TABLE stickers (user_id BIGINT, tg_id VARCHAR(128), tg_title VARCHAR(255), timestamp BIGINT)")
+	db.Exec("INSERT properties (name, value) VALUES (?, ?)", "DB_VER", DB_VER)
+	log.Infoln("Mariadb initialized with DB_VER :", DB_VER)
 	return nil
 }
 

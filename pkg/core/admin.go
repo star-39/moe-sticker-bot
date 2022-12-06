@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"hash/crc32"
@@ -10,6 +10,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
+
+// DANGER ZONE!
+// DO NOT USE UNLESS SCRUTINIZED THE CODES.
 
 // This command is to sanitize duplicated sticker in a set, or update its auto_emoji status.
 // You should not use this command unless you were using the python version before.

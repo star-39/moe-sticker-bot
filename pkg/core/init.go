@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"os"
@@ -6,43 +6,21 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 	"gopkg.in/telebot.v3/middleware"
 )
 
-// main.go handles states and basic response,
-// complex operations are done in other files.
-
-func main() {
+func Init() {
 	initLogrus()
-
-	log.Debug("Warning: Log level below DEBUG might print sensitive information, including passwords.")
-	token := os.Getenv("BOT_TOKEN")
-	if token == "" {
-		log.Fatal("Please set BOT_TOKEN environment variable!! Exiting...")
-		return
-	}
-	pref := tele.Settings{
-		Token:       token,
-		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
-		Synchronous: false,
-		// Genrally, issues are tackled inside each state, only fatal error should be returned to framework.
-		// onError will terminate current session and log to terminal.
-		OnError: onError,
-	}
-	log.WithField("token", token).Info("Attempting to initialize...")
-	b, err := tele.NewBot(pref)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
+	b = initBot()
 	initWorkspace(b)
+	InitWebAppServer()
+
 	log.WithFields(log.Fields{"botName": botName, "dataDir": dataDir}).Info("Bot OK.")
 
-	// introduced in telebot v3.1
+	// complies to telebot v3.1
 	b.Use(middleware.Recover())
 
 	b.Handle("/quit", cmdQuit)
@@ -60,7 +38,7 @@ func main() {
 	b.Handle("/sanitize", cmdSanitize, checkState)
 
 	b.Handle("/start", cmdStart, checkState)
-	// Handle contents.
+
 	b.Handle(tele.OnText, handleMessage)
 	b.Handle(tele.OnVideo, handleMessage)
 	b.Handle(tele.OnAnimation, handleMessage)
@@ -121,17 +99,9 @@ func handleMessage(c tele.Context) error {
 	case "manage":
 		switch state {
 		case "waitSManage":
-			err = waitSManage(c)
+			err = prepareSManage(c)
 		case "waitCbEditChoice":
 			err = waitCbEditChoice(c)
-		case "waitSMovFrom":
-			err = waitSMovFrom(c)
-		case "waitSMovTo":
-			err = waitSMovTo(c)
-		case "waitSEmojiEdit":
-			err = waitSEmojiEdit(c)
-		case "waitEmojiEdit":
-			err = waitEmojiEdit(c)
 		case "waitSFile":
 			err = waitSFile(c)
 		case "waitEmojiChoice":
@@ -157,6 +127,39 @@ func handleMessage(c tele.Context) error {
 	return err
 }
 
+// This one never say goodbye.
+func endSession(c tele.Context) {
+	cleanUserDataAndDir(c.Sender().ID)
+}
+
+// This one will say goodbye.
+func terminateSession(c tele.Context) {
+	cleanUserDataAndDir(c.Sender().ID)
+	c.Send("Bye. /start")
+}
+
+func onError(err error, c tele.Context) {
+	sendFatalError(err, c)
+	cleanUserDataAndDir(c.Sender().ID)
+}
+
+func initBot() *tele.Bot {
+	pref := tele.Settings{
+		Token:       config.Config.BotToken,
+		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
+		Synchronous: false,
+		// Genrally, issues are tackled inside each state, only fatal error should be returned to framework.
+		// onError will terminate current session and log to terminal.
+		OnError: onError,
+	}
+	log.WithField("token", config.Config.BotToken).Info("Attempting to initialize...")
+	b, err := tele.NewBot(pref)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return b
+}
+
 func initWorkspace(b *tele.Bot) {
 	botName = b.Me.Username
 	dataDir = botName + "_data"
@@ -164,19 +167,23 @@ func initWorkspace(b *tele.Bot) {
 	err := os.MkdirAll(dataDir, 0755)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
+
 	go initUserDirGCTimer(dataDir)
 
-	if os.Getenv("USE_DB") == "1" {
-		dbName := getEnv("DB_NAME", botName+"_db")
-		initDB(dbName)
+	if config.Config.UseDB {
+		dbName := botName + "_db"
+		err = initDB(dbName)
+		if err != nil {
+			log.Fatalln("Error initializing database!!", err)
+		}
 	} else {
-		log.Warn("Not using database because USE_DB is not set to 1.")
+		log.Warn("Not using database because --use_db is not set.")
 	}
 
 	ADMIN_UID, _ = strconv.ParseInt(os.Getenv("ADMIN_UID"), 10, 64)
-	wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
+
+	initWorkersPool()
 
 	if runtime.GOOS == "linux" {
 		BSDTAR_BIN = "bsdtar"
@@ -214,20 +221,5 @@ func initLogrus() {
 	default:
 		log.SetLevel(log.TraceLevel)
 	}
-}
-
-// This one never say goodbye.
-func endSession(c tele.Context) {
-	cleanUserDataAndDir(c.Sender().ID)
-}
-
-// This one will say goodbye.
-func terminateSession(c tele.Context) {
-	cleanUserDataAndDir(c.Sender().ID)
-	c.Send("Bye. /start")
-}
-
-func onError(err error, c tele.Context) {
-	sendFatalError(err, c)
-	cleanUserDataAndDir(c.Sender().ID)
+	log.Debug("Warning: Log level below DEBUG might print sensitive information, including passwords.")
 }
