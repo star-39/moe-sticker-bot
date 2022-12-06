@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import emoji
 from flask import Flask, request
 
@@ -20,3 +22,7 @@ def get_emoji():
 @app.route("/status",methods=['GET'])
 def rep_status():
     return 'OK'
+
+
+import waitress
+waitress.serve(app, host='0.0.0.0', port=5000)
