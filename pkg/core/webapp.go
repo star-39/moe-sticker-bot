@@ -45,8 +45,9 @@ func InitWebAppServer() {
 			config.Config.WebappCert,
 			config.Config.WebappPrivkey)
 		if err != nil {
-			log.Fatalln("WebApp: Gin RunTLS failed! Check your certs and addr or disable webapp.", err)
+			log.Fatalln("WebApp: Gin RunTLS failed! Check your certs and addr or disable webapp.\n", err)
 		}
+		log.Infoln("WebApp: Listening on ", config.Config.WebappListenAddr)
 	}()
 }
 
