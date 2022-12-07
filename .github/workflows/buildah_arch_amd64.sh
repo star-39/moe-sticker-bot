@@ -4,7 +4,7 @@ GITHUB_TOKEN=$1
 buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 #################################
-if true ; then
+if false ; then
 
 c1=$(buildah from docker://archlinux:latest)
 
@@ -34,7 +34,7 @@ buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 cd web/webapp3/
 npm install
 PUBLIC_URL=/webapp/edit npm run build
-buildah copy $1 build/ /webapp
+buildah copy $c1 build/ /webapp
 
 buildah commit $c1 moe-sticker-bot:latest
 

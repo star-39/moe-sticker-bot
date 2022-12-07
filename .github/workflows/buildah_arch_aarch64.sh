@@ -34,7 +34,7 @@ buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 cd web/webapp3/
 npm install
 PUBLIC_URL=/webapp/edit npm run build
-buildah copy $1 build/ /webapp
+buildah copy $c1 build/ /webapp
 
 buildah commit $c1 moe-sticker-bot:aarch64
 
