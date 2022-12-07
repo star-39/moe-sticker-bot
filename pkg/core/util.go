@@ -216,25 +216,27 @@ func GetUd(uidS string) (*UserData, error) {
 	}
 }
 
-func sliceMove[T any](oldIndex int, newIndex int, s []T) []T {
-	originalS := s
-	element := s[oldIndex]
+func sliceMove[T any](oldIndex int, newIndex int, slice []T) []T {
+	orig := slice
+	element := slice[oldIndex]
 
 	if oldIndex > newIndex {
-		if len(s)-1 == oldIndex {
-			s = s[0 : len(s)-1]
+		if len(slice)-1 == oldIndex {
+			slice = slice[0 : len(slice)-1]
 		} else {
-			s = append(s[0:oldIndex], s[oldIndex+1:]...)
+			slice = append(slice[0:oldIndex], slice[oldIndex+1:]...)
 		}
-		s = append(s[:newIndex], append([]T{element}, s[newIndex:]...)...)
+		slice = append(slice[:newIndex], append([]T{element}, slice[newIndex:]...)...)
 	} else if oldIndex < newIndex {
-		s = append(s[0:oldIndex], s[oldIndex+1:]...)
-		newIndex = newIndex + 1
-		s = append(s[:newIndex], append([]T{element}, s[newIndex:]...)...)
+		slice = append(slice[0:oldIndex], slice[oldIndex+1:]...)
+		if newIndex != len(slice) {
+			newIndex = newIndex + 1
+		}
+		slice = append(slice[:newIndex], append([]T{element}, slice[newIndex:]...)...)
 	} else {
-		return originalS
+		return orig
 	}
-	return s
+	return slice
 }
 
 func chunkSlice(slice []string, chunkSize int) [][]string {
