@@ -23,7 +23,7 @@ func parseCmdLine() {
 	var webapp = flag.Bool("webapp", false, "Enable WebApp support")
 	var webappUrl = flag.String("webapp_url", "", "URL to WebApp, HTTPS only")
 	var webappApiUrl = flag.String("webapp_api_url", "", "URL to WebApp API server, HTTPS only")
-	var WebappApiListenAddr = flag.String("webapp_api_listen_addr", "", "API listen addr(IP:PORT)")
+	var WebappListenAddr = flag.String("webapp_listen_addr", "", "API listen addr(IP:PORT)")
 	var webappDataDir = flag.String("webapp_data_dir", "", "Relative to CWD or absolute")
 	var webappCert = flag.String("webapp_cert", "", "TLS Certificate")
 	var webappPrivkey = flag.String("webapp_privkey", "", "TLS private key")
@@ -63,7 +63,7 @@ func parseCmdLine() {
 	conf.WebappDataDir = *webappDataDir
 	conf.WebappCert = *webappCert
 	conf.WebappPrivkey = *webappPrivkey
-	conf.WebappApiListenAddr = *WebappApiListenAddr
+	conf.WebappListenAddr = *WebappListenAddr
 
 	conf.LogLevel = *logLevel
 

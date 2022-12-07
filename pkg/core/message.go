@@ -218,8 +218,7 @@ func sendAskID(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnAuto := selector.Data("Auto Generate/自動生成", "auto")
 	selector.Inline(selector.Row(btnAuto))
-	return c.Send(
-		fmt.Sprintf(`
+	return c.Send(`
 Please set an ID for sticker set, used in share link.
 Can contain only english letters, digits and underscores.
 Must begin with a letter, can't contain consecutive underscores.
@@ -229,8 +228,7 @@ For example: 例如:
 <code>My_favSticker21</code>
 
 This is usually not important, it's recommended to press "Auto Generate" button.
-ID通常不重要, 建議您按下下方的"自動生成"按鈕.
-`, botName), selector, tele.ModeHTML)
+ID通常不重要, 建議您按下下方的"自動生成"按鈕.`, selector, tele.ModeHTML)
 }
 
 func sendAskImportLink(c tele.Context) error {
@@ -473,21 +471,26 @@ func sendAskEditChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnAdd := selector.Data("Add sticker/增添貼圖", "add")
 	btnDel := selector.Data("Delete sticker/刪除貼圖", "del")
-	baseUrl, _ := url.JoinPath(config.Config.WebappUrl, "edit", "index.html")
-	url := fmt.Sprintf("%s?ss=%s&dt=%d",
-		baseUrl,
-		ud.stickerData.id,
-		time.Now().Unix())
-	log.Debugln("WebApp URL is : ", url)
-	webApp := &tele.WebApp{
-		URL: url,
-	}
-	btnEdit := selector.WebApp("Change order or emoji/修改順序或Emoji", webApp)
-	// btnMov := selector.Data("Change order/調整順序", "mov")
-	// btnEmoji := selector.Data("Change emoji/修改Emoji", "emoji")
 	btnDelset := selector.Data("Delete sticker set/刪除貼圖包", "delset")
 	btnExit := selector.Data("Exit/退出", "bye")
-	selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnEdit), selector.Row(btnExit))
+	baseUrl, _ := url.JoinPath(config.Config.WebappUrl, "edit", "index.html")
+
+	if config.Config.WebApp {
+		url := fmt.Sprintf("%s?ss=%s&dt=%d",
+			baseUrl,
+			ud.stickerData.id,
+			time.Now().Unix())
+		log.Debugln("WebApp URL is : ", url)
+		webApp := &tele.WebApp{
+			URL: url,
+		}
+		btnEdit := selector.WebApp("Change order or emoji/修改順序或Emoji", webApp)
+		selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnEdit), selector.Row(btnExit))
+	} else {
+		selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnExit))
+	}
+	// btnMov := selector.Data("Change order/調整順序", "mov")
+	// btnEmoji := selector.Data("Change emoji/修改Emoji", "emoji")
 
 	return c.Send(fmt.Sprintf("<code>ID: %s</code>\n\n", users.data[c.Sender().ID].stickerData.id)+
 		"What do you want to edit? Please select below:\n"+

@@ -40,9 +40,14 @@ func InitWebAppServer() {
 		}
 	}
 
-	go r.RunTLS(config.Config.WebappApiListenAddr,
-		config.Config.WebappCert,
-		config.Config.WebappPrivkey)
+	go func() {
+		err := r.RunTLS(config.Config.WebappListenAddr,
+			config.Config.WebappCert,
+			config.Config.WebappPrivkey)
+		if err != nil {
+			log.Fatalln("WebApp: Gin RunTLS failed! Check your certs and addr or disable webapp.", err)
+		}
+	}()
 }
 
 type webappStickerObject struct {

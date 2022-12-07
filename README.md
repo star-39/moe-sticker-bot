@@ -46,11 +46,11 @@ docker run -dt ghcr.io/star-39/moe-sticker-bot --bot_token="..."
 
 To deploy all the features, it is recommended through podman and pods.
 ```
-podman pod create p-moe-sticker-bot --port 443
+podman pod create --name p-moe-sticker-bot -p 443:443
 podman volume create moe-sticker-bot-db
 
 podman run -dt --pod p-moe-sticker-bot \
--v moe-sticker-bot-db:/var/lib/mysql -e MARIADB_ROOT_PASSWORD=ROOT_PASS docker://mariadb:10.6
+-v moe-sticker-bot-db:/var/lib/mysql -e MARIADB_ROOT_PASSWORD=YOUR_ROOT_PASS docker://mariadb:10.6
 
 podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:py_emoji
 
@@ -61,7 +61,8 @@ podman run -dt --pod p-moe-sticker-bot -v CERT_LOCATION:/certs ghcr.io/star-39/m
         --webapp_data_dir /moe-sticker-bot/web/webapp3/build \
         --webapp_cert /certs/fullchain.pem \
         --webapp_privkey /certs/privkey.pem \
-        --use_db --db_addr 127.0.0.1:3306 --db_user root --db_pass ROOT_PASS
+        --webapp_listen_addr 0.0.0.0:443
+        --use_db --db_addr 127.0.0.1:3306 --db_user root --db_pass YOUR_ROOT_PASS
 ```
 If you are on ARM64(AArch64) arch, `aarch64` tag is also available:
 

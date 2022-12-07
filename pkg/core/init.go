@@ -16,7 +16,11 @@ func Init() {
 	initLogrus()
 	b = initBot()
 	initWorkspace(b)
-	InitWebAppServer()
+	if config.Config.WebApp {
+		InitWebAppServer()
+	} else {
+		log.Info("WebApp not enabled.")
+	}
 
 	log.WithFields(log.Fields{"botName": botName, "dataDir": dataDir}).Info("Bot OK.")
 
