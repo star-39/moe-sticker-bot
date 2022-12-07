@@ -43,6 +43,7 @@ Simply run:
 ```
 docker run -dt ghcr.io/star-39/moe-sticker-bot --bot_token="..."
 ```
+If you are on ARM64(AArch64) arch, `aarch64` tag is also available
 
 To deploy all the features, it is recommended through podman and pods.
 ```
@@ -55,16 +56,20 @@ podman run -dt --pod p-moe-sticker-bot \
 podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:py_emoji
 
 podman run -dt --pod p-moe-sticker-bot -v CERT_LOCATION:/certs ghcr.io/star-39/moe-sticker-bot \
+        /moe-sticker-bot \
         --bot_token=YOUR_TOKEN_HERE \
         --webapp --webapp_url https://example.com/webapp/ \
         --webapp_api_url https://example.com/webapp/ \
-        --webapp_data_dir /moe-sticker-bot/web/webapp3/build \
+        --webapp_data_dir /webapp \
         --webapp_cert /certs/fullchain.pem \
         --webapp_privkey /certs/privkey.pem \
-        --webapp_listen_addr 0.0.0.0:443
+        --webapp_listen_addr 0.0.0.0:443 \
         --use_db --db_addr 127.0.0.1:3306 --db_user root --db_pass YOUR_ROOT_PASS
 ```
-If you are on ARM64(AArch64) arch, `aarch64` tag is also available:
+Use `podman ps -a` and `podman pod ls` to review the pod and containers.
+
+You can also use `podman generate kube` to generate Kubernetes YAML to deploy on your container cluster.
+
 
 
 ### System Dependencies
@@ -113,7 +118,7 @@ To build WebApp components:
 ```
 cd web/webapp3
 npm install
-npm build
+PUBLIC_DIR=/webapp/edit npm build
 ```
 Check `--help` for detailed webapp configs. Please note that you need a valid TLS certificate to serve.
 
@@ -123,6 +128,8 @@ Check `--help` for detailed webapp configs. Please note that you need a valid TL
   * Code structure refactored.
   * Now accepts options from cmdline instead of env var.
   * Support parallel sticker download.
+  * Fix LINE officialaccount/event/sticker
+  * Fix kakao link with queries.
 
 1.2.4 (20221111)
   * Minor improvements.
