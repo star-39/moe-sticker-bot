@@ -53,8 +53,9 @@ func handleNoSession(c tele.Context) error {
 		return downloadGifToZip(c)
 	}
 
-	// bare message, we expect a link.
+	// bare message, expect a link, if no link, search keyword.
 	link, tp := findLinkWithType(c.Message().Text)
+
 	switch tp {
 	case LINK_TG:
 		if matchUserS(c.Sender().ID, path.Base(link)) {
@@ -72,8 +73,22 @@ func handleNoSession(c tele.Context) error {
 			return sendAskWantImportOrDownload(c)
 		}
 	default:
-		return sendNoSessionWarning(c)
+		// User sent plain text, attempt to search.
+		if trySearchKeyword(c) {
+			return sendNotifyNoSessionSearch(c)
+		} else {
+			return sendNoSessionWarning(c)
+		}
 	}
+}
+
+func trySearchKeyword(c tele.Context) bool {
+	lines := searchLineS(c.Text())
+	if len(lines) == 0 {
+		return false
+	}
+	sendSearchResult(20, lines, c)
+	return true
 }
 
 func stateProcessing(c tele.Context) error {
@@ -441,6 +456,7 @@ func waitSearchKeyword(c tele.Context) error {
 	if len(lines) == 0 {
 		return sendSearchNoResult(c)
 	}
-	endSession(c)
-	return sendSearchResult(lines, c)
+	sendSearchResult(-1, lines, c)
+	terminateSession(c)
+	return nil
 }

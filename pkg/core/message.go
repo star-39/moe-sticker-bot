@@ -17,8 +17,8 @@ import (
 func sendStartMessage(c tele.Context) error {
 	message := `
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a> doing sticker stuffs!
-Send me links or stickers to import or download them, or, use a command below:
-你好! 歡迎使用萌萌貼圖BOT, 請傳送連結或貼圖來匯入或下載貼圖喔,
+Send me links or stickers to import or download them, or keywords to search, or use a command below:
+你好! 歡迎使用萌萌貼圖BOT, 請傳送連結或貼圖來匯入或下載貼圖喔, 也可以傳送關鍵字來搜尋貼圖，
 您也可以從下方選擇指令:
 
 <b>/import</b> LINE or kakao stickers to Telegram<code>
@@ -32,6 +32,9 @@ Send me links or stickers to import or download them, or, use a command below:
 </code>
 <b>/manage</b> exsting sticker set (add/delete/reorder)<code>
   管理Telegram貼圖包(增添/刪除/排序).
+</code>
+<b>/search</b> LINE or kakao sticker sets.<code>
+  搜尋LINE和kakao貼圖包.
 </code>
 <b>/faq  /about</b><code>
    常見問題/關於.
@@ -264,9 +267,10 @@ func sendNotifySExist(c tele.Context, lineID string) bool {
 	return true
 }
 
-func sendSearchResult(lines []LineStickerQ, c tele.Context) error {
+func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) error {
 	var entries []string
 	message := ""
+
 	for _, l := range lines {
 		if l.Ae {
 			entries = append(entries, fmt.Sprintf(`<a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
@@ -275,7 +279,31 @@ func sendSearchResult(lines []LineStickerQ, c tele.Context) error {
 			entries = append(entries, fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
 		}
 	}
-	message += strings.Join(entries, "\n")
+
+	if entriesWant == -1 {
+		if len(entries) > 120 {
+			c.Send("Too many results, please narrow your keyword, truncated to 120 entries.\n" +
+				"搜尋結果過多，已縮減到120個結果，請使用更準確的搜尋關鍵字。")
+			entries = entries[:120]
+		}
+	} else {
+		if len(entries) > entriesWant {
+			entries = entries[:entriesWant]
+		}
+	}
+	if len(entries) > 30 {
+		eChunks := chunkSlice(entries, 30)
+		for _, eChunk := range eChunks {
+			message := "Search Results: 搜尋結果：\n"
+			message += strings.Join(eChunk, "\n")
+			c.Send(message, tele.ModeHTML)
+		}
+	} else {
+		message := "Search Results: 搜尋結果：\n"
+		message += strings.Join(entries, "\n")
+		c.Send(message, tele.ModeHTML)
+	}
+
 	return c.Send(message, tele.ModeHTML)
 }
 
@@ -648,4 +676,9 @@ func sendAskSearchKeyword(c tele.Context) error {
 
 func sendSearchNoResult(c tele.Context) error {
 	return c.Send("Sorry, no result. Try again or /quit")
+}
+
+func sendNotifyNoSessionSearch(c tele.Context) error {
+	return c.Send("Here are some sticker search results based on the text you sent, if it's what you want, please use /search to dig deeper or /start to see available commands.\n" +
+		"這些是根據您傳送的文字得到的貼圖包搜尋結果，如果這不是您想要的，請使用 /search 詳細搜尋或 /start 來看看可用的指令。")
 }
