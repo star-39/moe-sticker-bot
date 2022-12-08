@@ -3,6 +3,7 @@ package config
 var Config ConfigTemplate
 
 type ConfigTemplate struct {
+	AdminUid         int64
 	LogLevel         string
 	UseDB            bool
 	BotToken         string

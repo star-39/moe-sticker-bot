@@ -3,9 +3,10 @@ package core
 import (
 	"os"
 	"runtime"
-	"strconv"
+	"strings"
 	"time"
 
+	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
 	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
@@ -16,6 +17,8 @@ func Init() {
 	initLogrus()
 	b = initBot()
 	initWorkspace(b)
+	initWorkersPool()
+	go initGoCron()
 	if config.Config.WebApp {
 		InitWebAppServer()
 	} else {
@@ -40,7 +43,7 @@ func Init() {
 	b.Handle("/search", cmdSearch, checkState)
 
 	b.Handle("/register", cmdRegister, checkState)
-	b.Handle("/sanitize", cmdSanitize, checkState)
+	b.Handle("/statrep", cmdStatRep, checkState)
 
 	b.Handle("/start", cmdStart, checkState)
 
@@ -179,8 +182,6 @@ func initWorkspace(b *tele.Bot) {
 		log.Fatal(err)
 	}
 
-	go initUserDirGCTimer(dataDir)
-
 	if config.Config.UseDB {
 		dbName := botName + "_db"
 		err = initDB(dbName)
@@ -190,10 +191,6 @@ func initWorkspace(b *tele.Bot) {
 	} else {
 		log.Warn("Not using database because --use_db is not set.")
 	}
-
-	ADMIN_UID, _ = strconv.ParseInt(os.Getenv("ADMIN_UID"), 10, 64)
-
-	initWorkersPool()
 
 	if runtime.GOOS == "linux" {
 		BSDTAR_BIN = "bsdtar"
@@ -205,14 +202,23 @@ func initWorkspace(b *tele.Bot) {
 	}
 }
 
-func initUserDirGCTimer(dataDir string) {
-	ticker := time.NewTicker(48 * time.Hour)
-	for t := range ticker.C {
-		log.Infoln("UserDir GC Timter ticked at:", t)
-		log.Info("Purging outdated user dir...")
-		purgeOutdatedUserData(dataDir)
-	}
+func initGoCron() {
+	time.Sleep(15 * time.Second)
+	cronScheduler = gocron.NewScheduler(time.UTC)
+	cronScheduler.Every(2).Days().Do(purgeOutdatedUserData)
+	cronScheduler.Every(1).Weeks().Do(curateDatabase)
+	cronScheduler.StartAsync()
 }
+
+// func initUserDirGCTimer(dataDir string) {
+// 	s := gocron.NewScheduler(time.UTC)
+// 	ticker := time.NewTicker(48 * time.Hour)
+// 	for t := range ticker.C {
+// 		log.Infoln("UserDir GC Timter ticked at:", t)
+// 		log.Info("Purging outdated user dir...")
+// 		purgeOutdatedUserData(dataDir)
+// 	}
+// }
 
 func initLogrus() {
 	log.SetFormatter(&log.TextFormatter{
@@ -220,7 +226,7 @@ func initLogrus() {
 		DisableLevelTruncation: true,
 	})
 
-	level := os.Getenv("LOG_LEVEL")
+	level := strings.ToUpper(config.Config.LogLevel)
 	switch level {
 	case "INFO":
 		log.SetLevel(log.InfoLevel)

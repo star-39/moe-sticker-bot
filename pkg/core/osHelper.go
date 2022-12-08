@@ -175,7 +175,7 @@ func fCompressVol(f string, flist []string) []string {
 	return zipPaths
 }
 
-func purgeOutdatedUserData(dataDir string) {
+func purgeOutdatedUserData() {
 	dirEntries, _ := os.ReadDir(dataDir)
 	for _, f := range dirEntries {
 		if !f.IsDir() {
@@ -201,10 +201,10 @@ func purgeOutdatedUserData(dataDir string) {
 	}
 }
 
-func getEnv(env string, fallback string) string {
-	value := os.Getenv(env)
-	if value == "" {
-		value = fallback
-	}
-	return value
-}
+// func getEnv(env string, fallback string) string {
+// 	value := os.Getenv(env)
+// 	if value == "" {
+// 		value = fallback
+// 	}
+// 	return value
+// }

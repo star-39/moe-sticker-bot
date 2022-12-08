@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/go-co-op/gocron"
 	"github.com/panjf2000/ants/v2"
 	tele "gopkg.in/telebot.v3"
 )
@@ -13,6 +14,7 @@ var DB_VER string = "1"
 
 // The telegram bot.
 var b *tele.Bot
+var cronScheduler *gocron.Scheduler
 
 var dataDir string
 var botName string
@@ -38,8 +40,6 @@ var LINK_IMPORT = "IMPORT"
 var BSDTAR_BIN string
 var CONVERT_BIN string
 var CONVERT_ARGS []string
-
-var ADMIN_UID int64
 
 var CB_DN_WHOLE = "dall"
 var CB_DN_SINGLE = "dsingle"

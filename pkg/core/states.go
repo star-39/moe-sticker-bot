@@ -123,7 +123,7 @@ func prepareSManage(c tele.Context) error {
 	}
 	ud.lastContext = c
 	// Allow admin to manage all sticker sets.
-	if c.Sender().ID == ADMIN_UID {
+	if c.Sender().ID == config.Config.AdminUid {
 		goto NEXT
 	}
 	if !matchUserS(c.Sender().ID, ud.stickerData.id) {

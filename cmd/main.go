@@ -19,6 +19,7 @@ func main() {
 
 func parseCmdLine() {
 	var help = flag.Bool("help", false, "Show help")
+	var adminUid = flag.Int64("admin_uid", -1, "Admin's UID")
 	var botToken = flag.String("bot_token", "", "Telegram Bot Token")
 	var webapp = flag.Bool("webapp", false, "Enable WebApp support")
 	var webappUrl = flag.String("webapp_url", "", "URL to WebApp, HTTPS only")
@@ -66,6 +67,8 @@ func parseCmdLine() {
 	conf.WebappListenAddr = *WebappListenAddr
 
 	conf.LogLevel = *logLevel
+
+	conf.AdminUid = *adminUid
 
 	config.Config = conf
 }

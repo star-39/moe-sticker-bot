@@ -2,6 +2,10 @@ package core
 
 import (
 	"database/sql"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
@@ -267,4 +271,73 @@ func searchLineS(kw string) []LineStickerQ {
 		return nil
 	}
 	return lines
+}
+
+var lastIndexOfDedupOK int = -1
+
+func curateDatabase() error {
+	//Line stickers.
+	ls := queryLineS("QUERY_ALL")
+	for i, l := range ls {
+		// if i < startIndex {
+		// 	continue
+		// }
+		log.Debugf("Scanning:%s", l.Tg_id)
+		ss, err := b.StickerSet(l.Tg_id)
+		if err != nil {
+			if strings.Contains(err.Error(), "is invalid") {
+				log.Infof("SS:%s is invalid. purging it from db...", l.Tg_id)
+				deleteLineS(l.Tg_id)
+				deleteUserS(l.Tg_id)
+			} else {
+				log.Errorln(err)
+			}
+			continue
+		}
+
+		for si, _ := range ss.Stickers {
+			if si > 0 {
+				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
+					log.Warnln("Setting auto emoji to FALSE for ", l.Tg_id)
+					updateLineSAE(false, l.Tg_id)
+				}
+			}
+		}
+
+		if i > lastIndexOfDedupOK {
+			workdir := filepath.Join(dataDir, secHex(8))
+			os.MkdirAll(workdir, 0755)
+			for si, s := range ss.Stickers {
+				if si > 0 {
+
+					fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
+					f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
+					b.Download(&s.File, f)
+
+					if compCRC32(f, fp) {
+						b.DeleteSticker(s.FileID)
+					}
+				}
+			}
+			os.RemoveAll(workdir)
+			lastIndexOfDedupOK = i
+		}
+	}
+
+	//User stickers.
+	us := queryUserS(-1)
+	for _, u := range us {
+		log.Infof("Checking:%s", u.tg_id)
+		_, err := b.StickerSet(u.tg_id)
+		if err != nil {
+			if strings.Contains(err.Error(), "is invalid") {
+				log.Warnf("SS:%s is invalid. purging it from db...", u.tg_id)
+				deleteUserS(u.tg_id)
+			} else {
+				log.Errorln(err)
+			}
+		}
+	}
+
+	return nil
 }

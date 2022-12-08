@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"hash/crc32"
 	"io"
 	"math/big"
 	"net/http"
@@ -254,4 +255,26 @@ func chunkSlice(slice []string, chunkSize int) [][]string {
 		slice = slice[chunkSize:]
 	}
 	return chunks
+}
+
+func compCRC32(f1 string, f2 string) bool {
+	fb1, err := os.ReadFile(f1)
+	if err != nil {
+		return false
+	}
+	fb2, err := os.ReadFile(f2)
+	if err != nil {
+		return false
+	}
+
+	c1 := crc32.ChecksumIEEE(fb1)
+	c2 := crc32.ChecksumIEEE(fb2)
+	log.Debugf("File:%s, C:%v", f1, c1)
+	log.Debugf("File:%s, C:%v", f2, c2)
+
+	if c1 == c2 {
+		return true
+	} else {
+		return false
+	}
 }
