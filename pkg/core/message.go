@@ -249,29 +249,43 @@ func sendNotifySExist(c tele.Context, lineID string) bool {
 
 	var entries []string
 	for _, l := range lines {
-		if l.ae {
-			entries = append(entries, fmt.Sprintf(`<a href="%s">%s</a>`, "https://t.me/addstickers/"+l.tg_id, l.tg_title))
+		if l.Ae {
+			entries = append(entries, fmt.Sprintf(`<a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
 		} else {
 			// append to top
-			entries = append([]string{fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.tg_id, l.tg_title)}, entries...)
+			entries = append([]string{fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title)}, entries...)
 		}
 	}
 	if len(entries) > 5 {
 		entries = entries[:5]
 	}
 	message += strings.Join(entries, "\n")
-	println(message)
 	c.Send(message, tele.ModeHTML)
 	return true
+}
+
+func sendSearchResult(lines []LineStickerQ, c tele.Context) error {
+	var entries []string
+	message := ""
+	for _, l := range lines {
+		if l.Ae {
+			entries = append(entries, fmt.Sprintf(`<a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
+		} else {
+			// add a star!
+			entries = append(entries, fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
+		}
+	}
+	message += strings.Join(entries, "\n")
+	return c.Send(message, tele.ModeHTML)
 }
 
 func sendAskStickerFile(c tele.Context) error {
 	c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
 		"or send an archive containing image files,\n" +
-		"wait until upload complete, then send a # mark.\n\n" +
+		"wait until upload complete, then tap 'Done adding'.\n\n" +
 		"請傳送任意格式的圖片/照片/貼圖(少於120張)\n" +
 		"或者傳送內有貼圖檔案的歸檔,\n" +
-		"請等候所有檔案上載完成, 然後傳送 # 記號\n")
+		"請等候所有檔案上載完成, 然後按下「停止增添」\n")
 
 	if users.data[c.Sender().ID].stickerData.isVideo {
 		c.Send("Special note: Sending GIF with transparent background will lose transparent due to Telegram client problem.\n" +
@@ -626,4 +640,12 @@ func sendSEditOK(c tele.Context) error {
 
 func sendEditingEmoji(c tele.Context) error {
 	return c.Send("Commiting changes...\n正在套用變更，請稍候...")
+}
+
+func sendAskSearchKeyword(c tele.Context) error {
+	return c.Send("Please send a word that you want to search\n請傳送想要搜尋的內容")
+}
+
+func sendSearchNoResult(c tele.Context) error {
+	return c.Send("Sorry, no result. Try again or /quit")
 }

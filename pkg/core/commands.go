@@ -47,6 +47,11 @@ func cmdStart(c tele.Context) error {
 	return sendStartMessage(c)
 }
 
+func cmdSearch(c tele.Context) error {
+	initUserData(c, "search", "waitSearchKW")
+	return sendAskSearchKeyword(c)
+}
+
 func cmdQuit(c tele.Context) error {
 	log.Debug("Received user quit request.")
 	ud, exist := users.data[c.Sender().ID]

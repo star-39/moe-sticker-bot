@@ -37,6 +37,7 @@ func Init() {
 	b.Handle("/download", cmdDownload, checkState)
 	b.Handle("/create", cmdCreate, checkState)
 	b.Handle("/manage", cmdManage, checkState)
+	b.Handle("/search", cmdSearch, checkState)
 
 	b.Handle("/register", cmdRegister, checkState)
 	b.Handle("/sanitize", cmdSanitize, checkState)
@@ -126,6 +127,11 @@ func handleMessage(c tele.Context) error {
 			err = waitRegLineLink(c)
 		case "waitRegS":
 			err = waitRegS(c)
+		}
+	case "search":
+		switch state {
+		case "waitSearchKW":
+			err = waitSearchKeyword(c)
 		}
 	}
 	return err

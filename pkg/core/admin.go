@@ -12,7 +12,7 @@ import (
 )
 
 // DANGER ZONE!
-// DO NOT USE UNLESS SCRUTINIZED THE CODES.
+// DO NOT USE UNLESS YOU SCRUTINIZED THE CODE.
 
 // This command is to sanitize duplicated sticker in a set, or update its auto_emoji status.
 // You should not use this command unless you were using the python version before.
@@ -46,14 +46,14 @@ func sanitizeAE(startIndex int, c tele.Context) error {
 		if i < startIndex {
 			continue
 		}
-		log.Infof("Checking:%s", l.tg_id)
-		ss, err := c.Bot().StickerSet(l.tg_id)
+		log.Infof("Checking:%s", l.Tg_id)
+		ss, err := c.Bot().StickerSet(l.Tg_id)
 		if err != nil {
 			if strings.Contains(err.Error(), "is invalid") {
-				log.Infof("SS:%s is invalid. purging it from db...", l.tg_id)
-				go c.Send("purging invalid: https://t.me/addstickers/" + l.tg_id)
-				deleteLineS(l.tg_id)
-				deleteUserS(l.tg_id)
+				log.Infof("SS:%s is invalid. purging it from db...", l.Tg_id)
+				go c.Send("purging invalid: https://t.me/addstickers/" + l.Tg_id)
+				deleteLineS(l.Tg_id)
+				deleteUserS(l.Tg_id)
 			} else {
 				c.Send("Unknow error? " + err.Error())
 				log.Errorln(err)
@@ -63,8 +63,8 @@ func sanitizeAE(startIndex int, c tele.Context) error {
 		for si := range ss.Stickers {
 			if si > 0 {
 				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
-					log.Warnln("Setting auto emoji to FALSE for ", l.tg_id)
-					updateLineSAE(false, l.tg_id)
+					log.Warnln("Setting auto emoji to FALSE for ", l.Tg_id)
+					updateLineSAE(false, l.Tg_id)
 				}
 			}
 		}
@@ -81,14 +81,14 @@ func sanitizeInvalidSSinDB(startIndex int, c tele.Context) error {
 		if i < startIndex {
 			continue
 		}
-		log.Infof("Checking:%s", l.tg_id)
-		_, err := c.Bot().StickerSet(l.tg_id)
+		log.Infof("Checking:%s", l.Tg_id)
+		_, err := c.Bot().StickerSet(l.Tg_id)
 		if err != nil {
 			if strings.Contains(err.Error(), "is invalid") {
-				log.Warnf("SS:%s is invalid. purging it from db...", l.tg_id)
-				go c.Send("purging: https://t.me/addstickers/" + l.tg_id)
-				deleteLineS(l.tg_id)
-				deleteUserS(l.tg_id)
+				log.Warnf("SS:%s is invalid. purging it from db...", l.Tg_id)
+				go c.Send("purging: https://t.me/addstickers/" + l.Tg_id)
+				deleteLineS(l.Tg_id)
+				deleteUserS(l.Tg_id)
 			} else {
 				go c.Send("Unknow error? " + err.Error())
 				log.Errorln(err)
@@ -125,14 +125,14 @@ func sanitizeDatabase(startIndex int, c tele.Context) error {
 		if i < startIndex {
 			continue
 		}
-		log.Debugf("Scanning:%s", l.tg_id)
-		ss, err := c.Bot().StickerSet(l.tg_id)
+		log.Debugf("Scanning:%s", l.Tg_id)
+		ss, err := c.Bot().StickerSet(l.Tg_id)
 		if err != nil {
 			if strings.Contains(err.Error(), "is invalid") {
-				log.Infof("SS:%s is invalid. purging it from db...", l.tg_id)
-				go c.Send("purging invalid: https://t.me/addstickers/" + l.tg_id)
-				deleteLineS(l.tg_id)
-				deleteUserS(l.tg_id)
+				log.Infof("SS:%s is invalid. purging it from db...", l.Tg_id)
+				go c.Send("purging invalid: https://t.me/addstickers/" + l.Tg_id)
+				deleteLineS(l.Tg_id)
+				deleteUserS(l.Tg_id)
 			} else {
 				c.Send("Unknow error? " + err.Error())
 				log.Errorln(err)
@@ -144,8 +144,8 @@ func sanitizeDatabase(startIndex int, c tele.Context) error {
 		for si, s := range ss.Stickers {
 			if si > 0 {
 				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
-					log.Warnln("Setting auto emoji to FALSE for ", l.tg_id)
-					updateLineSAE(false, l.tg_id)
+					log.Warnln("Setting auto emoji to FALSE for ", l.Tg_id)
+					updateLineSAE(false, l.Tg_id)
 				}
 			}
 
@@ -188,4 +188,12 @@ func compCRC32(f1 string, f2 string) bool {
 	} else {
 		return false
 	}
+}
+
+func statRep(c tele.Context) error {
+	// Report status.
+	stat := []string{}
+	py_emoji_ok, _ := httpGet("http://127.0.0.1:5000")
+	stat = append(stat, "py_emoji_ok? :"+py_emoji_ok)
+	return c.Send(strings.Join(stat, "\n"))
 }

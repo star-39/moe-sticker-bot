@@ -435,3 +435,12 @@ func prepareSManWebApp(c tele.Context, ud *UserData) error {
 	}
 	return nil
 }
+
+func waitSearchKeyword(c tele.Context) error {
+	lines := searchLineS(c.Text())
+	if len(lines) == 0 {
+		return sendSearchNoResult(c)
+	}
+	endSession(c)
+	return sendSearchResult(lines, c)
+}

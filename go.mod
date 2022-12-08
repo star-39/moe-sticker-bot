@@ -3,9 +3,7 @@ module github.com/star-39/moe-sticker-bot
 go 1.19
 
 require (
-	github.com/Andrew-M-C/go.emoji v1.0.1
 	github.com/PuerkitoBio/goquery v1.8.0
-	github.com/forPelevin/gomoji v1.1.8
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/panjf2000/ants/v2 v2.6.0
@@ -27,7 +25,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
-	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect

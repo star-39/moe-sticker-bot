@@ -61,7 +61,7 @@ func waitRegS(c tele.Context) error {
 
 	lsqs := queryLineS(ud.lineData.id)
 	for _, lsq := range lsqs {
-		if lsq.tg_id == id {
+		if lsq.Tg_id == id {
 			c.Send("Already exist in line db!! try another one.")
 			goto INSERT_USER_S
 		}

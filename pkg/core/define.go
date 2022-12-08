@@ -56,11 +56,11 @@ var ST_WAIT_WEBAPP = "waitWebApp"
 var ST_PROCESSING = "process"
 
 type LineStickerQ struct {
-	line_id   string
-	line_link string
-	tg_id     string
-	tg_title  string
-	ae        bool
+	Line_id   string
+	Line_link string
+	Tg_id     string
+	Tg_title  string
+	Ae        bool
 }
 
 type UserStickerQ struct {

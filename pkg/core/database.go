@@ -145,9 +145,9 @@ func queryLineS(id string) []LineStickerQ {
 			return nil
 		}
 		lines = append(lines, LineStickerQ{
-			tg_id:    tgID,
-			tg_title: tgTitle,
-			ae:       aE,
+			Tg_id:    tgID,
+			Tg_title: tgTitle,
+			Ae:       aE,
 		})
 		log.Debugf("Matched line record: id:%s | title:%s | ae:%v", tgID, tgTitle, aE)
 	}
@@ -232,4 +232,39 @@ func updateLineSAE(ae bool, tgID string) error {
 	}
 	_, err := db.Exec("UPDATE line SET auto_emoji=? WHERE tg_id=?", ae, tgID)
 	return err
+}
+
+func searchLineS(kw string) []LineStickerQ {
+	if db == nil {
+		return nil
+	}
+	qs, err := db.Query("SELECT tg_title, tg_id, auto_emoji FROM line WHERE tg_title LIKE '%" + kw + "%'")
+	if err != nil {
+		log.Warnln("db q err:", err)
+		return nil
+	}
+
+	var lines []LineStickerQ
+	var tgTitle string
+	var tgID string
+	var aE bool
+	defer qs.Close()
+	for qs.Next() {
+		err := qs.Scan(&tgTitle, &tgID, &aE)
+		if err != nil {
+			return nil
+		}
+		lines = append(lines, LineStickerQ{
+			Tg_id:    tgID,
+			Tg_title: tgTitle,
+			Ae:       aE,
+		})
+		log.Debugf("Search matched line record: id:%s | title:%s | ae:%v", tgID, tgTitle, aE)
+	}
+	err = qs.Err()
+	if err != nil {
+		log.Errorln("error searching line db: ", kw)
+		return nil
+	}
+	return lines
 }
