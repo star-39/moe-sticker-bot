@@ -21,6 +21,6 @@ server {
         proxy_pass http://${WEBAPP_ADDR}/webapp/api;
     }
     location /webapp/edit {
-        alias ${WEBAPP_ROOT}/build;
+        alias ${WEBAPP_ROOT};
     }
 }
