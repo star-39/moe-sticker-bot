@@ -296,11 +296,17 @@ func updateLineSAE(ae bool, tgID string) error {
 	return err
 }
 
-func searchLineS(kw string) []LineStickerQ {
+func searchLineS(keywords []string) []LineStickerQ {
 	if db == nil {
 		return nil
 	}
-	qs, err := db.Query("SELECT tg_title, tg_id, auto_emoji FROM line WHERE tg_title LIKE '%" + kw + "%'")
+	var statements []string
+	for _, s := range keywords {
+		statements = append(statements, "'%"+s+"%'")
+	}
+	statement := strings.Join(statements, " AND tg_title LIKE ")
+	log.Debugln("database: search statement:", statement)
+	qs, err := db.Query("SELECT tg_title, tg_id, auto_emoji FROM line WHERE tg_title LIKE " + statement)
 	if err != nil {
 		log.Warnln("db q err:", err)
 		return nil
@@ -325,7 +331,7 @@ func searchLineS(kw string) []LineStickerQ {
 	}
 	err = qs.Err()
 	if err != nil {
-		log.Errorln("error searching line db: ", kw)
+		log.Errorln("error searching line db: ", keywords)
 		return nil
 	}
 	return lines

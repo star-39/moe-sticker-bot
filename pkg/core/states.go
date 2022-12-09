@@ -83,7 +83,8 @@ func handleNoSession(c tele.Context) error {
 }
 
 func trySearchKeyword(c tele.Context) bool {
-	lines := searchLineS(c.Text())
+	keywords := strings.Split(c.Text(), " ")
+	lines := searchLineS(keywords)
 	if len(lines) == 0 {
 		return false
 	}
@@ -451,7 +452,8 @@ func prepareSManWebApp(c tele.Context, ud *UserData) error {
 }
 
 func waitSearchKeyword(c tele.Context) error {
-	lines := searchLineS(c.Text())
+	keywords := strings.Split(c.Text(), " ")
+	lines := searchLineS(keywords)
 	if len(lines) == 0 {
 		return sendSearchNoResult(c)
 	}
