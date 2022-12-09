@@ -15,7 +15,7 @@ server {
     ssl_prefer_server_ciphers on;
 
     location /webapp/data {
-        root ${WEBAPP_ROOT}/data;
+        alias ${WEBAPP_ROOT}/data;
     }
     location /webapp/api {
         proxy_pass http://${WEBAPP_ADDR}/webapp/api;
