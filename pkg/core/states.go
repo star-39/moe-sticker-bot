@@ -177,8 +177,7 @@ func waitSDel(c tele.Context) error {
 		c.Send("error deleting sticker! try another one or /quit")
 		return err
 	}
-	c.Send("Delete OK.")
-	sendSEditOK(c)
+	c.Send("Delete OK. 成功刪除一張貼圖。")
 	ud.stickerData.cAmount--
 	if ud.stickerData.cAmount == 0 {
 		deleteUserS(ud.stickerData.id)

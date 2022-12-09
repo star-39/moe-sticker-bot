@@ -12,7 +12,7 @@ var wpDownloadStickerSet *ants.PoolWithFunc
 func initWorkersPool() {
 	wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
 	wpDownloadStickerSet, _ = ants.NewPoolWithFunc(
-		16, wDownloadStickerSet)
+		8, wDownloadStickerSet)
 }
 
 func wConvertWebm(i interface{}) {
@@ -34,6 +34,7 @@ func wDownloadStickerSet(i interface{}) {
 	log.Debugf("Downloading in pool: %s -> %s", obj.sticker.FileID, obj.dest)
 	err := obj.bot.Download(&obj.sticker.File, obj.dest)
 	if err != nil {
+		log.Warnln("webapp: error downloading sticker:", err)
 		obj.err = err
 	}
 }
