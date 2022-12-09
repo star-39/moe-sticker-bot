@@ -8,7 +8,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -241,26 +240,23 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 	return nil
 }
 
-func editStickerEmoji(newEmoji string, index int, fid string, ud *UserData) error {
+func editStickerEmoji(newEmoji string, index int, fid string, f string, ud *UserData) error {
 	c := ud.lastContext
+	lastUID := ud.stickerData.stickerSet.Stickers[len(ud.stickerData.stickerSet.Stickers)-1].UniqueID
+
+	//this ss will only be used to commit sticker.
 	ss := *ud.stickerData.stickerSet
-	f := filepath.Join(config.Config.WebappDataDir, ss.Name, fid+".webp")
-	lastFID := ss.Stickers[len(ss.Stickers)-1].FileID
-
-	sf := &StickerFile{
-		oPath: f,
-		cPath: f,
-	}
-
 	if ss.Video {
 		ss.WebM = &tele.File{FileLocal: f}
 	} else {
 		ss.PNG = &tele.File{FileLocal: f}
 	}
-
 	ss.Emojis = newEmoji
 	ss.Stickers = nil
-
+	sf := &StickerFile{
+		oPath: f,
+		cPath: f,
+	}
 	flCount := 0
 	err := commitSticker(false, &flCount, false, sf, c, ss)
 	if err != nil {
@@ -275,17 +271,22 @@ func editStickerEmoji(newEmoji string, index int, fid string, ud *UserData) erro
 		default:
 		}
 		time.Sleep(1 * time.Second)
-		ssNew, _ := c.Bot().StickerSet(ud.stickerData.id)
-		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
-		if commitedFID == lastFID {
+		ssNew, err := c.Bot().StickerSet(ud.stickerData.id)
+		if err != nil {
 			continue
 		}
-		//commit back the lastest set.
-		ud.stickerData.stickerSet = ssNew
+		commitedUID := ssNew.Stickers[len(ssNew.Stickers)-1].UniqueID
+		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
+		if commitedUID == lastUID {
+			continue
+		}
+		log.Infoln("Setting position of:", fid)
 		err = c.Bot().SetStickerPosition(commitedFID, index)
 		if err != nil {
 			return errors.New("error setting position after editing emoji" + err.Error())
 		}
+		//commit back the lastest set.
+		ud.stickerData.stickerSet = ssNew
 		return c.Bot().DeleteSticker(fid)
 	}
 	return errors.New("error setting position after editing emoji")

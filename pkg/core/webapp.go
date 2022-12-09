@@ -126,32 +126,34 @@ func apiEditResult(c *gin.Context) {
 
 func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 	ud.webAppWorkerPool.ReleaseTimeout(10 * time.Second)
+	retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
+	//copy slice
+	ss := ud.stickerData.stickerSet.Stickers
 	notificationSent := false
-	for i, s := range ud.stickerData.stickerSet.Stickers {
+	for i, s := range ss {
 		if !sObjs[i].EmojiChanged {
 			continue
 		}
 		newEmoji := findEmojis(sObjs[i].Emoji)
-		if newEmoji == "" {
+		if newEmoji == "" || newEmoji == findEmojis(s.Emoji) {
 			log.Warn("webapp: ignored one invalid emoji.")
 			continue
 		}
-		base := filepath.Base(sObjs[i].Surl)
-		fid := strings.TrimSuffix(base, filepath.Ext(base))
-		if newEmoji == findEmojis(s.Emoji) {
-			log.Debugln("emoji not actually changed", i)
-			continue
-		}
 		log.Debugln("Old:", i, s.Emoji, s.FileID)
-		log.Debugln("New", i, newEmoji, sObjs[i].Surl)
+		log.Debugln("New", i, newEmoji)
 		if !notificationSent {
 			sendEditingEmoji(ud.lastContext)
 			notificationSent = true
 		}
-		err := editStickerEmoji(newEmoji, i, fid, ud)
+		base := filepath.Base(sObjs[i].Surl)
+		uniqueID := strings.TrimSuffix(base, filepath.Ext(base))
+		f := filepath.Join(config.Config.WebappDataDir, s.SetName, uniqueID+".webp")
+		log.Debugln("fid to delete is :", s.FileID)
+		err := editStickerEmoji(newEmoji, i, s.FileID, f, ud)
 		if err != nil {
 			sendFatalError(err, ud.lastContext)
 			cleanUserDataAndDir(ud.lastContext.Sender().ID)
+			return err
 		}
 	}
 	sendSEditOK(ud.lastContext)
