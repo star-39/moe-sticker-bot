@@ -4,3 +4,5 @@
 moe-sticker-bot
 __debug*
 *_data/
+
+.DS_Store
