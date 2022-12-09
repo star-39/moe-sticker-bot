@@ -1,0 +1,27 @@
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+#   * Official Russian Documentation: http://nginx.org/ru/docs/
+
+server {
+    listen ${NGINX_PORT} ssl http2;
+    #    listen       [::]:443 ssl http2;
+    server_name _;
+    # root ${WEBAPP_ROOT};
+
+    ssl_certificate ${NGINX_CERT};
+    ssl_certificate_key ${NGINX_KEY};
+    ssl_session_cache shared:SSL:1m;
+    ssl_session_timeout 10m;
+    ssl_ciphers PROFILE=SYSTEM;
+    ssl_prefer_server_ciphers on;
+
+    location /webapp/data {
+        root ${WEBAPP_ROOT}/data;
+    }
+    location /webapp/api {
+        proxy_pass http://${WEBAPP_ADDR}/webapp/api;
+    }
+    location /webapp/edit {
+        alias ${WEBAPP_ROOT}/build;
+    }
+}
