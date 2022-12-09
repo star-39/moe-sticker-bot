@@ -441,7 +441,7 @@ func prepareSManWebApp(c tele.Context, ud *UserData) error {
 	for _, s := range ud.stickerData.stickerSet.Stickers {
 		obj := &StickerDownloadObject{
 			bot:     c.Bot(),
-			dest:    filepath.Join(dest, s.FileID+".webp"),
+			dest:    filepath.Join(dest, s.UniqueID+".webp"),
 			sticker: s,
 		}
 		obj.wg.Add(1)

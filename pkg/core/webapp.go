@@ -70,9 +70,11 @@ func apiSS(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
+	// Refresh SS data since it might already changed.
+	retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
 	sObjList := []webappStickerObject{}
 	for i, s := range ud.stickerData.stickerSet.Stickers {
-		surl, _ := url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.FileID+".webp")
+		surl, _ := url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webp")
 		sObjList = append(sObjList, webappStickerObject{
 			SSName: ud.stickerData.stickerSet.Name,
 			Id:     i + 1,

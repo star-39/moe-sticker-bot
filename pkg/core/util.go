@@ -240,6 +240,15 @@ func sliceMove[T any](oldIndex int, newIndex int, slice []T) []T {
 	return slice
 }
 
+func sliceRemove[T any](index int, slice []T) []T {
+	if len(slice)-1 == index {
+		slice = slice[0 : len(slice)-1]
+	} else {
+		slice = append(slice[0:index], slice[index+1:]...)
+	}
+	return slice
+}
+
 func chunkSlice(slice []string, chunkSize int) [][]string {
 	var chunks [][]string
 	for {
