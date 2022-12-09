@@ -160,7 +160,7 @@ func endManageSession(c tele.Context) {
 	if ud.stickerData.id == "" {
 		return
 	}
-	path := filepath.Join(config.Config.WebappRootDir, "data", ud.stickerData.id)
+	path := filepath.Join(config.Config.WebappDataDir, ud.stickerData.id)
 	os.RemoveAll(path)
 }
 

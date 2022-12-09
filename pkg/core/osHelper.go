@@ -201,15 +201,14 @@ func purgeOutdatedUserData() {
 		}
 	}
 
-	webappDataDir := filepath.Join(config.Config.WebappRootDir + "data")
-	webappDataDirEntries, _ := os.ReadDir(webappDataDir)
+	webappDataDirEntries, _ := os.ReadDir(config.Config.WebappDataDir)
 	for _, f := range webappDataDirEntries {
 		if !f.IsDir() {
 			continue
 		}
 		fInfo, _ := f.Info()
 		fMTime := fInfo.ModTime().Unix()
-		fPath := filepath.Join(webappDataDir, f.Name())
+		fPath := filepath.Join(config.Config.WebappDataDir, f.Name())
 		// 2 Days
 		if fMTime < (time.Now().Unix() - 172800) {
 			os.RemoveAll(fPath)

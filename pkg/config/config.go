@@ -11,7 +11,7 @@ type ConfigTemplate struct {
 	WebappUrl        string
 	WebappApiUrl     string
 	WebappListenAddr string
-	WebappRootDir    string
+	WebappDataDir    string
 	DbAddr           string
 	DbUser           string
 	DbPass           string

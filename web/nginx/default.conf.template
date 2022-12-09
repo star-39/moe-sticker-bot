@@ -12,7 +12,6 @@ server {
     ssl_certificate_key ${NGINX_KEY};
     ssl_session_cache shared:SSL:1m;
     ssl_session_timeout 10m;
-    ssl_ciphers PROFILE=SYSTEM;
     ssl_prefer_server_ciphers on;
 
     location /webapp/data {

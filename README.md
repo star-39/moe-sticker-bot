@@ -49,23 +49,25 @@ To deploy all the features, it is recommended through podman and pods.
 ```
 podman pod create --name p-moe-sticker-bot -p 443:443
 podman volume create moe-sticker-bot-db
+podman volume create moe-sticker-bot-webapp-data
 
 podman run -dt --pod p-moe-sticker-bot \
 -v moe-sticker-bot-db:/var/lib/mysql -e MARIADB_ROOT_PASSWORD=DB_ROOT_PASS docker://mariadb:10.6
 
-podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:py_emoji
+podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:msb_emoji
 
 podman run -dt --pod p-moe-sticker-bot -v CERT_LOCATION:/certs \
+-v moe-sticker-bot-webapp-data:/webapp/data
 -e WEBAPP_ROOT=/webapp -e WEBAPP_ADDR=127.0.0.1:3921 -e NGINX_PORT=443 \
 -e NGINX_CERT=/certs/fullchain.pem -e NGINX_KEY=/certs/privkey.pem \
--v nginx.template:/etc/nginx/templates/default.conf.template   docker://nginx 
+ghcr.io/star-39/moe-sticker-bot:msb_nginx
 
 podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot \
         /moe-sticker-bot \
         --bot_token=YOUR_TOKEN_HERE \
         --webapp --webapp_url https://example.com/webapp/ \
         --webapp_api_url https://example.com/webapp/ \
-        --webapp_root_dir /webapp \
+        --webapp_data_dir /webapp_data/ \
         --webapp_listen_addr 127.0.0.1:3921 \
         --use_db --db_addr 127.0.0.1:3306 --db_user root --db_pass DB_ROOT_PASS
 ```
