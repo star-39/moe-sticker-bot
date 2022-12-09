@@ -244,7 +244,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 func editStickerEmoji(newEmoji string, index int, fid string, ud *UserData) error {
 	c := ud.lastContext
 	ss := *ud.stickerData.stickerSet
-	f := filepath.Join(config.Config.WebappDataDir, "data", ss.Name, fid+".webp")
+	f := filepath.Join(config.Config.WebappRootDir, "data", ss.Name, fid+".webp")
 	lastFID := ss.Stickers[len(ss.Stickers)-1].FileID
 
 	sf := &StickerFile{

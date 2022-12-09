@@ -434,7 +434,7 @@ func waitSEmojiAssign(c tele.Context) error {
 }
 
 func prepareSManWebApp(c tele.Context, ud *UserData) error {
-	dest := filepath.Join(config.Config.WebappDataDir, "data", ud.stickerData.id)
+	dest := filepath.Join(config.Config.WebappRootDir, "data", ud.stickerData.id)
 	os.RemoveAll(dest)
 	os.MkdirAll(dest, 0755)
 
