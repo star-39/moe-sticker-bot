@@ -639,8 +639,8 @@ func replySFileOK(c tele.Context, count int) error {
 
 func sendSEditOK(c tele.Context) error {
 	return c.Send(
-		"Successfully edited emojis. /start\n" +
-			"成功修改emoji. /start")
+		"Successfully edited sticker set. /start\n" +
+			"成功修改貼圖包. /start")
 }
 
 // func sendSManWebApp(c tele.Context) error {

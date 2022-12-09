@@ -25,19 +25,13 @@ func InitWebAppServer() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
-	webapp := r.Group("/webapp")
+	webappApi := r.Group("/webapp/api")
 	{
-		//Group: /webapp
-		webapp.StaticFS("/edit", http.Dir(config.Config.WebappDataDir))
-		webapp.Static("/data", filepath.Join(config.Config.WebappDataDir, "data"))
-		api := webapp.Group("/api")
-		{
-			//Group: /webapp/api
-			api.POST("/initData", apiInitData)
-			api.GET("/ss", apiSS)
-			api.POST("/edit/result", apiEditResult)
-			api.POST("/edit/move", apiEditMove)
-		}
+		//Group: /webapp/api
+		webappApi.POST("/initData", apiInitData)
+		webappApi.GET("/ss", apiSS)
+		webappApi.POST("/edit/result", apiEditResult)
+		webappApi.POST("/edit/move", apiEditMove)
 	}
 
 	go func() {
@@ -121,12 +115,6 @@ func apiEditResult(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	// err = checkSOrder(ud, sObjs)
-	// if err != nil {
-	// 	log.Warn(err)
-	// 	c.String(http.StatusInternalServerError, err.Error())
-	// 	return
-	// }
 
 	c.String(http.StatusOK, "")
 	ud.udSetState(ST_PROCESSING)
@@ -164,31 +152,11 @@ func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 			cleanUserDataAndDir(ud.lastContext.Sender().ID)
 		}
 	}
-	if notificationSent {
-		sendSEditOK(ud.lastContext)
-		sendSFromSS(ud.lastContext)
-		endSession(ud.lastContext)
-	}
+	sendSEditOK(ud.lastContext)
+	sendSFromSS(ud.lastContext)
+	endSession(ud.lastContext)
 	return nil
 }
-
-// func checkSOrder(ud *UserData, sObjs []webappStickerObject) error {
-// 	ud.webAppWorkerPool.ReleaseTimeout(10 * time.Second)
-// 	ss, err := b.StickerSet(ud.stickerData.stickerSet.Name)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	for i, s := range ss.Stickers {
-// 		base := filepath.Base(sObjs[i].Surl)
-// 		fid := strings.TrimSuffix(base, filepath.Ext(base))
-// 		if s.FileID != fid {
-// 			ud.lastContext.Send(&s)
-// 			log.Warnln("ss mismatch", i, s.FileID, fid)
-// 			return errors.New("ss order mismatch")
-// 		}
-// 	}
-// 	return nil
-// }
 
 // <- ?uid&qid POST_FORM:{"oldIndex", "newIndex"}
 // -------------------------------------------
@@ -233,7 +201,6 @@ func apiInitData(c *gin.Context) {
 		c.String(http.StatusBadRequest, "data_check_string HMAC validation failed!!")
 		return
 	}
-	c.String(http.StatusOK, "data_check_string ok")
 	log.Debug("WebApp initData DCS HMAC OK.")
 	webAppUser := &WebAppUser{}
 	err := json.Unmarshal([]byte(user), webAppUser)
@@ -241,18 +208,16 @@ func apiInitData(c *gin.Context) {
 		log.Error("json unmarshal webappuser error.")
 		return
 	}
-
 	ud, err := GetUd(strconv.Itoa(webAppUser.Id))
 	if err != nil {
 		log.Warning("Bad webapp user init, not in state?")
-		c.String(http.StatusBadRequest, "bad webapp user!")
+		c.String(http.StatusBadRequest, "bad webapp state")
 		return
 	}
 
 	ud.webAppWorkerPool, _ = ants.NewPoolWithFunc(1, wSubmitSMove)
 	ud.webAppQID = queryID
 
-	// ud.udSetState(ST_WAIT_WEBAPP)
 	c.String(http.StatusOK, "webapp init ok")
 }
 
