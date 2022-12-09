@@ -194,11 +194,12 @@ func waitSDel(c tele.Context) error {
 
 func waitCbDelset(c tele.Context) error {
 	if c.Callback() == nil {
-		return c.Send("press a button!")
+		setState(c, "waitCbEditChoice")
+		return sendAskEditChoice(c)
 	}
 	if c.Callback().Data != CB_YES {
-		terminateSession(c)
-		return nil
+		setState(c, "waitCbEditChoice")
+		return sendAskEditChoice(c)
 	}
 	ud := users.data[c.Sender().ID]
 	setState(c, "process")

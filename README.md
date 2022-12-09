@@ -128,6 +128,12 @@ PUBLIC_DIR=/webapp/edit npm build
 Check `--help` for detailed webapp configs. Please note that you need a valid TLS certificate to serve.
 
 ## CHANGELOG
+2.0.0 RC-2 (20221210)
+  * Fix fatalpanic on webapp.
+  * Add /search functionality.
+  * Removed gin TLS support.
+  * Auto database curation.
+  
 2.0.0 RC-1 (20221206)
   * WebApp support for edit stickers.
   * Code structure refactored.
