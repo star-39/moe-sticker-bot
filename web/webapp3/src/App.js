@@ -4,13 +4,20 @@ import axios from 'axios';
 
 function App() {
   let [isInitDataValid, setIsInitDataValid] = useState(null)
+  let [isBadWebAppState, setIsBadWebAppState] = useState(null)
   let [ss, setSS] = useState([])
 
   useEffect(() => {
     axios.post('/webapp/api/initData', new URLSearchParams(window.Telegram.WebApp.initData))
-      .then(setIsInitDataValid(true))
-      .catch(e => {
+      .then(res => {
+        setIsInitDataValid(true)
+      })
+      .catch(err => {
         setIsInitDataValid(false)
+        if (err.response.data === "bad webapp state") {
+          setIsBadWebAppState(true)
+        }
+        return
       })
       .then(() => {
         const uid = window.Telegram.WebApp.initDataUnsafe.user.id
@@ -40,6 +47,14 @@ function App() {
       </div>
     );
   } else {
+    if (isBadWebAppState) {
+      return (
+        <div className="App"><h3>Please launch WebApp through /manage command.</h3>
+        <br/>
+        <h3>請使用 /manage 指令後打開WebApp。</h3>
+        </div>
+      )
+    }
     try {
       window.Telegram.WebApp.showAlert("Invalid initData!!");
       // window.Telegram.WebApp.close();
