@@ -57,17 +57,18 @@ podman run -dt --pod p-moe-sticker-bot \
 podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:msb_emoji
 
 podman run -dt --pod p-moe-sticker-bot -v CERT_LOCATION:/certs \
--v moe-sticker-bot-webapp-data:/webapp/data
+-v moe-sticker-bot-webapp-data:/webapp/data \
 -e WEBAPP_ROOT=/webapp -e WEBAPP_ADDR=127.0.0.1:3921 -e NGINX_PORT=443 \
 -e NGINX_CERT=/certs/fullchain.pem -e NGINX_KEY=/certs/privkey.pem \
 ghcr.io/star-39/moe-sticker-bot:msb_nginx
 
 podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot \
+        -v moe-sticker-bot-webapp-data:/webapp/data \
         /moe-sticker-bot \
         --bot_token=YOUR_TOKEN_HERE \
         --webapp --webapp_url https://example.com/webapp/ \
         --webapp_api_url https://example.com/webapp/ \
-        --webapp_data_dir /webapp_data/ \
+        --webapp_data_dir /webapp/data/ \
         --webapp_listen_addr 127.0.0.1:3921 \
         --use_db --db_addr 127.0.0.1:3306 --db_user root --db_pass DB_ROOT_PASS
 ```
@@ -133,7 +134,7 @@ Check `--help` for detailed webapp configs. Please note that you need a valid TL
   * Add /search functionality.
   * Removed gin TLS support.
   * Auto database curation.
-  
+
 2.0.0 RC-1 (20221206)
   * WebApp support for edit stickers.
   * Code structure refactored.
