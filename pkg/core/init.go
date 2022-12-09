@@ -2,6 +2,7 @@ package core
 
 import (
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -149,6 +150,18 @@ func endSession(c tele.Context) {
 func terminateSession(c tele.Context) {
 	cleanUserDataAndDir(c.Sender().ID)
 	c.Send("Bye. /start")
+}
+
+func endManageSession(c tele.Context) {
+	ud, exist := users.data[c.Sender().ID]
+	if !exist {
+		return
+	}
+	if ud.stickerData.id == "" {
+		return
+	}
+	path := filepath.Join(config.Config.WebappRootDir, "data", ud.stickerData.id)
+	os.RemoveAll(path)
 }
 
 func onError(err error, c tele.Context) {

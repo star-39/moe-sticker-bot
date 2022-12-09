@@ -156,6 +156,7 @@ func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 	}
 	sendSEditOK(ud.lastContext)
 	sendSFromSS(ud.lastContext)
+	endManageSession(ud.lastContext)
 	endSession(ud.lastContext)
 	return nil
 }

@@ -159,6 +159,7 @@ func waitCbEditChoice(c tele.Context) error {
 		setState(c, "waitCbDelset")
 		return sendConfirmDelset(c)
 	case "bye":
+		endManageSession(c)
 		terminateSession(c)
 	}
 	return nil
@@ -195,7 +196,7 @@ func waitCbDelset(c tele.Context) error {
 	if c.Callback() == nil {
 		return c.Send("press a button!")
 	}
-	if c.Callback().Data != "yes" {
+	if c.Callback().Data != CB_YES {
 		terminateSession(c)
 		return nil
 	}
@@ -210,6 +211,7 @@ func waitCbDelset(c tele.Context) error {
 	deleteUserS(ud.stickerData.id)
 	deleteLineS(ud.stickerData.id)
 	c.Send("Delete set OK. bye")
+	endManageSession(c)
 	terminateSession(c)
 	return nil
 }

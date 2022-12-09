@@ -10,6 +10,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/config"
 )
 
 func fDownload(link string, savePath string) error {
@@ -197,6 +198,22 @@ func purgeOutdatedUserData() {
 			}
 			users.mu.Unlock()
 			log.Infoln("Purged outdated user dir:", fPath)
+		}
+	}
+
+	webappDataDir := filepath.Join(config.Config.WebappRootDir + "data")
+	webappDataDirEntries, _ := os.ReadDir(webappDataDir)
+	for _, f := range webappDataDirEntries {
+		if !f.IsDir() {
+			continue
+		}
+		fInfo, _ := f.Info()
+		fMTime := fInfo.ModTime().Unix()
+		fPath := filepath.Join(webappDataDir, f.Name())
+		// 2 Days
+		if fMTime < (time.Now().Unix() - 172800) {
+			os.RemoveAll(fPath)
+			log.Infoln("Purged outdated webapp data dir:", fPath)
 		}
 	}
 }
