@@ -12,6 +12,55 @@ import (
 	"github.com/star-39/moe-sticker-bot/pkg/config"
 )
 
+/*
+
+DATABASE VERSION 2 SCHEMA
+MariaDB > show tables;
++----------------------------------+
+| Tables_in_BOT_NAME_db |
++----------------------------------+
+| line                             |
+| properties                       |
+| stickers                         |
++----------------------------------+
+
+MariaDB > desc line;
++------------+--------------+------+-----+---------+-------+
+| Field      | Type         | Null | Key | Default | Extra |
++------------+--------------+------+-----+---------+-------+
+| line_id    | varchar(128) | YES  |     | NULL    |       |
+| tg_id      | varchar(128) | YES  |     | NULL    |       |
+| tg_title   | varchar(255) | YES  |     | NULL    |       |
+| line_link  | varchar(512) | YES  |     | NULL    |       |
+| auto_emoji | tinyint(1)   | YES  |     | NULL    |       |
++------------+--------------+------+-----+---------+-------+
+
+MariaDB > desc stickers;
++-----------+--------------+------+-----+---------+-------+
+| Field     | Type         | Null | Key | Default | Extra |
++-----------+--------------+------+-----+---------+-------+
+| user_id   | bigint(20)   | YES  |     | NULL    |       |
+| tg_id     | varchar(128) | YES  |     | NULL    |       |
+| tg_title  | varchar(255) | YES  |     | NULL    |       |
+| timestamp | bigint(20)   | YES  |     | NULL    |       |
++-----------+--------------+------+-----+---------+-------+
+
+MariaDB > desc properties;
++-------+--------------+------+-----+---------+-------+
+| Field | Type         | Null | Key | Default | Extra |
++-------+--------------+------+-----+---------+-------+
+| name  | varchar(128) | NO   | PRI | NULL    |       |
+| value | varchar(128) | YES  |     | NULL    |       |
++-------+--------------+------+-----+---------+-------+
+
+Current entries for properties:
+name: DB_VER
+value: 2
+name: last_line_dedup_index
+value: -1
+
+*/
+
 var db *sql.DB
 
 func initDB(dbname string) error {
@@ -48,6 +97,8 @@ func initDB(dbname string) error {
 	}
 
 	log.Infoln("Queried dbVer is :", dbVer)
+	checkUpgradeDatabase(dbVer)
+
 	log.WithFields(log.Fields{"Addr": addr, "DBName": dbname}).Info("MariaDB OK.")
 
 	return nil
@@ -71,7 +122,14 @@ func verifyDB(dsn *mysql.Config, dbname string) error {
 		}
 	}
 	return nil
+}
 
+func checkUpgradeDatabase(queriedDbVer string) {
+	if queriedDbVer == "1" {
+		db.Exec("INSERT properties (name, value) VALUES (?, ?)", "last_line_dedup_index", "-1") //value is string!
+		db.Exec("UPDATE properties SET value=? WHERE name=?", "2", "DB_VER")
+		log.Info("Upgraded DB_VER from 1 to 2")
+	}
 }
 
 func createMariadb(dsn *mysql.Config, dbname string) error {
@@ -273,9 +331,8 @@ func searchLineS(kw string) []LineStickerQ {
 	return lines
 }
 
-var lastIndexOfDedupOK int = -1
-
 func curateDatabase() error {
+	lastIndexOfDedupOK := getLastLineDedupIndex()
 	//Line stickers.
 	ls := queryLineS("QUERY_ALL")
 	for i, l := range ls {
@@ -323,6 +380,7 @@ func curateDatabase() error {
 			lastIndexOfDedupOK = i
 		}
 	}
+	setLastLineDedupIndex(lastIndexOfDedupOK)
 
 	//User stickers.
 	us := queryUserS(-1)
@@ -340,4 +398,18 @@ func curateDatabase() error {
 	}
 
 	return nil
+}
+
+func setLastLineDedupIndex(index int) {
+	value := strconv.Itoa(index)
+	db.Exec("UPDATE properties SET value=? WHERE name=?", value, "last_line_dedup_index")
+	log.Infoln("setLastLineDedupIndex to :", value)
+}
+
+func getLastLineDedupIndex() int {
+	var value string
+	db.QueryRow("SELECT value FROM properties WHERE name=?", "last_line_dedup_index").Scan(&value)
+	index, _ := strconv.Atoi(value)
+	log.Infoln("getLastLineDedupIndex", value)
+	return index
 }
