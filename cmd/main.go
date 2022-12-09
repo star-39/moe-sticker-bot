@@ -26,8 +26,6 @@ func parseCmdLine() {
 	var webappApiUrl = flag.String("webapp_api_url", "", "URL to WebApp API server, HTTPS only")
 	var WebappListenAddr = flag.String("webapp_listen_addr", "", "API listen addr(IP:PORT)")
 	var webappDataDir = flag.String("webapp_data_dir", "", "Relative to CWD or absolute")
-	var webappCert = flag.String("webapp_cert", "", "TLS Certificate")
-	var webappPrivkey = flag.String("webapp_privkey", "", "TLS private key")
 	var useDB = flag.Bool("use_db", false, "Use MariaDB")
 	var dbAddr = flag.String("db_addr", "", "mariadb address")
 	var dbUser = flag.String("db_user", "", "mariadb usernmae")
@@ -62,8 +60,6 @@ func parseCmdLine() {
 		conf.WebappApiUrl = *webappApiUrl
 	}
 	conf.WebappDataDir = *webappDataDir
-	conf.WebappCert = *webappCert
-	conf.WebappPrivkey = *webappPrivkey
 	conf.WebappListenAddr = *WebappListenAddr
 
 	conf.LogLevel = *logLevel
