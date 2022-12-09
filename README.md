@@ -57,7 +57,8 @@ podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:py_emoji
 
 podman run -dt --pod p-moe-sticker-bot -v CERT_LOCATION:/certs \
 -e WEBAPP_ROOT=/webapp -e WEBAPP_ADDR=127.0.0.1:3921 -e NGINX_PORT=443 \
--e NGINX_CERT=/certs/fullchain.pem -e NGINX_KEY=/certs/privkey.pem    docker://nginx 
+-e NGINX_CERT=/certs/fullchain.pem -e NGINX_KEY=/certs/privkey.pem \
+-v nginx.template:/etc/nginx/templates/default.conf.template   docker://nginx 
 
 podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot \
         /moe-sticker-bot \
