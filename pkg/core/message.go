@@ -111,8 +111,8 @@ Telegram要求為貼圖設定emoji來表示它.
 
 func sendAskSDownloadChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnRand := selector.Data("This sticker/這張貼圖", "single")
-	btnManu := selector.Data("Whole sticker set/整個貼圖包", "whole")
+	btnRand := selector.Data("This sticker/這張貼圖", CB_DN_SINGLE)
+	btnManu := selector.Data("Whole sticker set/整個貼圖包", CB_DN_WHOLE)
 	selector.Inline(selector.Row(btnRand), selector.Row(btnManu))
 	return c.Reply(`
 You can download this sticker or the whole sticker set, please select below.
