@@ -379,6 +379,11 @@ Send emoji(s) representing this sticker.
 }
 
 func sendFatalError(err error, c tele.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("Recovered panic in sendFatalError")
+		}
+	}()
 	errMsg := err.Error()
 	if strings.Contains(errMsg, "500") {
 		errMsg += "\nThis is an internal error of Telegram server, we could do nothing but wait for its recover. Please try again later.\n" +

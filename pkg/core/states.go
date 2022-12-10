@@ -442,9 +442,15 @@ func prepareSManWebApp(c tele.Context, ud *UserData) error {
 	os.MkdirAll(dest, 0755)
 
 	for _, s := range ud.stickerData.stickerSet.Stickers {
+		var f string
+		if ud.stickerData.stickerSet.Video {
+			f = filepath.Join(dest, s.UniqueID+".webm")
+		} else {
+			f = filepath.Join(dest, s.UniqueID+".webp")
+		}
 		obj := &StickerDownloadObject{
 			bot:     c.Bot(),
-			dest:    filepath.Join(dest, s.UniqueID+".webp"),
+			dest:    f,
 			sticker: s,
 		}
 		obj.wg.Add(1)

@@ -74,7 +74,12 @@ func apiSS(c *gin.Context) {
 	retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
 	sObjList := []webappStickerObject{}
 	for i, s := range ud.stickerData.stickerSet.Stickers {
-		surl, _ := url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webp")
+		var surl string
+		if ud.stickerData.stickerSet.Video {
+			surl, _ = url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webm")
+		} else {
+			surl, _ = url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webp")
+		}
 		sObjList = append(sObjList, webappStickerObject{
 			SSName: ud.stickerData.stickerSet.Name,
 			Id:     i + 1,
@@ -146,8 +151,8 @@ func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 			notificationSent = true
 		}
 		base := filepath.Base(sObjs[i].Surl)
-		uniqueID := strings.TrimSuffix(base, filepath.Ext(base))
-		f := filepath.Join(config.Config.WebappDataDir, s.SetName, uniqueID+".webp")
+		// uniqueID := strings.TrimSuffix(base, filepath.Ext(base))
+		f := filepath.Join(config.Config.WebappDataDir, s.SetName, base)
 		log.Debugln("fid to delete is :", s.FileID)
 		err := editStickerEmoji(newEmoji, i, s.FileID, f, ud)
 		if err != nil {
