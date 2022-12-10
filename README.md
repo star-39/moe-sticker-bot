@@ -129,6 +129,10 @@ PUBLIC_DIR=/webapp/edit npm build
 Check `--help` for detailed webapp configs. Please note that you need a valid TLS certificate to serve.
 
 ## CHANGELOG
+2.0.0 RC-3 (20221210)
+  * Complies to LINE store's new UA requeirments.
+  * Support animated sticker in webapp.
+  
 2.0.0 RC-2 (20221210)
   * Fix fatalpanic on webapp.
   * Add /search functionality.
