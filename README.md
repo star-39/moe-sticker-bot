@@ -133,6 +133,8 @@ Check `--help` for detailed webapp configs. Please note that you need a valid TL
 2.0.0 RC-3 (20221210)
   * Complies to LINE store's new UA requeirments.
   * Support animated sticker in webapp.
+  * Fixed sticker download
+  * Fixed webapp image aspect ratio.
 
 2.0.0 RC-2 (20221210)
   * Fix fatalpanic on webapp.
