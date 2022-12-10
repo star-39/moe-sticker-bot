@@ -270,7 +270,7 @@ func editStickerEmoji(newEmoji string, index int, fid string, f string, ud *User
 			return nil
 		default:
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 		ssNew, err := c.Bot().StickerSet(ud.stickerData.id)
 		if err != nil {
 			continue
