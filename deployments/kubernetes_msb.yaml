@@ -1,0 +1,138 @@
+# Save the output of this file and use kubectl create -f to import
+# it into Kubernetes.
+#
+# Created with podman-4.2.0
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    io.kubernetes.cri-o.ContainerType/msb: container
+    io.kubernetes.cri-o.ContainerType/msbemoji: container
+    io.kubernetes.cri-o.ContainerType/msbnginx: container
+    io.kubernetes.cri-o.ContainerType/msbmariadb: container
+    io.kubernetes.cri-o.SandboxID/msb: p-moe-sticker-bot
+    io.kubernetes.cri-o.SandboxID/msbemoji: p-moe-sticker-bot
+    io.kubernetes.cri-o.SandboxID/msbnginx: p-moe-sticker-bot
+    io.kubernetes.cri-o.SandboxID/msbmariadb: p-moe-sticker-bot
+    io.podman.annotations.autoremove/msb: "FALSE"
+    io.podman.annotations.autoremove/msbemoji: "FALSE"
+    io.podman.annotations.autoremove/msbnginx: "FALSE"
+    io.podman.annotations.autoremove/msbmariadb: "FALSE"
+    io.podman.annotations.init/msb: "FALSE"
+    io.podman.annotations.init/msbemoji: "FALSE"
+    io.podman.annotations.init/msbnginx: "FALSE"
+    io.podman.annotations.init/msbmariadb: "FALSE"
+    io.podman.annotations.privileged/msb: "FALSE"
+    io.podman.annotations.privileged/msbemoji: "FALSE"
+    io.podman.annotations.privileged/msbnginx: "FALSE"
+    io.podman.annotations.privileged/msbmariadb: "FALSE"
+    io.podman.annotations.publish-all/msb: "FALSE"
+    io.podman.annotations.publish-all/msbemoji: "FALSE"
+    io.podman.annotations.publish-all/msbnginx: "FALSE"
+    io.podman.annotations.publish-all/msbmariadb: "FALSE"
+  creationTimestamp: "2022-12-09T17:58:22Z"
+  labels:
+    app: p-moe-sticker-bot
+  name: p-moe-sticker-bot
+spec:
+  containers:
+  - args:
+    - nginx
+    - -g
+    - daemon off;
+    env:
+    - name: NGINX_PORT
+      value: "443"
+    - name: NGINX_CERT
+      value: /certs/live/example.com/fullchain.pem
+    - name: WEBAPP_ROOT
+      value: /webapp
+    - name: WEBAPP_ADDR
+      value: 127.0.0.1:3921
+    - name: NGINX_KEY
+      value: /certs/live/example.com/privkey.pem
+    image: ghcr.io/star-39/moe-sticker-bot:msb_nginx_aarch64
+    name: msbnginx
+    ports:
+    - containerPort: 443
+      hostPort: 443
+    resources: {}
+    securityContext:
+      capabilities:
+        drop:
+        - CAP_MKNOD
+        - CAP_AUDIT_WRITE
+    tty: true
+    volumeMounts:
+    - mountPath: /certs
+      name: etc-letsencrypt-host-0
+    - mountPath: /webapp/data
+      name: moe-sticker-bot-webapp-data-pvc
+    restartPolicy: Always
+  - image: ghcr.io/star-39/moe-sticker-bot:msb_emoji_aarch64
+    name: msbemoji
+    resources: {}
+    securityContext:
+      capabilities:
+        drop:
+        - CAP_MKNOD
+        - CAP_AUDIT_WRITE
+    restartPolicy: Always
+  - command:
+    - /moe-sticker-bot
+    - --bot_token=BOT_TOKEN
+    - --webapp
+    - --webapp_url
+    - https://example.com/webapp/
+    - --webapp_data_dir
+    - /webapp/data/
+    - --webapp_listen_addr
+    - 127.0.0.1:3921
+    - --use_db
+    - --db_addr
+    - 10.88.0.1:3306
+    - --db_user
+    - root
+    - --db_pass
+    - DB_ROOT_PASS
+    image: ghcr.io/star-39/moe-sticker-bot:aarch64
+    name: msb
+    resources: {}
+    securityContext:
+      capabilities:
+        drop:
+        - CAP_MKNOD
+        - CAP_AUDIT_WRITE
+    volumeMounts:
+    - mountPath: /webapp/data
+      name: moe-sticker-bot-webapp-data-pvc
+    restartPolicy: Always
+  - args:
+    - mariadbd
+    env:
+    - name: MARIADB_ROOT_PASSWORD
+      value: DB_ROOT_PASS
+    image: docker.io/library/mariadb:10.6
+    name: msbmariadb
+    resources: {}
+    securityContext:
+      capabilities:
+        drop:
+        - CAP_MKNOD
+        - CAP_AUDIT_WRITE
+    volumeMounts:
+    - mountPath: /var/lib/mysql
+      name: moe-sticker-bot-db-pvc
+
+  hostname: p-moe-sticker-bot
+  restartPolicy: Always
+  volumes:
+  - hostPath:
+      path: /etc/letsencrypt
+      type: Directory
+    name: etc-letsencrypt-host-0
+  - name: moe-sticker-bot-webapp-data-pvc
+    persistentVolumeClaim:
+      claimName: moe-sticker-bot-webapp-data
+status: {}
+

@@ -76,6 +76,7 @@ Use `podman ps -a` and `podman pod ls` to review the pod and containers.
 
 You can also use `podman generate kube` to generate Kubernetes YAML to deploy on your container cluster.
 
+See a real world deployment YAML example in `deployments/kubernetes_msb.yaml`.
 
 
 ### System Dependencies
@@ -132,7 +133,7 @@ Check `--help` for detailed webapp configs. Please note that you need a valid TL
 2.0.0 RC-3 (20221210)
   * Complies to LINE store's new UA requeirments.
   * Support animated sticker in webapp.
-  
+
 2.0.0 RC-2 (20221210)
   * Fix fatalpanic on webapp.
   * Add /search functionality.
