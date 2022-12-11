@@ -32,9 +32,7 @@ func sendStartMessage(c tele.Context) error {
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a> doing sticker stuffs!
 Send me LINE/kakao/Telegram link or sticker or GIF to import or download them, or keywords to search, or use a command above
 
-你好! 歡迎使用萌萌貼圖BOT, 請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載喔, 也可以傳送關鍵字來搜尋貼圖包
-您也可以從上方點選指令
-
+你好! 歡迎使用萌萌貼圖BOT, 請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載喔, 也可以傳送關鍵字來搜尋貼圖包或從上方點選指令
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }

@@ -151,13 +151,13 @@ func apiEditResult(c *gin.Context) {
 
 func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 	ud.webAppWorkerPool.ReleaseTimeout(10 * time.Second)
-	retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
+	// retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
 	//copy slice
 	ss := ud.stickerData.stickerSet.Stickers
 	notificationSent := false
 	for i, s := range ss {
 		if s.UniqueID != sObjs[i].UniqueID {
-			log.Error("sticker order mismatch!")
+			log.Error("sticker order mismatch! index:", i)
 			return errors.New("sticker order mismatch")
 		}
 		if !sObjs[i].EmojiChanged {
