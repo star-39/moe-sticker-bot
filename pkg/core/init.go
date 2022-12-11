@@ -165,6 +165,11 @@ func endManageSession(c tele.Context) {
 }
 
 func onError(err error, c tele.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorln("Recovered from onError!!", r)
+		}
+	}()
 	sendFatalError(err, c)
 	cleanUserDataAndDir(c.Sender().ID)
 }
