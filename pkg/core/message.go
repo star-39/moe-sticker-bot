@@ -16,32 +16,25 @@ import (
 
 func sendStartMessage(c tele.Context) error {
 	message := `
-Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a> doing sticker stuffs!
-Send me links or stickers to import or download them, or keywords to search, or use a command below:
-你好! 歡迎使用萌萌貼圖BOT, 請傳送連結或貼圖來匯入或下載貼圖喔, 也可以傳送關鍵字來搜尋貼圖，
-您也可以從下方選擇指令:
-
 <b>/import</b> LINE or kakao stickers to Telegram<code>
-  匯入LINE/kakao貼圖包至Telegram
-</code>
+  匯入LINE/kakao貼圖包至Telegram</code>
 <b>/download</b> Telegram/LINE/kakao sticker(s)<code>
-  下載Telegram/LINE/kakao貼圖包
-</code>
-<b>/create</b> new sticker set<code>
-  創建新的Telegram的貼圖包.
-</code>
-<b>/manage</b> exsting sticker set (add/delete/reorder)<code>
-  管理Telegram貼圖包(增添/刪除/排序).
-</code>
+  下載Telegram/LINE/kakao貼圖包</code>
+<b>/create</b> or <b>/manage</b> new sticker set<code>
+  創建或管理的Telegram的貼圖包.</code>
 <b>/search</b> LINE or kakao sticker sets.<code>
-  搜尋LINE和kakao貼圖包.
-</code>
+  搜尋LINE和kakao貼圖包.</code>
 <b>/faq  /about</b><code>
-   常見問題/關於.
-</code>
-<b>/exit /quit /cancel</b><code>
-  Interrupt conversation. 中斷指令.
-</code>
+  常見問題/關於.</code>
+<b>/exit /cancel</b> ongoing session.<code>
+  中斷指令.</code>
+
+Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a> doing sticker stuffs!
+Send me LINE/kakao/Telegram link or sticker or GIF to import or download them, or keywords to search, or use a command above
+
+你好! 歡迎使用萌萌貼圖BOT, 請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載喔, 也可以傳送關鍵字來搜尋貼圖包
+您也可以從上方點選指令
+
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }
@@ -544,28 +537,10 @@ func sendAskEditChoice(c tele.Context) error {
 		"您想要修改貼圖包的甚麼內容? 請選擇:", selector, tele.ModeHTML)
 }
 
-// func sendAskSFrom(c tele.Context) error {
-// 	return c.Send("Which sticker do you want to move? Please send it.\n" +
-// 		"傳送您想要移動的那個貼圖.")
-// }
-
-// func sendAskMovTarget(c tele.Context) error {
-// 	return c.Send("Where do you want to move the sticker to? Please send the sticker that holds the target position.\n" +
-// 		"請傳送目標位置上所在的貼圖.")
-// }
-
 func sendAskSDel(c tele.Context) error {
 	return c.Send("Which sticker do you want to delete? Please send it.\n" +
 		"您想要刪除哪一個貼圖? 請傳送那個貼圖")
 }
-
-// func sendSEditEmoji(c tele.Context) error {
-// 	return c.Send("Please the sticker that you want to edit.\n請傳送想要修改的貼圖")
-// }
-
-// func sendAskEmojiEdit(c tele.Context) error {
-// 	return c.Send("Please send emoji(s)\n請傳送emoji(可以多個)")
-// }
 
 func sendConfirmDelset(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
