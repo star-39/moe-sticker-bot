@@ -17,22 +17,23 @@ import (
 func sendStartMessage(c tele.Context) error {
 	message := `
 <b>/import</b> LINE or kakao stickers to Telegram<code>
-  匯入LINE/kakao貼圖包至Telegram</code>
+匯入LINE/kakao貼圖包至Telegram</code>
 <b>/download</b> Telegram/LINE/kakao sticker(s)<code>
-  下載Telegram/LINE/kakao貼圖包</code>
+下載Telegram/LINE/kakao貼圖包</code>
 <b>/create</b> or <b>/manage</b> new sticker set<code>
-  創建或管理的Telegram的貼圖包.</code>
+創建或管理的Telegram的貼圖包.</code>
 <b>/search</b> LINE or kakao sticker sets.<code>
-  搜尋LINE和kakao貼圖包.</code>
+搜尋LINE和kakao貼圖包.</code>
 <b>/faq  /about</b><code>
-  常見問題/關於.</code>
+常見問題/關於.</code>
 <b>/exit /cancel</b> ongoing session.<code>
-  中斷指令.</code>
+中斷指令.</code>
 
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a> doing sticker stuffs!
 Send me LINE/kakao/Telegram link or sticker or GIF to import or download them, or keywords to search, or use a command above
 
-你好! 歡迎使用萌萌貼圖BOT, 請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載喔, 也可以傳送關鍵字來搜尋貼圖包或從上方點選指令
+你好, 歡迎使用萌萌貼圖BOT!
+請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載喔, 也可以傳送關鍵字來搜尋貼圖包或從上方點選指令
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }
@@ -96,7 +97,7 @@ Press "Assign separately" to assign emoji one by one.
 You can also do batch assign, send a emoji or press button below.
 Telegram要求為貼圖設定emoji來表示它.
 按下"分別設定"來為每個貼圖都分別設定相應的emoji.
-您也一口氣為全部貼圖設定一樣的emoji, 傳送emoji或者按下方按鈕.
+您也一口氣為全部貼圖設定一樣的emoji, 請傳送一個emoji, 抑或是點選下方按鈕.
 `, selector)
 }
 
@@ -274,7 +275,7 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 	if entriesWant == -1 {
 		if len(entries) > 120 {
 			c.Send("Too many results, please narrow your keyword, truncated to 120 entries.\n" +
-				"搜尋結果過多，已縮減到120個結果，請使用更準確的搜尋關鍵字。")
+				"搜尋結果過多，已縮減到120個，請使用更準確的搜尋關鍵字。")
 			entries = entries[:120]
 		}
 	} else {
@@ -502,9 +503,6 @@ func sendUserOwnedS(c tele.Context) error {
 }
 
 func sendAskEditChoice(c tele.Context) error {
-	//WebApp URL Request Parameters:
-	//ss=sticker set ID
-	//dt=DateTime when WebApp link generated
 	ud := users.data[c.Sender().ID]
 	selector := &tele.ReplyMarkup{}
 	btnAdd := selector.Data("Add sticker/增添貼圖", "add")
@@ -530,9 +528,16 @@ func sendAskEditChoice(c tele.Context) error {
 	// btnMov := selector.Data("Change order/調整順序", "mov")
 	// btnEmoji := selector.Data("Change emoji/修改Emoji", "emoji")
 
-	return c.Send(fmt.Sprintf("<code>ID: %s</code>\n\n", users.data[c.Sender().ID].stickerData.id)+
-		"What do you want to edit? Please select below:\n"+
-		"您想要修改貼圖包的甚麼內容? 請選擇:", selector, tele.ModeHTML)
+	return c.Send(fmt.Sprintf(
+		`<code>ID: %s</code>
+Title: <a href="https://t.me/addstickers/%s">%s</a>
+
+What do you want to edit? Please select below:
+您想要修改貼圖包的甚麼內容? 請選擇:`,
+		users.data[c.Sender().ID].stickerData.id,
+		ud.stickerData.id,
+		ud.stickerData.title),
+		selector, tele.ModeHTML)
 }
 
 func sendAskSDel(c tele.Context) error {

@@ -166,7 +166,6 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 
 	log.Debugln("sticker file path:", sf.cPath)
 	log.Debugln("attempt commiting:", ss)
-	log.Debugln("target emoji is:", ss.Emojis)
 	// Retry loop.
 	for i := 0; i < 3; i++ {
 		if createSet {
