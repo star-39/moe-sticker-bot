@@ -448,7 +448,7 @@ func prepareSManWebApp(c tele.Context, ud *UserData) error {
 		} else {
 			f = filepath.Join(dest, s.UniqueID+".webp")
 		}
-		obj := &StickerDownloadObject{
+		obj := &WebAppStickerDownloadObject{
 			bot:     c.Bot(),
 			dest:    f,
 			sticker: s,

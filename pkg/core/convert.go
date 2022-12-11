@@ -146,3 +146,18 @@ func lottieToGIF(f string) (string, error) {
 		return fOut, nil
 	}
 }
+
+// Replaces .webm ext to .webp
+func imToAnimatedWebpLQ(f string) error {
+	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
+	bin := CONVERT_BIN
+	args := CONVERT_ARGS
+	args = append(args, "-resize", "64x64", f, pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnln("imToWebp ERROR:", string(out))
+		return err
+	}
+	return err
+}

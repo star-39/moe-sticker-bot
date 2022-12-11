@@ -29,13 +29,16 @@ func wConvertWebm(i interface{}) {
 }
 
 func wDownloadStickerSet(i interface{}) {
-	obj := i.(*StickerDownloadObject)
+	obj := i.(*WebAppStickerDownloadObject)
 	defer obj.wg.Done()
 	log.Debugf("Downloading in pool: %s -> %s", obj.sticker.FileID, obj.dest)
 	err := obj.bot.Download(&obj.sticker.File, obj.dest)
 	if err != nil {
 		log.Warnln("webapp: error downloading sticker:", err)
 		obj.err = err
+	}
+	if obj.sticker.Video {
+		obj.err = imToAnimatedWebpLQ(obj.dest)
 	}
 }
 

@@ -240,9 +240,8 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 	return nil
 }
 
-func editStickerEmoji(newEmoji string, index int, fid string, f string, ud *UserData) error {
+func editStickerEmoji(newEmoji string, index int, fid string, f string, ssLen int, ud *UserData) error {
 	c := ud.lastContext
-	lastUID := ud.stickerData.stickerSet.Stickers[len(ud.stickerData.stickerSet.Stickers)-1].UniqueID
 
 	//this ss will only be used to commit sticker.
 	ss := *ud.stickerData.stickerSet
@@ -267,7 +266,7 @@ func editStickerEmoji(newEmoji string, index int, fid string, f string, ud *User
 		select {
 		case <-ud.ctx.Done():
 			log.Warn("editStickerEmoji received ctxDone!")
-			return nil
+			return errors.New("user interrupted")
 		default:
 		}
 		time.Sleep(2 * time.Second)
@@ -275,15 +274,27 @@ func editStickerEmoji(newEmoji string, index int, fid string, f string, ud *User
 		if err != nil {
 			continue
 		}
-		commitedUID := ssNew.Stickers[len(ssNew.Stickers)-1].UniqueID
-		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
-		if commitedUID == lastUID {
+		log.Debugln(len(ssNew.Stickers))
+		log.Debugln(ssLen)
+		if len(ssNew.Stickers) != ssLen+1 {
+			//Not committed to API server yet.
 			continue
 		}
-		log.Infoln("Setting position of:", fid)
+		// commitedUID := ssNew.Stickers[len(ssNew.Stickers)-1].UniqueID
+		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
+		if commitedFID == fid {
+			log.Warn("FID duplacates, try again?")
+			continue
+		}
+
+		log.Infoln("Setting position of:", commitedFID)
 		err = c.Bot().SetStickerPosition(commitedFID, index)
 		if err != nil {
-			return errors.New("error setting position after editing emoji" + err.Error())
+			//Another API bug.
+			//API returns a new file ID but refuses to use it.
+			//Try really hard to make it work.
+			log.Errorln("error setting position, retrying...", err)
+			continue
 		}
 		//commit back the lastest set.
 		ud.stickerData.stickerSet = ssNew

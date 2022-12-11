@@ -50,6 +50,12 @@ type webappStickerObject struct {
 	Emoji string `json:"emoji"`
 	//Sticker emoji changed on front-end.
 	EmojiChanged bool `json:"emoji_changed"`
+	//Sticker file path on server.
+	FilePath string `json:"file_path"`
+	//Sticker file ID
+	FileID string `json:"file_id"`
+	//Sticker unique ID
+	UniqueID string `json:"unique_id"`
 	//Sticker image URL.
 	Surl string `json:"surl"`
 	//StickerSet Name
@@ -57,8 +63,9 @@ type webappStickerObject struct {
 }
 
 // <- ?uid&query_id
+// <- [webappStickerObject, ...]
 // -------------------------------------------
-// -> [{"index", "emoji", "surl"}, ...]
+// -> [webappStickerObject, ...]
 // -------------------------------------------
 // id starts from 1 !!!!
 // surl might be 404 when preparing stickers.
@@ -75,25 +82,30 @@ func apiSS(c *gin.Context) {
 	sObjList := []webappStickerObject{}
 	for i, s := range ud.stickerData.stickerSet.Stickers {
 		var surl string
-		if ud.stickerData.stickerSet.Video {
-			surl, _ = url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webm")
+		var fpath string
+		surl, _ = url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webp")
+		if s.Video {
+			fpath = filepath.Join(config.Config.WebappDataDir, s.SetName, s.UniqueID+".webm")
 		} else {
-			surl, _ = url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webp")
+			fpath = filepath.Join(config.Config.WebappDataDir, s.SetName, s.UniqueID+".webp")
 		}
 		sObjList = append(sObjList, webappStickerObject{
-			SSName: ud.stickerData.stickerSet.Name,
-			Id:     i + 1,
-			Emoji:  s.Emoji,
-			Surl:   surl,
+			SSName:   ud.stickerData.stickerSet.Name,
+			Id:       i + 1,
+			Emoji:    s.Emoji,
+			Surl:     surl,
+			UniqueID: s.UniqueID,
+			FileID:   s.FileID,
+			FilePath: fpath,
 		})
 	}
-	jSMap, err := json.Marshal(sObjList)
+	jsonSObjList, err := json.Marshal(sObjList)
 	if err != nil {
-		log.Errorln("json marshal sMap in apiSS error!")
-		c.String(http.StatusInternalServerError, "json marshal sMap in apiSS error!")
+		log.Errorln("json marshal jsonSObjList in apiSS error!")
+		c.String(http.StatusInternalServerError, "json marshal jsonSObjList in apiSS error!")
 		return
 	}
-	c.String(http.StatusOK, string(jSMap))
+	c.String(http.StatusOK, string(jsonSObjList))
 }
 
 // <- ?qid&qid&sha256sum  [{"index", "emoji", "surl"}, ...]
@@ -115,18 +127,26 @@ func apiEditResult(c *gin.Context) {
 	sObjs := []webappStickerObject{}
 	err := json.Unmarshal(body, &sObjs)
 	if err != nil {
-		c.String(http.StatusBadRequest, "no items")
+		c.String(http.StatusBadRequest, "bad")
 	}
 	ud, err := checkGetUd(uid, qid)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
+	log.Debugln(sObjs)
 
 	c.String(http.StatusOK, "")
 	ud.udSetState(ST_PROCESSING)
 
-	go commitEmojiChange(ud, sObjs)
+	go func() {
+		err := commitEmojiChange(ud, sObjs)
+		if err != nil {
+			sendFatalError(err, ud.lastContext)
+			endManageSession(ud.lastContext)
+			endSession(ud.lastContext)
+		}
+	}()
 }
 
 func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
@@ -136,11 +156,16 @@ func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 	ss := ud.stickerData.stickerSet.Stickers
 	notificationSent := false
 	for i, s := range ss {
+		if s.UniqueID != sObjs[i].UniqueID {
+			log.Error("sticker order mismatch!")
+			return errors.New("sticker order mismatch")
+		}
 		if !sObjs[i].EmojiChanged {
 			continue
 		}
+		oldEmoji := findEmojis(s.Emoji)
 		newEmoji := findEmojis(sObjs[i].Emoji)
-		if newEmoji == "" || newEmoji == findEmojis(s.Emoji) {
+		if newEmoji == "" || newEmoji == oldEmoji {
 			log.Warn("webapp: ignored one invalid emoji.")
 			continue
 		}
@@ -150,16 +175,15 @@ func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 			sendEditingEmoji(ud.lastContext)
 			notificationSent = true
 		}
-		base := filepath.Base(sObjs[i].Surl)
-		// uniqueID := strings.TrimSuffix(base, filepath.Ext(base))
-		f := filepath.Join(config.Config.WebappDataDir, s.SetName, base)
-		log.Debugln("fid to delete is :", s.FileID)
-		err := editStickerEmoji(newEmoji, i, s.FileID, f, ud)
+
+		err := editStickerEmoji(newEmoji, i, s.FileID, sObjs[i].FilePath, len(ss), ud)
 		if err != nil {
 			sendFatalError(err, ud.lastContext)
 			cleanUserDataAndDir(ud.lastContext.Sender().ID)
 			return err
 		}
+		// Have a rest.
+		time.Sleep(2 * time.Second)
 	}
 	sendSEditOK(ud.lastContext)
 	sendSFromSS(ud.lastContext)

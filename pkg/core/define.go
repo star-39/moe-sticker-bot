@@ -88,7 +88,7 @@ type StickerData struct {
 	stickers   []*StickerFile
 	stickerSet *tele.StickerSet
 	// Currently only for WebApp
-	sDnObjects []*StickerDownloadObject
+	sDnObjects []*WebAppStickerDownloadObject
 	isVideo    bool
 	pos        int
 	// amount of local files
@@ -181,7 +181,7 @@ type Users struct {
 	data map[int64]*UserData
 }
 
-type StickerDownloadObject struct {
+type WebAppStickerDownloadObject struct {
 	wg      sync.WaitGroup
 	bot     *tele.Bot
 	sticker tele.Sticker
