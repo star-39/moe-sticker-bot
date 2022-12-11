@@ -178,8 +178,6 @@ func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 
 		err := editStickerEmoji(newEmoji, i, s.FileID, sObjs[i].FilePath, len(ss), ud)
 		if err != nil {
-			sendFatalError(err, ud.lastContext)
-			cleanUserDataAndDir(ud.lastContext.Sender().ID)
 			return err
 		}
 		// Have a rest.

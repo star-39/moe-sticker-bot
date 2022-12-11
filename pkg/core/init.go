@@ -223,16 +223,6 @@ func initGoCron() {
 	cronScheduler.StartAsync()
 }
 
-// func initUserDirGCTimer(dataDir string) {
-// 	s := gocron.NewScheduler(time.UTC)
-// 	ticker := time.NewTicker(48 * time.Hour)
-// 	for t := range ticker.C {
-// 		log.Infoln("UserDir GC Timter ticked at:", t)
-// 		log.Info("Purging outdated user dir...")
-// 		purgeOutdatedUserData(dataDir)
-// 	}
-// }
-
 func initLogrus() {
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:            true,
