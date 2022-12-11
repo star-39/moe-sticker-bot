@@ -136,9 +136,14 @@ NEXT:
 	if err != nil {
 		return c.Send("bad sticker set! try again or /quit")
 	}
-
 	err = prepareSManWebApp(c, users.data[c.Sender().ID])
-
+	if err != nil {
+		return c.Send("error preparing stickers for webapp /quit")
+	}
+	if (ud.stickerData.isVideo && ud.stickerData.cAmount == 50) ||
+		(ud.stickerData.cAmount == 120) {
+		sendStickerSetFullWarning(c)
+	}
 	setState(c, "waitCbEditChoice")
 	return sendAskEditChoice(c)
 }

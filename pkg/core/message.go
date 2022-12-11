@@ -623,28 +623,11 @@ func sendSEditOK(c tele.Context) error {
 			"成功修改貼圖包. /start")
 }
 
-// func sendSManWebApp(c tele.Context) error {
-// 	// ud := users.data[c.Sender().ID]
-// 	// url := fmt.Sprintf("%s/index.html?ss=%s&sl=%s&sa=%d",
-// 	// 	botSettings.webappUrl,
-// 	// 	ud.stickerData.id,
-// 	// 	ud.stickerData.id,
-// 	// 	ud.stickerData.cAmount)
-// 	// log.Debugln("WebApp URL is : ", url)
-
-// 	// webApp := &tele.WebApp{
-// 	// 	URL: url,
-// 	// }
-// 	// webAppInline := &tele.ReplyMarkup{
-// 	// 	ResizeKeyboard:  true,
-// 	// 	OneTimeKeyboard: true,
-// 	// }
-// 	// webAppButton := webAppInline.WebApp("Open WebApp", webApp)
-// 	// webAppInline.Reply(webAppInline.Row(webAppButton))
-
-// 	// return c.Send("Tap the button below to open WebApp to Edit", webAppInline)
-// 	return nil
-// }
+func sendStickerSetFullWarning(c tele.Context) error {
+	return c.Send(
+		"Warning: Your sticker set is already full. You cannot add new sticker or edit emoji.\n" +
+			"提示：當前貼圖包已滿，您將不能增添貼圖和修改emoji。")
+}
 
 func sendEditingEmoji(c tele.Context) error {
 	return c.Send("Commiting changes...\n正在套用變更，請稍候...")
