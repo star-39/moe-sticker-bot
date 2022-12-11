@@ -103,14 +103,40 @@ func httpDownload(link string, f string) error {
 	return err
 }
 
+func httpDownloadCurlUA(link string, f string) error {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", link, nil)
+	req.Header.Set("User-Agent", "curl/7.61.1")
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	fp, _ := os.Create(f)
+	defer fp.Close()
+	_, err = io.Copy(fp, res.Body)
+	return err
+}
+
 func httpGet(link string) (string, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", link, nil)
-	// req.Header.Set("User-Agent", "curl/7.61.1")
-	//Patch the strange UA requirement for official line event stickers.
-	// if strings.Contains(link, "event/sticker") {
-	req.Header.Set("User-Agent", "user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
-	// }
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	content, _ := io.ReadAll(res.Body)
+
+	return string(content), nil
+}
+
+func httpGetCurlUA(link string) (string, error) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", link, nil)
+	req.Header.Set("User-Agent", "curl/7.61.1")
 	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
 	res, err := client.Do(req)
 	if err != nil {

@@ -88,6 +88,7 @@ func fetchLineI18nLinks(doc *goquery.Document) []string {
 
 func parseLineLink(link string, ld *LineData) error {
 	page, err := httpGet(link)
+
 	if err != nil {
 		return err
 	}
@@ -326,7 +327,7 @@ func prepLineMessageS(ud *UserData) error {
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
 
-	page, err := httpGet(ud.lineData.link)
+	page, err := httpGetCurlUA(ud.lineData.link)
 	if err != nil {
 		return err
 	}
@@ -377,8 +378,8 @@ func prepLineMessageS(ud *UserData) error {
 		log.Debugln("Preparing one message sticker... index:", i)
 		bPath := filepath.Join(workDir, strconv.Itoa(i)+".base.png")
 		oPath := filepath.Join(workDir, strconv.Itoa(i)+".overlay.png")
-		httpDownload(b, bPath)
-		httpDownload(overlayImages[i], oPath)
+		httpDownloadCurlUA(b, bPath)
+		httpDownloadCurlUA(overlayImages[i], oPath)
 		f, err := imStackToWebp(bPath, oPath)
 		if err != nil {
 			return err
