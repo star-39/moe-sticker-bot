@@ -67,8 +67,7 @@ spec:
     - mountPath: /certs
       name: etc-letsencrypt-host-0
     - mountPath: /webapp/data
-      name: moe-sticker-bot-webapp-data-pvc
-    restartPolicy: Always
+      name: moe-sticker-bot-webapp-data-ed
   - image: ghcr.io/star-39/moe-sticker-bot:msb_emoji_aarch64
     name: msbemoji
     resources: {}
@@ -77,7 +76,6 @@ spec:
         drop:
         - CAP_MKNOD
         - CAP_AUDIT_WRITE
-    restartPolicy: Always
   - command:
     - /moe-sticker-bot
     - --bot_token=BOT_TOKEN
@@ -105,8 +103,7 @@ spec:
         - CAP_AUDIT_WRITE
     volumeMounts:
     - mountPath: /webapp/data
-      name: moe-sticker-bot-webapp-data-pvc
-    restartPolicy: Always
+      name: moe-sticker-bot-webapp-data-ed
   - args:
     - mariadbd
     env:
@@ -125,14 +122,15 @@ spec:
       name: moe-sticker-bot-db-pvc
 
   hostname: p-moe-sticker-bot
-  restartPolicy: Always
   volumes:
   - hostPath:
       path: /etc/letsencrypt
       type: Directory
     name: etc-letsencrypt-host-0
-  - name: moe-sticker-bot-webapp-data-pvc
+  - name: moe-sticker-bot-webapp-data-ed
+    emptyDir: {}
+  - name: moe-sticker-bot-db-pvc
     persistentVolumeClaim:
-      claimName: moe-sticker-bot-webapp-data
+     claimName: moe-sticker-bot-db-pvc
 status: {}
 
