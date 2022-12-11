@@ -1,0 +1,12 @@
+img {
+    display: block;
+    max-width: 64px;
+    max-height: 64px;
+    width: auto;
+    height: auto;
+}
+
+.Image-div {
+    width: 64px;
+    height: 64px;
+}
