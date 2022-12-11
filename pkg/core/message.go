@@ -642,6 +642,6 @@ func sendSearchNoResult(c tele.Context) error {
 }
 
 func sendNotifyNoSessionSearch(c tele.Context) error {
-	return c.Send("Here are some sticker search results based on the text you sent, if it's what you want, please use /search to dig deeper or /start to see available commands.\n" +
-		"這些是根據您傳送的文字得到的貼圖包搜尋結果，如果這不是您想要的，請使用 /search 詳細搜尋或 /start 來看看可用的指令。")
+	return c.Send("Here are some search results based on what sent, you can use /search to dig deeper or /start to see available commands.\n" +
+		"這些是根據您傳送的文字得到的貼圖包搜尋結果，您可以使用 /search 詳細搜尋或 /start 來看看可用的指令。")
 }

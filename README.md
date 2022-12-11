@@ -121,13 +121,18 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+2.0.0 RC-5 (20221211)
+  * Fix potential panic when onError
+  * Warn user sticker set is full.
+  * Fix LINE message sticker with region lock.
+
 2.0.0 RC-4 (20221211)
   * Fix edit sticker on iOS
   * Fix error editing multiple emojis.
 
 2.0.0 RC-3 (20221210)
   * Complies to LINE store's new UA requeirments.
-  * Support animated sticker in webapp.
+  * Fix animated sticker in webapp.
   * Fixed sticker download
   * Fixed webapp image aspect ratio.
 
