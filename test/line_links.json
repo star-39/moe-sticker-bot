@@ -1,0 +1,18 @@
+[
+    [
+        "LINE_STICKER_STATIC",
+        "https://store.line.me/stickershop/product/8831/"
+    ],
+    [
+        "LINE_STICKER_MESSAGE, no region lock ",
+        "https://store.line.me/stickershop/product/26407/"
+    ],
+    [
+        "LINE_STICKER_MESSAGE, has region lock ",
+        "https://store.line.me/stickershop/product/12320864/zh-Hant"
+    ],
+    [
+        "LINE_STICKER_STATIC, officialaccount",
+        "https://store.line.me/officialaccount/event/sticker/27404/zh-Hant"
+    ]
+]
