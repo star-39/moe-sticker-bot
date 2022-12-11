@@ -43,9 +43,9 @@ Simply run:
 ```
 docker run -dt ghcr.io/star-39/moe-sticker-bot --bot_token="..."
 ```
-If you are on ARM64(AArch64) arch, `aarch64` tag is also available
+If you are on ARM64(AArch64) arch, append `aarch64` all tags.
 
-To deploy all the features, it is recommended through podman and pods.
+To deploy all features, it is recommended through podman and pods.
 ```
 podman pod create --name p-moe-sticker-bot -p 443:443
 podman volume create moe-sticker-bot-db
@@ -76,7 +76,7 @@ Use `podman ps -a` and `podman pod ls` to review the pod and containers.
 
 You can also use `podman generate kube` to generate Kubernetes YAML to deploy on your container cluster.
 
-See a real world deployment YAML example in `deployments/kubernetes_msb.yaml`.
+See a real world deployment example on [deployments/kubernetes_msb.yaml](https://github.com/star-39/moe-sticker-bot/blob/master/deployments/kubernetes_msb.yaml).
 
 
 ### System Dependencies
@@ -85,13 +85,16 @@ See a real world deployment YAML example in `deployments/kubernetes_msb.yaml`.
 * ffmpeg
 * curl
 * mariadb-server (optional)
+* nginx (optional)
+* [msb_emoji](https://github.com/star-39/moe-sticker-bot/tree/master/microservices/msb_emoji) (optional)
 
+
+## Build
 ### Build Dependencies
  * golang v18+
  * nodejs v18+
  * react-js v18+
 
-### Build
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
 dnf install git ImageMagick libwebp bsdtar curl ffmpeg go
@@ -106,30 +109,22 @@ scoop install ffmpeg imagemagick go
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 
-go build cmd/main.go moe-sticker-bot
+go build -o moe-sticker-bot cmd/main.go 
 ```
-
-#### mariadb
-moe-sticker-bot can save imported line stickers into database and will notify user that a already imported set is available.
-
-This also serves the `/manage` function.
-
-To deploy this feature. You will need a mariadb or mysql server. Check `--help` for detailed config.
 
 #### WebApp
 Since 2.0 version of moe-sticker-bot, managing sticker set's order and emoji is now through Telegram's
 new WebApp technology. 
 
-To build WebApp components:
+See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/master/web/webapp3)
 
-```
-cd web/webapp3
-npm install
-PUBLIC_DIR=/webapp/edit npm build
-```
-Check `--help` for detailed webapp configs. Please note that you need a valid TLS certificate to serve.
+Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+2.0.0 RC-4 (20221211)
+  * Fix edit sticker on iOS
+  * Fix error editing multiple emojis.
+
 2.0.0 RC-3 (20221210)
   * Complies to LINE store's new UA requeirments.
   * Support animated sticker in webapp.
