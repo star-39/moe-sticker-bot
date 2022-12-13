@@ -73,7 +73,7 @@ function Edit(props) {
     // might cause dnd-context to freeze and cannot be recovered.
     // iOS is not affected.
     if (window.Telegram.WebApp.platform === "android") {
-      window.Telegram.WebApp.expand();
+      window.Telegram.WebApp.expand()
     }
   }, [])
 

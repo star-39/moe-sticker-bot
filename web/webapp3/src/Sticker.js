@@ -9,7 +9,7 @@ import loading_gif from './loading.gif'
 export const Sticker = forwardRef(({ id, faded, style, emoji, surl, onEmojiChange, ...props }, ref) => {
 
     return (
-      <div ref={ref} style={style} {...props}>
+      <div className='Sticker-Div' ref={ref} style={style} {...props}>
           <Img src={surl} placeholder={loading_gif} alt="Loading..."
             retry={{ count: 10, delay: 2, acc: false }}
           ></Img>
