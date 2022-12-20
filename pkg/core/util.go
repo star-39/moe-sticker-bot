@@ -24,7 +24,7 @@ import (
 var regexAlphanum = regexp.MustCompile(`[a-zA-Z0-9_]+`)
 
 func checkTitle(t string) bool {
-	if len(t) > 128 || len(t) == 0 {
+	if len(t) > 128 || len(t) < 1 {
 		return false
 	} else {
 		return true

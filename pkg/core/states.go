@@ -353,6 +353,10 @@ func waitSTitle(c tele.Context) error {
 	if c.Callback() == nil {
 		ud.stickerData.title = c.Message().Text
 	} else {
+		// do not expect callback in /create
+		if command == "create" {
+			return nil
+		}
 		titleIndex, atoiErr := strconv.Atoi(c.Callback().Data)
 		if atoiErr == nil && titleIndex != -1 {
 			ud.stickerData.title = ud.lineData.i18nTitles[titleIndex] + " @" + botName
