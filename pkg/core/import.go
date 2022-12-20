@@ -305,7 +305,8 @@ func lineZipExtract(f string, ld *LineData) []string {
 func sanitizeLinePNGs(files []string) bool {
 	for _, f := range files {
 		ret := removeAPNGtEXtChunk(f)
-		if ret == false {
+		if !ret {
+			log.Debugln("one file sanitization ignored:", f)
 			//do nothing.
 		}
 	}
@@ -318,6 +319,13 @@ func removeAPNGtEXtChunk(f string) bool {
 		return false
 	}
 	l := len(bytes)
+	if l < 42 {
+		return false
+	}
+	// byte index 37-40 must be acTL Animation Control Chunk.
+	if string(bytes[37:41]) != "acTL" {
+		return false
+	}
 	textStart := 0
 	textEnd := 0
 	for i, _ := range bytes {
@@ -336,7 +344,7 @@ func removeAPNGtEXtChunk(f string) bool {
 		}
 	}
 	if textStart == 0 || textEnd == 0 {
-		return true
+		return false
 	}
 	newBytes := bytes[:textStart]
 	newBytes = append(newBytes, bytes[textEnd:]...)
