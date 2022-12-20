@@ -294,8 +294,63 @@ func lineZipExtract(f string, ld *LineData) []string {
 	default:
 		files = lsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	}
-
+	sanitizeLinePNGs(files)
 	return files
+}
+
+// Some LINE png contains a 'tEXt' textual information after `fcTL`
+// FFMpeg's APNG demuxer could not parse it properly.
+// I have patched ffmpeg, however, compiling it for AArch64 is not easy.
+// Therefore, we are going to tackle the source itself by removing tEXt chunk.
+func sanitizeLinePNGs(files []string) bool {
+	for _, f := range files {
+		ret := removeAPNGtEXtChunk(f)
+		if ret == false {
+			//do nothing.
+		}
+	}
+	return true
+}
+
+func removeAPNGtEXtChunk(f string) bool {
+	bytes, err := os.ReadFile(f)
+	if err != nil {
+		return false
+	}
+	l := len(bytes)
+	textStart := 0
+	textEnd := 0
+	for i, _ := range bytes {
+		if i > l-10 {
+			break
+		}
+		tag := bytes[i : i+4]
+		// only probe the first appearence of 'tEXt' tag.
+		if string(tag) == "tEXt" && textStart == 0 {
+			// 4 bytes before tag represents chunk length.
+			textStart = i - 4
+			// first IDAT after tEXt should be what we want.
+		} else if string(tag) == "IDAT" && textStart != 0 {
+			textEnd = i - 4
+			break
+		}
+	}
+	if textStart == 0 || textEnd == 0 {
+		return true
+	}
+	newBytes := bytes[:textStart]
+	newBytes = append(newBytes, bytes[textEnd:]...)
+
+	os.Remove(f)
+	fo, err := os.Create(f)
+	if err != nil {
+		return false
+	}
+	defer fo.Close()
+	fo.Write(newBytes)
+	log.Infoln("Sanitized one APNG file, path:", f)
+	log.Infof("Length from %d to %d.", l, len(newBytes))
+	return true
 }
 
 func doConvert(ud *UserData) {
