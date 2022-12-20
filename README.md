@@ -129,6 +129,11 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+2.0.0 RC-6 (20221220)
+  * Fix line APNG with unexpected `tEXt` chunk.
+  * Changed length of webm from 2.9s to 3s.
+  * Minor improvements.
+
 2.0.0 RC-5 (20221211)
   * Fix potential panic when onError
   * Warn user sticker set is full.
