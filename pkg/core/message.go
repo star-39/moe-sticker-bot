@@ -182,13 +182,16 @@ func sendAskTitle_Import(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 
 	var titleButtons []tele.Row
+	var titleText string
 	for i, t := range ld.i18nTitles {
 		if t == "" {
 			continue
 		}
-		btn := selector.Data(escapeTagMark(t)+" @"+botName, strconv.Itoa(i))
+		title := escapeTagMark(t) + " @" + botName
+		btn := selector.Data(title, strconv.Itoa(i))
 		row := selector.Row(btn)
 		titleButtons = append(titleButtons, row)
+		titleText = titleText + "\n<code>" + title + "</code>"
 	}
 
 	if len(titleButtons) == 0 {
@@ -197,11 +200,11 @@ func sendAskTitle_Import(c tele.Context) error {
 	}
 	selector.Inline(titleButtons...)
 
-	lineTitle := escapeTagMark(ld.title) + " @" + botName
+	// lineTitle := escapeTagMark(ld.title) + " @" + botName
 
 	return c.Send("Please send a title for this sticker set. You can also select a appropriate original title below:\n"+
-		"請傳送貼圖包的標題.您也可以按下面的按鈕自動填上合適的原版標題:\n\n"+
-		"<code>"+lineTitle+"</code>", selector, tele.ModeHTML)
+		"請傳送貼圖包的標題.您也可以按下面的按鈕自動填上合適的原版標題:\n"+
+		titleText, selector, tele.ModeHTML)
 }
 
 func sendAskTitle(c tele.Context) {
