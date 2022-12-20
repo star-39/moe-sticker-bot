@@ -270,8 +270,8 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 		if l.Ae {
 			entries = append(entries, fmt.Sprintf(`<a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
 		} else {
-			// add a star!
-			entries = append(entries, fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
+			// append to top
+			entries = append([]string{fmt.Sprintf(`★ <a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title)}, entries...)
 		}
 	}
 
