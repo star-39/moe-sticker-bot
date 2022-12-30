@@ -1,9 +1,7 @@
 package core
 
 import (
-	"os"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -117,7 +115,7 @@ func prepareSManage(c tele.Context) error {
 		} else {
 			link, tp := findLinkWithType(c.Message().Text)
 			if tp != LINK_TG {
-				return c.Send("Send correct telegram sticker link!")
+				return c.Send("Send telegram sticker or link or /quit")
 			}
 			ud.stickerData.id = path.Base(link)
 		}
@@ -443,30 +441,6 @@ func waitSEmojiAssign(c tele.Context) error {
 		return c.Send("send emoji! try again or /quit")
 	}
 	return execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), emojis, c)
-}
-
-func prepareSManWebApp(c tele.Context, ud *UserData) error {
-	dest := filepath.Join(config.Config.WebappDataDir, ud.stickerData.id)
-	os.RemoveAll(dest)
-	os.MkdirAll(dest, 0755)
-
-	for _, s := range ud.stickerData.stickerSet.Stickers {
-		var f string
-		if ud.stickerData.stickerSet.Video {
-			f = filepath.Join(dest, s.UniqueID+".webm")
-		} else {
-			f = filepath.Join(dest, s.UniqueID+".webp")
-		}
-		obj := &WebAppStickerDownloadObject{
-			bot:     c.Bot(),
-			dest:    f,
-			sticker: s,
-		}
-		obj.wg.Add(1)
-		ud.stickerData.sDnObjects = append(ud.stickerData.sDnObjects, obj)
-		go wpDownloadStickerSet.Invoke(obj)
-	}
-	return nil
 }
 
 func waitSearchKeyword(c tele.Context) error {

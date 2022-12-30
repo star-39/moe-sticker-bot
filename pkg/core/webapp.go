@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/star-39/moe-sticker-bot/pkg/config"
+	tele "gopkg.in/telebot.v3"
 )
 
 func InitWebAppServer() {
@@ -282,4 +284,28 @@ func checkGetUd(uid string, qid string) (*UserData, error) {
 		return nil, errors.New("qid not valid")
 	}
 	return ud, nil
+}
+
+func prepareSManWebApp(c tele.Context, ud *UserData) error {
+	dest := filepath.Join(config.Config.WebappDataDir, ud.stickerData.id)
+	os.RemoveAll(dest)
+	os.MkdirAll(dest, 0755)
+
+	for _, s := range ud.stickerData.stickerSet.Stickers {
+		var f string
+		if ud.stickerData.stickerSet.Video {
+			f = filepath.Join(dest, s.UniqueID+".webm")
+		} else {
+			f = filepath.Join(dest, s.UniqueID+".webp")
+		}
+		obj := &WebAppStickerDownloadObject{
+			bot:     c.Bot(),
+			dest:    f,
+			sticker: s,
+		}
+		obj.wg.Add(1)
+		ud.stickerData.sDnObjects = append(ud.stickerData.sDnObjects, obj)
+		go wpDownloadStickerSet.Invoke(obj)
+	}
+	return nil
 }

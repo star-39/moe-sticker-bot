@@ -264,9 +264,10 @@ func sendNotifySExist(c tele.Context, lineID string) bool {
 
 func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) error {
 	var entries []string
-	message := ""
+	message := "Search Results: 搜尋結果：\n"
 
 	for _, l := range lines {
+		l.Tg_title = strings.TrimSuffix(l.Tg_title, " @"+botName)
 		if l.Ae {
 			entries = append(entries, fmt.Sprintf(`<a href="%s">%s</a>`, "https://t.me/addstickers/"+l.Tg_id, l.Tg_title))
 		} else {
@@ -275,31 +276,27 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 		}
 	}
 
-	if entriesWant == -1 {
-		if len(entries) > 120 {
-			c.Send("Too many results, please narrow your keyword, truncated to 120 entries.\n" +
-				"搜尋結果過多，已縮減到120個，請使用更準確的搜尋關鍵字。")
-			entries = entries[:120]
-		}
-	} else {
-		if len(entries) > entriesWant {
-			entries = entries[:entriesWant]
-		}
+	if entriesWant == -1 && len(entries) > 120 {
+		c.Send("Too many results, please narrow your keyword, truncated to 120 entries.\n" +
+			"搜尋結果過多，已縮減到120個，請使用更準確的搜尋關鍵字。")
+		entries = entries[:120]
+
+	} else if len(entries) > entriesWant {
+		entries = entries[:entriesWant]
+
 	}
 	if len(entries) > 30 {
 		eChunks := chunkSlice(entries, 30)
 		for _, eChunk := range eChunks {
-			message := "Search Results: 搜尋結果：\n"
 			message += strings.Join(eChunk, "\n")
 			c.Send(message, tele.ModeHTML)
 		}
 	} else {
-		message := "Search Results: 搜尋結果：\n"
 		message += strings.Join(entries, "\n")
 		c.Send(message, tele.ModeHTML)
 	}
 
-	return c.Send(message, tele.ModeHTML)
+	return nil
 }
 
 func sendAskStickerFile(c tele.Context) error {
@@ -485,6 +482,10 @@ func sendUserOwnedS(c tele.Context) error {
 	for _, us := range usq {
 		date := time.Unix(us.timestamp, 0).Format("2006-01-02 15:04")
 		title := strings.TrimSuffix(us.tg_title, " @"+botName)
+		//workaround for empty title.
+		if title == "" || title == " " {
+			title = "_"
+		}
 		entry := fmt.Sprintf(`<a href="https://t.me/addstickers/%s">%s</a>`, us.tg_id, title)
 		entry += " | " + date
 		entries = append(entries, entry)
@@ -644,10 +645,23 @@ func sendAskSearchKeyword(c tele.Context) error {
 }
 
 func sendSearchNoResult(c tele.Context) error {
-	return c.Send("Sorry, no result. Try again or /quit")
+	message := "Sorry, no result.\n抱歉, 搜尋沒有結果."
+	if c.Chat().Type == tele.ChatPrivate {
+		message += "\nTry again or /quit\n請試試別的關鍵字或 /quit"
+	}
+	return c.Send(message)
 }
 
 func sendNotifyNoSessionSearch(c tele.Context) error {
-	return c.Send("Here are some search results based on what sent, you can use /search to dig deeper or /start to see available commands.\n" +
-		"這些是根據您傳送的文字得到的貼圖包搜尋結果，您可以使用 /search 詳細搜尋或 /start 來看看可用的指令。")
+	return c.Send("Here are some search results, use /search to dig deeper or /start to see available commands.\n" +
+		"這些是貼圖包搜尋結果，使用 /search 詳細搜尋或 /start 來看看可用的指令。")
+}
+
+func sendUnsupportedCommandForGroup(c tele.Context) error {
+	return c.Send("This command is not supported in group chat, please chat with bot directly.\n" +
+		"此指令無法於群組內使用, 請與bot直接私訊.")
+}
+
+func sendBadSearchKeyword(c tele.Context) error {
+	return c.Send(fmt.Sprintf("Bad syntax.\n\n/search@%s keyword1 keyword2 ... \n/search@%s hololive aqua", botName, botName))
 }

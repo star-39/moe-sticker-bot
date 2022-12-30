@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
@@ -75,6 +76,21 @@ func getState(c tele.Context) (string, string) {
 
 func checkState(next tele.HandlerFunc) tele.HandlerFunc {
 	return func(c tele.Context) error {
+		//If bot is summoned from group chat, check command.
+		if c.Chat().Type == tele.ChatGroup || c.Chat().Type == tele.ChatSuperGroup {
+			log.Debugf("User %d attempted command from group chat.", c.Sender().ID)
+			//For group chat, support /search only.
+			if strings.HasPrefix(c.Text(), "/search@"+botName) {
+				return next(c)
+			} else if strings.Contains(c.Text(), "@"+botName) {
+				//has metion
+				return sendUnsupportedCommandForGroup(c)
+			} else {
+				//do nothing
+				return nil
+			}
+		}
+
 		command, _ := getState(c)
 		if command == "" {
 			log.Debugf("User %d entering command with message: %s", c.Sender().ID, c.Message().Text)

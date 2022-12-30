@@ -1,6 +1,8 @@
 package core
 
 import (
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
@@ -48,8 +50,24 @@ func cmdStart(c tele.Context) error {
 }
 
 func cmdSearch(c tele.Context) error {
+	if c.Chat().Type == tele.ChatGroup || c.Chat().Type == tele.ChatSuperGroup {
+		return cmdGroupSearch(c)
+	}
 	initUserData(c, "search", "waitSearchKW")
 	return sendAskSearchKeyword(c)
+}
+
+func cmdGroupSearch(c tele.Context) error {
+	args := strings.Split(c.Text(), " ")
+	if len(args) < 2 {
+		return sendBadSearchKeyword(c)
+	}
+	keywords := args[1:]
+	lines := searchLineS(keywords)
+	if len(lines) == 0 {
+		return sendSearchNoResult(c)
+	}
+	return sendSearchResult(10, lines, c)
 }
 
 func cmdQuit(c tele.Context) error {
