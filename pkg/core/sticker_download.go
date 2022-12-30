@@ -1,62 +1,80 @@
 package core
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/panjf2000/ants/v2"
 	tele "gopkg.in/telebot.v3"
 )
 
-func downloadSAndC(path string, s *tele.Sticker, needConvert bool, shrinkGif bool, c tele.Context) (string, string) {
-	var f string
-	var cf string
-	var err error
-	if s.Video {
-		f = path + ".webm"
-		err = c.Bot().Download(&s.File, f)
-		if needConvert {
-			if shrinkGif {
-				cf, _ = ffToGifShrink(f)
-			} else {
-				cf, _ = ffToGif(f)
-			}
-		}
-	} else if s.Animated {
-		f = path + ".tgs"
-		err = c.Bot().Download(&s.File, f)
-		if needConvert {
-			cf, _ = lottieToGIF(f)
-		}
-	} else {
-		f = path + ".webp"
-		err = c.Bot().Download(&s.File, f)
-		if needConvert {
-			cf, _ = imToPng(f)
-		}
-	}
-	if err != nil {
-		return "", ""
-	}
-	return f, cf
-}
+// func downloadSAndC(path string, s *tele.Sticker, needConvert bool, shrinkGif bool, c tele.Context) (string, string) {
+// 	var f string
+// 	var cf string
+// 	var err error
+// 	if s.Video {
+// 		f = path + ".webm"
+// 		err = c.Bot().Download(&s.File, f)
+// 		if needConvert {
+// 			if shrinkGif {
+// 				cf, _ = ffToGifShrink(f)
+// 			} else {
+// 				cf, _ = ffToGif(f)
+// 			}
+// 		}
+// 	} else if s.Animated {
+// 		f = path + ".tgs"
+// 		err = c.Bot().Download(&s.File, f)
+// 		if needConvert {
+// 			cf, _ = lottieToGIF(f)
+// 		}
+// 	} else {
+// 		f = path + ".webp"
+// 		err = c.Bot().Download(&s.File, f)
+// 		if needConvert {
+// 			cf, _ = imToPng(f)
+// 		}
+// 	}
+// 	if err != nil {
+// 		return "", ""
+// 	}
+// 	return f, cf
+// }
 
-func downloadStickersToZip(s *tele.Sticker, setID string, c tele.Context) error {
+// When s is not nil, download single sticker,
+// otherwise, download whole set from setID.
+func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) error {
 	var id string
 	if s != nil {
 		id = s.SetName
 	} else {
 		id = setID
 	}
+	//Make sure only one download for one sticker set
+	//is in progress.
+	if _, exist := downloadQueue.ss[id]; exist {
+		return sendDownloadInProgressWarning(c)
+
+	}
+	defer func() {
+		if _, ok := downloadQueue.ss[id]; ok {
+			downloadQueue.mu.Lock()
+			delete(downloadQueue.ss, id)
+			downloadQueue.mu.Unlock()
+		}
+	}()
+	downloadQueue.mu.Lock()
+	downloadQueue.ss[id] = true
+	downloadQueue.mu.Unlock()
+
 	sID := secHex(8)
 	ud := &UserData{
 		workDir:     filepath.Join(dataDir, sID),
 		stickerData: &StickerData{},
 		lineData:    &LineData{},
-		// stickerManage: &StickerManage{},
 	}
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
@@ -67,14 +85,26 @@ func downloadStickersToZip(s *tele.Sticker, setID string, c tele.Context) error 
 	var err error
 
 	if s != nil {
-		_, cf := downloadSAndC(filepath.Join(workDir, s.SetName+"_"+s.Emoji), s, true, false, c)
-		log.Debugln("downloading:", cf)
+		obj := &StickerDownloadObject{
+			wg:          sync.WaitGroup{},
+			bot:         b,
+			sticker:     *s,
+			dest:        filepath.Join(workDir, s.SetName+"_"+s.Emoji),
+			needConvert: true,
+			shrinkGif:   false,
+			forWebApp:   false,
+		}
+		obj.wg.Add(1)
+		wDownloadStickerObject(obj)
+		if obj.err != nil {
+			return err
+		}
 		if s.Video || s.Animated {
 			zip := filepath.Join(workDir, secHex(4)+".zip")
-			fCompress(zip, []string{cf})
+			fCompress(zip, []string{obj.cf})
 			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
 		} else {
-			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(cf), File: tele.FromDisk(cf)})
+			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(obj.cf), File: tele.FromDisk(obj.cf)})
 		}
 		return err
 	}
@@ -86,17 +116,33 @@ func downloadStickersToZip(s *tele.Sticker, setID string, c tele.Context) error 
 	sendNotifySDOnBackground(c)
 	cleanUserData(c.Sender().ID)
 	defer os.RemoveAll(workDir)
+	var wpDownloadSticker *ants.PoolWithFunc
+	defer wpDownloadSticker.Release()
+	if ss.Animated {
+		wpDownloadSticker, _ = ants.NewPoolWithFunc(1, wDownloadStickerObject)
+	} else {
+		wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
+	}
+	var objs []*StickerDownloadObject
 	for index, s := range ss.Stickers {
-		go editProgressMsg(index, len(ss.Stickers), "", pText, teleMsg, c)
-		fName := filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", setID, index+1, s.Emoji))
-		f, cf := downloadSAndC(fName, &s, true, true, c)
-		if f == "" {
-			return errors.New("sticker download failed")
+		obj := &StickerDownloadObject{
+			wg:          sync.WaitGroup{},
+			bot:         b,
+			sticker:     s,
+			dest:        filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", setID, index+1, s.Emoji)),
+			needConvert: true,
+			shrinkGif:   false,
+			forWebApp:   false,
 		}
-		flist = append(flist, f)
-		cflist = append(cflist, cf)
-
-		log.Debugf("Download one sticker OK, path:%s cPath:%s", f, cf)
+		obj.wg.Add(1)
+		objs = append(objs, obj)
+		wpDownloadSticker.Invoke(obj)
+		go editProgressMsg(index, len(ss.Stickers), "", pText, teleMsg, c)
+	}
+	for _, obj := range objs {
+		obj.wg.Wait()
+		flist = append(flist, obj.of)
+		cflist = append(cflist, obj.cf)
 	}
 	go editProgressMsg(0, 0, "Uploading...", pText, teleMsg, c)
 

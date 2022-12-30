@@ -36,6 +36,20 @@ func imToPng(f string) (string, error) {
 	return pathOut, err
 }
 
+func imToGIF(f string) (string, error) {
+	pathOut := f + ".gif"
+	bin := CONVERT_BIN
+	args := CONVERT_ARGS
+	args = append(args, f, pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnln("imToGIF ERROR:", string(out))
+		return "", err
+	}
+	return pathOut, err
+}
+
 func ffToWebm(f string) (string, error) {
 	pathOut := f + ".webm"
 	bin := "ffmpeg"
@@ -132,19 +146,19 @@ func imStackToWebp(base string, overlay string) (string, error) {
 	}
 }
 
+// lottie has severe problem when converting directly to GIF.
+// Convert to WEBP first, then GIF.
 func lottieToGIF(f string) (string, error) {
 	bin := "lottie_convert.py"
-
-	fOut := f + ".gif"
-	args := []string{"--width", "256", "--height", "256", f, fOut}
-
+	fOut := f + ".webp"
+	args := []string{f, fOut}
 	out, err := exec.Command(bin, args...).CombinedOutput()
+	// fOut, err := ffToGif(fOut)
 	if err != nil {
 		log.Errorln("lottieToGIF ERROR!", string(out))
 		return "", err
-	} else {
-		return fOut, nil
 	}
+	return fOut, nil
 }
 
 // Replaces .webm ext to .webp

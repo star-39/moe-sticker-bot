@@ -9,7 +9,7 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-var BOT_VERSION = "2.0.0-GO-RC6"
+var BOT_VERSION = "2.0.0-GO-RC7"
 var DB_VER string = "1"
 
 // The telegram bot.
@@ -19,6 +19,7 @@ var cronScheduler *gocron.Scheduler
 var dataDir string
 var botName string
 
+var downloadQueue DownloadQueue
 var users Users
 
 // Line sticker types
@@ -76,7 +77,6 @@ type StickerFile struct {
 	// path of converted file
 	cPath  string
 	cError error
-	// onCloud bool
 }
 
 type StickerData struct {
@@ -88,7 +88,7 @@ type StickerData struct {
 	stickers   []*StickerFile
 	stickerSet *tele.StickerSet
 	// Currently only for WebApp
-	sDnObjects []*WebAppStickerDownloadObject
+	sDnObjects []*StickerDownloadObject
 	isVideo    bool
 	pos        int
 	// amount of local files
@@ -129,11 +129,6 @@ type KakaoJson struct {
 	Result KakaoJsonResult
 }
 
-// deprecated
-// type StickerManage struct {
-// 	pendingS *tele.Sticker
-// }
-
 type WebAppUser struct {
 	Id            int
 	Is_bot        bool
@@ -155,25 +150,23 @@ type UserData struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	state     string
-	sessionID string
-	// userDir       string
-	workDir     string
-	command     string
-	progress    string
-	progressMsg *tele.Message
-	lineData    *LineData
-	stickerData *StickerData
-	// stickerManage *StickerManage
-
-	//WebApp
+	state            string
+	sessionID        string
+	workDir          string
+	command          string
+	progress         string
+	progressMsg      *tele.Message
+	lineData         *LineData
+	stickerData      *StickerData
 	webAppUser       *WebAppUser
 	webAppQID        string
 	webAppWorkerPool *ants.PoolWithFunc
 	lastContext      tele.Context
+}
 
-	//functions
-	// ud.udSetState
+type DownloadQueue struct {
+	mu sync.Mutex
+	ss map[string]bool
 }
 
 type Users struct {
@@ -181,12 +174,26 @@ type Users struct {
 	data map[int64]*UserData
 }
 
-type WebAppStickerDownloadObject struct {
+type StickerDownloadObject struct {
 	wg      sync.WaitGroup
 	bot     *tele.Bot
 	sticker tele.Sticker
 	dest    string
-	err     error
+	//Convert to conventional format?
+	needConvert bool
+	//Shrink oversized GIF?
+	shrinkGif bool
+	//Sticker is for WebApp?
+	forWebApp bool
+	/*
+		Following fields are yielded by worker after wg is done.
+	*/
+	//Original sticker file downloaded.
+	of string
+	//Converted sticker file.
+	cf string
+	//Returned error.
+	err error
 }
 
 type StickerMoveObject struct {

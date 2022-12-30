@@ -129,6 +129,12 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+2.0.0 RC-7 (20221230)
+  * Support /search in group chat.
+  * Fix search result.
+  * Fix empty sticker title.
+  * Sticker download is now parallel.
+
 2.0.0 RC-6 (20221220)
   * Fix line APNG with unexpected `tEXt` chunk.
   * Changed length of webm from 2.9s to 3s.

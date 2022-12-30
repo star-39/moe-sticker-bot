@@ -9,10 +9,13 @@ import (
 var wpConvertWebm *ants.PoolWithFunc
 var wpDownloadStickerSet *ants.PoolWithFunc
 
+// var wpDownloadSticker *ants.PoolWithFunc
+// var wpDownloadTGSSticker *ants.PoolWithFunc
+
 func initWorkersPool() {
 	wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
 	wpDownloadStickerSet, _ = ants.NewPoolWithFunc(
-		8, wDownloadStickerSet)
+		8, wDownloadStickerObject)
 }
 
 func wConvertWebm(i interface{}) {
@@ -28,18 +31,60 @@ func wConvertWebm(i interface{}) {
 	log.Debugln("convert OK: ", sf.cPath)
 }
 
-func wDownloadStickerSet(i interface{}) {
-	obj := i.(*WebAppStickerDownloadObject)
+func wDownloadStickerObject(i interface{}) {
+	obj := i.(*StickerDownloadObject)
 	defer obj.wg.Done()
 	log.Debugf("Downloading in pool: %s -> %s", obj.sticker.FileID, obj.dest)
-	err := obj.bot.Download(&obj.sticker.File, obj.dest)
-	if err != nil {
-		log.Warnln("webapp: error downloading sticker:", err)
-		obj.err = err
+
+	//WebApp does not need special conversion.
+	if obj.forWebApp {
+		err := obj.bot.Download(&obj.sticker.File, obj.dest)
+		if err != nil {
+			log.Warnln("download: error downloading sticker:", err)
+			obj.err = err
+			return
+		}
+		if obj.sticker.Video {
+			obj.err = imToAnimatedWebpLQ(obj.dest)
+		}
+		return
 	}
+
+	var f string
+	var cf string
+	var err error
 	if obj.sticker.Video {
-		obj.err = imToAnimatedWebpLQ(obj.dest)
+		f = obj.dest + ".webm"
+		err = obj.bot.Download(&obj.sticker.File, f)
+		if obj.needConvert {
+			if obj.shrinkGif {
+				cf, _ = ffToGifShrink(f)
+			} else {
+				cf, _ = ffToGif(f)
+			}
+		}
+	} else if obj.sticker.Animated {
+		f = obj.dest + ".tgs"
+		err = obj.bot.Download(&obj.sticker.File, f)
+		if obj.needConvert {
+			cf, _ = lottieToGIF(f)
+		}
+	} else {
+		f = obj.dest + ".webp"
+		err = obj.bot.Download(&obj.sticker.File, f)
+		if obj.needConvert {
+			cf, _ = imToPng(f)
+		}
 	}
+	if err != nil {
+		log.Warnln("download: error downloading sticker:", err)
+		obj.err = err
+		return
+	}
+
+	obj.of = f
+	obj.cf = cf
+
 }
 
 func wSubmitSMove(i interface{}) {

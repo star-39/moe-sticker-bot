@@ -665,3 +665,7 @@ func sendUnsupportedCommandForGroup(c tele.Context) error {
 func sendBadSearchKeyword(c tele.Context) error {
 	return c.Send(fmt.Sprintf("Bad syntax.\n\n/search@%s keyword1 keyword2 ... \n/search@%s hololive aqua", botName, botName))
 }
+
+func sendDownloadInProgressWarning(c tele.Context) error {
+	return c.Send("Download already in progress, please wait...\n此貼圖已經正在下載, 請稍等.")
+}

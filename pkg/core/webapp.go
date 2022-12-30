@@ -298,10 +298,11 @@ func prepareSManWebApp(c tele.Context, ud *UserData) error {
 		} else {
 			f = filepath.Join(dest, s.UniqueID+".webp")
 		}
-		obj := &WebAppStickerDownloadObject{
-			bot:     c.Bot(),
-			dest:    f,
-			sticker: s,
+		obj := &StickerDownloadObject{
+			bot:       c.Bot(),
+			dest:      f,
+			sticker:   s,
+			forWebApp: true,
 		}
 		obj.wg.Add(1)
 		ud.stickerData.sDnObjects = append(ud.stickerData.sDnObjects, obj)

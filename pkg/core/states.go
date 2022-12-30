@@ -16,10 +16,10 @@ func handleNoSession(c tele.Context) error {
 	if c.Callback() != nil && c.Message().ReplyTo != nil {
 		switch c.Callback().Data {
 		case CB_DN_SINGLE:
-			return downloadStickersToZip(c.Message().ReplyTo.Sticker, "", c)
+			return downloadStickersAndSend(c.Message().ReplyTo.Sticker, "", c)
 		case CB_DN_WHOLE:
 			id := getSIDFromMessage(c.Message().ReplyTo)
-			return downloadStickersToZip(nil, id, c)
+			return downloadStickersAndSend(nil, id, c)
 		case CB_MANAGE:
 			return prepareSManage(c)
 		case CB_OK_IMPORT:
@@ -301,7 +301,7 @@ func waitSDownload(c tele.Context) error {
 		if sserr != nil {
 			return c.Send("bad link! try again or /quit")
 		}
-		err = downloadStickersToZip(nil, ss.Name, c)
+		err = downloadStickersAndSend(nil, ss.Name, c)
 	case tp == LINK_IMPORT:
 		c.Send("Please wait...")
 		err = parseImportLink(link, ud.lineData)
