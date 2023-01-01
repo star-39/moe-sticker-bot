@@ -99,11 +99,11 @@ func ffToGifShrink(f string) (string, error) {
 	args = append(args, decoder...)
 	args = append(args, "-i", f, "-hide_banner",
 		"-lavfi", "scale=256:256:force_original_aspect_ratio=decrease,split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
-		"-loglevel", "error", pathOut)
+		"-loglevel", "error", "-y", pathOut)
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Warnln("ffToGifShrink ERROR:", out)
+		log.Warnln("ffToGifShrink ERROR:", string(out))
 		return "", err
 	}
 	return pathOut, err
@@ -124,10 +124,26 @@ func ffToGif(f string) (string, error) {
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Warnf("ffToGif ERROR:\n%s", out)
+		log.Warnf("ffToGif ERROR:\n%s", string(out))
 		return "", err
 	}
 	return pathOut, err
+}
+
+func ffToGifSafe(f string) (string, error) {
+	of, err := ffToGif(f)
+	if err != nil {
+		return "", err
+	}
+	// GIF should not larget than 20MB
+	if stat, _ := os.Stat(of); stat.Size() > 20000000 {
+		log.Warn("GIF too big! try shrink")
+		of, err = ffToGifShrink(f)
+		if err != nil {
+			return "", err
+		}
+	}
+	return of, err
 }
 
 func imStackToWebp(base string, overlay string) (string, error) {
