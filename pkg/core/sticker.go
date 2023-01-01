@@ -13,11 +13,16 @@ import (
 
 func execAutoCommit(createSet bool, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
-	ud.udWg.Add(1)
-	defer ud.udWg.Done()
-
-	sendProcessStarted(ud, c, "")
+	pText, teleMsg, _ := sendProcessStarted(ud, c, "Preparing...")
 	ud.wg.Wait()
+
+	// cache ud and clean, allow user to be release from session.
+	// lock is ignored here.
+	cud := *users.data[c.Sender().ID]
+	ud = &cud
+	cleanUserData(c.Sender().ID)
+
+	sendNotifyWorkingOnBackground(c)
 
 	if len(ud.stickerData.stickers) == 0 {
 		log.Error("No sticker to commit!")
@@ -31,19 +36,20 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	flCount := 0
 
 	for index, sf := range ud.stickerData.stickers {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("execAutoCommit received ctxDone!")
-			return nil
-		default:
-		}
+		// select {
+		// case <-ud.ctx.Done():
+		// 	log.Warn("execAutoCommit received ctxDone!")
+		// 	return nil
+		// default:
+		// }
 		var err error
 		ss := tele.StickerSet{
 			Name:   ud.stickerData.id,
 			Title:  ud.stickerData.title,
 			Emojis: ud.stickerData.emojis[0],
+			Video:  ud.stickerData.isVideo,
 		}
-		go editProgressMsg(index, len(ud.stickerData.stickers), "", "", nil, c)
+		go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
 		if index == 0 && createSet {
 			err = commitSticker(true, &flCount, false, sf, c, ss)
 			if err != nil {
@@ -79,8 +85,8 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
-	editProgressMsg(0, 0, "Success! /start", "", nil, c)
-	sendSFromSS(c)
+	editProgressMsg(0, 0, "Success! /start", pText, nil, c)
+	sendSFromSS(c, ud.stickerData.id)
 	return nil
 }
 
@@ -97,6 +103,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 		Name:   ud.stickerData.id,
 		Title:  ud.stickerData.title,
 		Emojis: emojis,
+		Video:  ud.stickerData.isVideo,
 	}
 
 	sf := ud.stickerData.stickers[ud.stickerData.pos]
@@ -136,7 +143,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
 		c.Send("Success! /start")
-		sendSFromSS(c)
+		sendSFromSS(c, ud.stickerData.id)
 		endSession(c)
 	} else {
 		sendAskEmojiAssign(c)
@@ -145,14 +152,16 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	return nil
 }
 
+// ss contains metadata for the single sticker.
+// it feels weird but it's the framework's way to do so.
+// therefore, Video? must be set.
 func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
 	var err error
 	var floodErr tele.FloodError
 	var f string
-	ud := users.data[c.Sender().ID]
 
 	sf.wg.Wait()
-	if ud.stickerData.isVideo {
+	if ss.Video {
 		if !safeMode {
 			f = sf.cPath
 		} else {
@@ -279,10 +288,9 @@ func editStickerEmoji(newEmoji string, index int, fid string, f string, ssLen in
 			//Not committed to API server yet.
 			continue
 		}
-		// commitedUID := ssNew.Stickers[len(ssNew.Stickers)-1].UniqueID
 		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
 		if commitedFID == fid {
-			log.Warn("FID duplacates, try again?")
+			log.Warn("FID duplicated, try again?")
 			continue
 		}
 
