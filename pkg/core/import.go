@@ -189,7 +189,6 @@ func prepKakaoStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
-	// ud.stickerData.title = ud.lineData.title + " @" + botName
 
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
@@ -206,7 +205,7 @@ func prepKakaoStickers(ud *UserData, needConvert bool) error {
 			return nil
 		default:
 		}
-		f := filepath.Join(workDir, path.Base(l))
+		f := filepath.Join(workDir, path.Base(l)+".png")
 		err := httpDownload(l, f)
 		if err != nil {
 			return err
