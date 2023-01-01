@@ -390,6 +390,10 @@ func sendFatalError(err error, c tele.Context) {
 		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
 
+// Return:
+// string: Text of the message.
+// *tele.Message: The pointer of the message.
+// error: error
 func sendProcessStarted(ud *UserData, c tele.Context, optMsg string) (string, *tele.Message, error) {
 	message := fmt.Sprintf(`
 Preparing stickers, please wait...
@@ -415,33 +419,34 @@ TG Title:</code><a href="%s">%s</a>
 	return message, teleMsg, err
 }
 
-func editProgressMsg(cur int, total int, sp string, originText string, teleMsg *tele.Message, c tele.Context) error {
+// if progressText is empty, a progress bar will be generated based on cur and total.
+func editProgressMsg(cur int, total int, progressText string, originalText string, teleMsg *tele.Message, c tele.Context) error {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Error("editProgressMsg encountered panic! ignoring...")
+			log.Errorln("editProgressMsg encountered panic! ignoring...", r)
 		}
 	}()
 
-	ud, exist := users.data[c.Sender().ID]
-	if teleMsg == nil {
-		if !exist {
-			return nil
-		}
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("editProgressMsg received ctxDone!")
-			return nil
-		default:
-		}
-		originText = ud.progress
-		teleMsg = ud.progressMsg
-	}
+	// ud, exist := users.data[c.Sender().ID]
+	// if teleMsg == nil {
+	// 	if !exist {
+	// 		return nil
+	// 	}
+	// 	select {
+	// 	case <-ud.ctx.Done():
+	// 		log.Warn("editProgressMsg received ctxDone!")
+	// 		return nil
+	// 	default:
+	// 	}
+	// 	originalText = ud.progress
+	// 	teleMsg = ud.progressMsg
+	// }
 
-	header := originText[:strings.LastIndex(originText, "<code>")]
+	header := originalText[:strings.LastIndex(originalText, "<code>")]
 	prog := ""
 
-	if sp != "" {
-		prog = sp
+	if progressText != "" {
+		prog = progressText
 		goto SEND
 	}
 	cur = cur + 1
@@ -559,10 +564,8 @@ func sendConfirmDelset(c tele.Context) error {
 		"您將要刪除整個貼圖包, 請確認.", selector)
 }
 
-func sendSFromSS(c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	id := ud.stickerData.id
-	ss, _ := c.Bot().StickerSet(id)
+func sendSFromSS(c tele.Context, ssid string) error {
+	ss, _ := c.Bot().StickerSet(ssid)
 	c.Send(&ss.Stickers[0])
 	return nil
 }
@@ -597,9 +600,9 @@ func sendBadImportLinkWarn(c tele.Context) error {
 		"<code>https://e.kakao.com/t/pretty-all-friends</code>", tele.ModeHTML)
 }
 
-func sendNotifySDOnBackground(c tele.Context) error {
-	return c.Send("Download has been started on the background. You can continue using other features. /start\n" +
-		"下載任務已開始在背景處理, 您可以繼續使用bot的其他功能. /start")
+func sendNotifyWorkingOnBackground(c tele.Context) error {
+	return c.Send("Work has been started on the background. You can continue using other features. /start\n" +
+		"工作已開始在背景處理, 您可以繼續使用bot的其他功能. /start")
 }
 
 func sendNoSToManage(c tele.Context) error {
