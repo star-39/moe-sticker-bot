@@ -4,45 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/panjf2000/ants/v2"
 	tele "gopkg.in/telebot.v3"
 )
-
-// func downloadSAndC(path string, s *tele.Sticker, needConvert bool, shrinkGif bool, c tele.Context) (string, string) {
-// 	var f string
-// 	var cf string
-// 	var err error
-// 	if s.Video {
-// 		f = path + ".webm"
-// 		err = c.Bot().Download(&s.File, f)
-// 		if needConvert {
-// 			if shrinkGif {
-// 				cf, _ = ffToGifShrink(f)
-// 			} else {
-// 				cf, _ = ffToGif(f)
-// 			}
-// 		}
-// 	} else if s.Animated {
-// 		f = path + ".tgs"
-// 		err = c.Bot().Download(&s.File, f)
-// 		if needConvert {
-// 			cf, _ = lottieToGIF(f)
-// 		}
-// 	} else {
-// 		f = path + ".webp"
-// 		err = c.Bot().Download(&s.File, f)
-// 		if needConvert {
-// 			cf, _ = imToPng(f)
-// 		}
-// 	}
-// 	if err != nil {
-// 		return "", ""
-// 	}
-// 	return f, cf
-// }
 
 // When s is not nil, download single sticker,
 // otherwise, download whole set from setID.
@@ -53,22 +21,6 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	} else {
 		id = setID
 	}
-	//Make sure only one download for one sticker set
-	//is in progress.
-	if _, exist := downloadQueue.ss[id]; exist {
-		return sendDownloadInProgressWarning(c)
-
-	}
-	defer func() {
-		if _, ok := downloadQueue.ss[id]; ok {
-			downloadQueue.mu.Lock()
-			delete(downloadQueue.ss, id)
-			downloadQueue.mu.Unlock()
-		}
-	}()
-	downloadQueue.mu.Lock()
-	downloadQueue.ss[id] = true
-	downloadQueue.mu.Unlock()
 
 	sID := secHex(8)
 	ud := &UserData{
@@ -113,16 +65,16 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	ud.stickerData.id = ss.Name
 	ud.stickerData.title = ss.Title
 	pText, teleMsg, _ := sendProcessStarted(ud, c, "")
-	sendNotifySDOnBackground(c)
+	sendNotifyWorkingOnBackground(c)
 	cleanUserData(c.Sender().ID)
 	defer os.RemoveAll(workDir)
 	var wpDownloadSticker *ants.PoolWithFunc
-	defer wpDownloadSticker.Release()
 	if ss.Animated {
 		wpDownloadSticker, _ = ants.NewPoolWithFunc(1, wDownloadStickerObject)
 	} else {
 		wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
 	}
+	defer wpDownloadSticker.Release()
 	var objs []*StickerDownloadObject
 	for index, s := range ss.Stickers {
 		obj := &StickerDownloadObject{
@@ -177,16 +129,23 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 }
 
 func downloadGifToZip(c tele.Context) error {
+	c.Reply("Downloading, please wait...\n正在下載, 請稍等...")
 	workDir := filepath.Join(dataDir, secHex(4))
 	os.MkdirAll(workDir, 0755)
-	f := filepath.Join(workDir, "gif.mp4")
-	err := c.Bot().Download(&c.Message().Animation.File, f)
-	cf, _ := ffToGif(f)
-	zip := filepath.Join(workDir, secHex(4)+".zip")
-	fCompress(zip, []string{cf})
+	defer os.RemoveAll(workDir)
 
-	c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
-	os.RemoveAll(workDir)
+	f := filepath.Join(workDir, "animation_MP4.mp4")
+	err := c.Bot().Download(&c.Message().Animation.File, f)
+	if err != nil {
+		return err
+	}
+	cf, _ := ffToGifSafe(f)
+	cf2 := strings.ReplaceAll(cf, "animation_MP4.mp4", "animation_GIF.gif")
+	os.Rename(cf, cf2)
+	zip := filepath.Join(workDir, secHex(4)+".zip")
+	fCompress(zip, []string{f, cf2})
+
+	_, err = c.Bot().Reply(c.Message(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
 	return err
 }
 
