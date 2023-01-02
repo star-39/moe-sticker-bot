@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -423,7 +424,7 @@ TG Title:</code><a href="%s">%s</a>
 func editProgressMsg(cur int, total int, progressText string, originalText string, teleMsg *tele.Message, c tele.Context) error {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorln("editProgressMsg encountered panic! ignoring...", r)
+			log.Errorln("editProgressMsg encountered panic! ignoring...", string(debug.Stack()))
 		}
 	}()
 
@@ -564,9 +565,13 @@ func sendConfirmDelset(c tele.Context) error {
 		"您將要刪除整個貼圖包, 請確認.", selector)
 }
 
-func sendSFromSS(c tele.Context, ssid string) error {
+func sendSFromSS(c tele.Context, ssid string, reply *tele.Message) error {
 	ss, _ := c.Bot().StickerSet(ssid)
-	c.Send(&ss.Stickers[0])
+	if reply != nil {
+		c.Bot().Reply(reply, &ss.Stickers[0])
+	} else {
+		c.Send(&ss.Stickers[0])
+	}
 	return nil
 }
 

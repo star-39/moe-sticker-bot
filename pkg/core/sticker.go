@@ -85,8 +85,8 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
-	editProgressMsg(0, 0, "Success! /start", pText, nil, c)
-	sendSFromSS(c, ud.stickerData.id)
+	editProgressMsg(0, 0, "Success! /start", pText, teleMsg, c)
+	sendSFromSS(c, ud.stickerData.id, teleMsg)
 	return nil
 }
 
@@ -143,7 +143,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
 		c.Send("Success! /start")
-		sendSFromSS(c, ud.stickerData.id)
+		sendSFromSS(c, ud.stickerData.id, nil)
 		endSession(c)
 	} else {
 		sendAskEmojiAssign(c)

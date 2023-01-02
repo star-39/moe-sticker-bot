@@ -18,6 +18,7 @@ func initWorkersPool() {
 		8, wDownloadStickerObject)
 }
 
+// *StickerFile
 func wConvertWebm(i interface{}) {
 	sf := i.(*StickerFile)
 	defer sf.wg.Done()
@@ -31,6 +32,7 @@ func wConvertWebm(i interface{}) {
 	log.Debugln("convert OK: ", sf.cPath)
 }
 
+// *StickerDownloadObject
 func wDownloadStickerObject(i interface{}) {
 	obj := i.(*StickerDownloadObject)
 	defer obj.wg.Done()
@@ -87,6 +89,7 @@ func wDownloadStickerObject(i interface{}) {
 
 }
 
+// *StickerMoveObject
 func wSubmitSMove(i interface{}) {
 	obj := i.(*StickerMoveObject)
 	defer obj.wg.Done()
