@@ -152,9 +152,14 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	return nil
 }
 
+// Commit single sticker, retry happens inside this function.
+// If all retries failed, return err.
+//
 // ss contains metadata for the single sticker.
 // it feels weird but it's the framework's way to do so.
 // therefore, Video? must be set.
+//
+// flCount counts the total flood limit for entire sticker set.
 func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
 	var err error
 	var floodErr tele.FloodError
@@ -176,6 +181,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 	log.Debugln("sticker file path:", sf.cPath)
 	log.Debugln("attempt commiting:", ss)
 	// Retry loop.
+	// For each sticker, retry at most 2 times, means 3 commit attempts in total.
 	for i := 0; i < 3; i++ {
 		if createSet {
 			err = c.Bot().CreateStickerSet(c.Recipient(), ss)
@@ -186,31 +192,36 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 			break
 		}
 		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
+		// Is flood limit error.
+		// Telegram's flood limit is strange.
+		// It only happens to specific user at a specific time.
+		// It is "fake" most of time, since TDLib in API Server will automatically retry.
+		// However! API always return 429 without mentioning its self retry.
+		// Since API side will always do retry at TDLib level, message_id was also being kept so
+		// no position shift will happen.
+		// Flood limit error could be probably ignored.
 		if errors.As(err, &floodErr) {
+			// This reflects the retry count for entire SS.
 			*flCount += 1
 			log.Warnln("Current flood limit count:", *flCount)
-			if createSet || *flCount > 4 {
+			// Tolerate 6 flood limits per set, means 3 stickers with 2 retries for each.
+			// If flood limit encountered when creating set, return immediately.
+			if createSet || *flCount > 6 {
 				sendTooManyFloodLimits(c)
 				return errors.New("too many flood limits")
 			}
-			// Telegram's flood limit is strange.
-			// It only happens to specific user at a specific time.
-			// It is "fake" most of time, since TDLib in API Server will automatically retry.
-			// However! API always return 429 without mentioning its self retry.
-			// Since API side will always do retry at TDLib level, message_id was also being kept so
-			// no position shift will happen.
-			// Flood limit error could be probably ignored.
 			sendFLWarning(c)
 			log.Warnf("Flood limit encountered for user:%d for set:%s", c.Sender().ID, ss.Name)
 			log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
-			log.Warn("sleeping...zzz")
 			if floodErr.RetryAfter > 60 {
 				log.Error("RA too long! Telegram's bug?")
-				log.Error("Attempt to sleep for 90 seconds.")
-				time.Sleep(90 * time.Second)
+				log.Error("Attempt to sleep for 120 seconds.")
+				time.Sleep(120 * time.Second)
 			} else {
 				// Sleep with some extra seconds due to bugs being reported.
-				extraRA := 20 * *flCount
+				// extraRA: 1 -> 30, 2-> 60, 3->90 seconds.
+				extraRA := 30 * *flCount
+				log.Warnf("Sleeping for %d seconds due to FL.", floodErr.RetryAfter+extraRA)
 				time.Sleep(time.Duration((floodErr.RetryAfter + extraRA) * int(time.Second)))
 			}
 
@@ -229,7 +240,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 				return commitSticker(createSet, flCount, true, sf, c, ss)
 			}
 		} else if strings.Contains(err.Error(), "400") {
-			// return remaining 400 BAD REQUEST to parent.
+			// return remaining 400 BAD REQUEST immediately to parent without retry.
 			return err
 		} else {
 			// Handle unknown error here.
