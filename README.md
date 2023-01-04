@@ -129,6 +129,11 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+2.0.0 (20230104)
+  * Improve flood limit handling.
+  * Auto LINE import now happens on backgroud.
+  * Improve GIF download.
+
 2.0.0 RC-7 (20221230)
   * Support /search in group chat.
   * Fix search result.
