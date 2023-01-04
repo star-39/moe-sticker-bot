@@ -381,10 +381,13 @@ func sendFatalError(err error, c tele.Context) {
 			log.Error("Recovered panic in sendFatalError")
 		}
 	}()
-	errMsg := err.Error()
-	if strings.Contains(errMsg, "500") {
-		errMsg += "\nThis is an internal error of Telegram server, we could do nothing but wait for its recover. Please try again later.\n" +
-			"此錯誤為Telegram伺服器之內部錯誤, 無法由bot解決, 只能等候官方修復. 建議您稍後再嘗試一次.\n"
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+		if strings.Contains(errMsg, "500") {
+			errMsg += "\nThis is an internal error of Telegram server, we could do nothing but wait for its recover. Please try again later.\n" +
+				"此錯誤為Telegram伺服器之內部錯誤, 無法由bot解決, 只能等候官方修復. 建議您稍後再嘗試一次.\n"
+		}
 	}
 	log.Error("User encountered fatal error!")
 	log.Errorln("Raw error:", err)
