@@ -27,14 +27,12 @@ func sendStartMessage(c tele.Context) error {
 搜尋LINE和kakao貼圖包.</code>
 <b>/faq  /about</b><code>
 常見問題/關於.</code>
-<b>/exit /cancel</b> ongoing session.<code>
-中斷指令.</code>
 
-Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a> doing sticker stuffs!
+Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>!
 Send me LINE/kakao/Telegram link or sticker or GIF to import or download them, or keywords to search, or use a command above
 
 你好, 歡迎使用萌萌貼圖BOT!
-請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載喔, 也可以傳送關鍵字來搜尋貼圖包或從上方點選指令
+請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載貼圖包喔, 也可以傳送文字來搜尋, 或從上方點選指令
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }
@@ -57,6 +55,8 @@ Please send /start to start using
 </b><code>
 BOT_VERSION: %s
 </code>
+View changelog <a href="https://github.com/star-39/moe-sticker-bot#changelog">here</a>.
+按<a href="https://github.com/star-39/moe-sticker-bot#changelog">這裡</a>檢視更新紀錄.
 `, botName, BOT_VERSION), tele.ModeHTML)
 }
 
@@ -67,6 +67,11 @@ func sendFAQ(c tele.Context) {
 如果您喜歡這個bot, 歡迎在Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
 ------------------------------------
+<b>Q: I'm trapped!! I can't quit from command!
+我卡住了! 我沒辦法從指令中退出!</b>
+A: Please send /quit to interrupt.
+請傳送 /quit 來中斷.
+
 <b>Q: Why ID has suffix: _by_%s ?
 為甚麼ID的末尾有: _by_%s ?</b>
 A: It's forced by Telegram, bot created sticker set must have its name in ID suffix.
@@ -74,9 +79,8 @@ A: It's forced by Telegram, bot created sticker set must have its name in ID suf
 
 <b>Q:  Can I add video sticker to static sticker set or vice versa?
     我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
-A:  Yes. Video will be static in static set
-    and static sticker will remain static in video set.
-    當然. 動態貼圖在靜態貼圖包裡會變成靜態, 靜態貼圖在動態貼圖包裡依然會是靜態.
+A:  Yes, however, video will be static in static set
+    可以. 惟動態貼圖在靜態貼圖包裡會變成靜態.
 
 <b>Q:  Who owns the sticker sets the bot created?
     BOT創造的貼圖包由誰所有?</b>
@@ -161,9 +165,9 @@ You can import this sticker set. Please confirm.
 func sendAskWantImportOrDownload(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btn1 := selector.Data("Import to Telegram/匯入到Telegram", CB_OK_IMPORT)
-	btn2 := selector.Data("下載/Download", CB_OK_DN)
-	btnNo := selector.Data("Bye", CB_BYE)
-	selector.Inline(selector.Row(btn1), selector.Row(btn2), selector.Row(btnNo))
+	btn2 := selector.Data("Download/下載", CB_OK_DN)
+	// btnNo := selector.Data("Bye", CB_BYE)
+	selector.Inline(selector.Row(btn1), selector.Row(btn2))
 	return c.Reply(`
 You can import or download this sticker set. Please choose.
 您可以匯入或下載這個貼圖包, 請選擇.

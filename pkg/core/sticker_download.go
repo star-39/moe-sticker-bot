@@ -64,7 +64,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	ss, _ := c.Bot().StickerSet(setID)
 	ud.stickerData.id = ss.Name
 	ud.stickerData.title = ss.Title
-	pText, teleMsg, _ := sendProcessStarted(ud, c, "")
+	pText, pMsg, _ := sendProcessStarted(ud, c, "")
 	sendNotifyWorkingOnBackground(c)
 	cleanUserData(c.Sender().ID)
 	defer os.RemoveAll(workDir)
@@ -89,14 +89,14 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		obj.wg.Add(1)
 		objs = append(objs, obj)
 		wpDownloadSticker.Invoke(obj)
-		go editProgressMsg(index, len(ss.Stickers), "", pText, teleMsg, c)
+		go editProgressMsg(index, len(ss.Stickers), "", pText, pMsg, c)
 	}
 	for _, obj := range objs {
 		obj.wg.Wait()
 		flist = append(flist, obj.of)
 		cflist = append(cflist, obj.cf)
 	}
-	go editProgressMsg(0, 0, "Uploading...", pText, teleMsg, c)
+	go editProgressMsg(0, 0, "Uploading...", pText, pMsg, c)
 
 	webmZipPath := filepath.Join(workDir, setID+"_webm.zip")
 	webpZipPath := filepath.Join(workDir, setID+"_webp.zip")
@@ -124,7 +124,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		}
 	}
 
-	editProgressMsg(0, 0, "success! /start", pText, teleMsg, c)
+	editProgressMsg(0, 0, "success! /start", pText, pMsg, c)
 	return nil
 }
 
