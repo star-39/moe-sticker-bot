@@ -1,10 +1,10 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/go-co-op/gocron"
@@ -153,16 +153,13 @@ func initLogrus() {
 		DisableLevelTruncation: true,
 	})
 
-	level := strings.ToUpper(config.Config.LogLevel)
-	switch level {
-	case "INFO":
-		log.SetLevel(log.InfoLevel)
-	case "WARNING":
-		log.SetLevel(log.WarnLevel)
-	case "ERROR":
-		log.SetLevel(log.ErrorLevel)
-	default:
+	level, err := log.ParseLevel(config.Config.LogLevel)
+	if err != nil {
+		println("Error parsing log_level! Defaulting to TRACE level.\n")
 		log.SetLevel(log.TraceLevel)
 	}
+	log.SetLevel(level)
+
+	fmt.Printf("Log level is set to: %s\n", log.GetLevel())
 	log.Debug("Warning: Log level below DEBUG might print sensitive information, including passwords.")
 }
