@@ -129,7 +129,6 @@ func httpGet(link string) (string, error) {
 	}
 	defer res.Body.Close()
 	content, _ := io.ReadAll(res.Body)
-
 	return string(content), nil
 }
 
