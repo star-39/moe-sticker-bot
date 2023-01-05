@@ -102,6 +102,9 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
  * golang v18+
  * nodejs v18+
  * react-js v18+
+ 
+<details>
+<summary>Brief build instructions</summary>
 
 ```
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
@@ -119,6 +122,7 @@ git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 
 go build -o moe-sticker-bot cmd/main.go 
 ```
+</details>
 
 #### WebApp
 Since 2.0 version of moe-sticker-bot, managing sticker set's order and emoji is now through Telegram's
@@ -129,6 +133,21 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+2.0.0 (20230105)
+  * Use new WebApp from /manage command to edit sticker set with ease.
+  * Send text or use /search command to search imported LINE/kakao sticker sets by all users.
+  * Auto import now happens on backgroud.
+  * Downloading sticker set is now lot faster.
+  * Fix many LINE import issues.
+  * 通過/manage指令使用新的WebApp輕鬆管理貼圖包.
+  * 直接傳送文字或使用/search指令來搜尋所有用戶匯入的LINE/KAKAO貼圖包.
+  * 自動匯入現在會在背景處理.
+  * 下載整個貼圖包的速度現在會快許多.
+  * 修復了許多LINE貼圖匯入的問題.
+  
+<details>
+<summary>Detailed 2.0 Changelogs 詳細的2.0變更列表</summary>
+
 2.0.0 (20230104)
   * Improve flood limit handling.
   * Auto LINE import now happens on backgroud.
@@ -173,6 +192,8 @@ Check `--help` for detailed webapp configs.
   * Support parallel sticker download.
   * Fix LINE officialaccount/event/sticker
   * Fix kakao link with queries.
+
+</details>
 
 1.2.4 (20221111)
   * Minor improvements.
@@ -258,6 +279,9 @@ Check `--help` for detailed webapp configs.
   * Countless bug fixes.
   * You can send sticker or link without a command now.
   * Performance gained by a lot thanks to goroutine and worker pool.
+
+<details>
+<summary>Old changelogs</summary>
 
 5.1 RC-4 (20220423)
   * Fix duplicated sticker.
@@ -355,6 +379,11 @@ Check `--help` for detailed webapp configs.
 
 4.0 ALPHA-1 (20220209)
   * Supports animated line sticker import.
+</details>
+
+## Technical Details
+![MSB_INFO](https://user-images.githubusercontent.com/75669297/210700704-4c9b366a-c72c-42fe-919c-336b7b8024c4.svg)
+
 
 
 ## Special Thanks:
