@@ -14,5 +14,9 @@
     [
         "LINE_STICKER_STATIC, officialaccount",
         "https://store.line.me/officialaccount/event/sticker/27404/zh-Hant"
+    ],
+    [
+        "LINE_STICKER_STATIC, special officialaccount, no <script>",
+        "https://store.line.me/officialaccount/event/sticker/27239/ja"
     ]
 ]
