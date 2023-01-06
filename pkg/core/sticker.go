@@ -62,15 +62,14 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			err = commitSticker(false, &flCount, false, sf, c, ss)
 			if err != nil {
 				log.Warnln("a sticker failed to add. ", err)
-				c.Send("one sticker failed to add, index is:" + strconv.Itoa(index))
+				c.Send("one sticker failed to add, index is:%d\nError is:%s", index, err)
 				errorCount += 1
 			} else {
 				committedStickers += 1
 			}
-
-			if errorCount > 2 {
-				return errors.New("too many errors when adding sticker")
-			}
+			// if errorCount > len(ud.stickerData.stickers)-3 {
+			// 	return errors.New("too many errors when adding sticker")
+			// }
 			if flCount > 3 {
 				sendTooManyFloodLimits(c)
 				return errors.New("too many flood limits")
