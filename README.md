@@ -133,6 +133,11 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+2.0.1 (20230106)
+  * Fix special LINE officialaccount sticker.
+  * Fix `--log_level` cmdline parsing.
+  * Thank you all! This project has reached 100 stars!
+
 2.0.0 (20230105)
   * Use new WebApp from /manage command to edit sticker set with ease.
   * Send text or use /search command to search imported LINE/kakao sticker sets by all users.
