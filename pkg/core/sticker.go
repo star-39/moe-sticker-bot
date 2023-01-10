@@ -67,9 +67,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			} else {
 				committedStickers += 1
 			}
-			// if errorCount > len(ud.stickerData.stickers)-3 {
-			// 	return errors.New("too many errors when adding sticker")
-			// }
+
 			if flCount > 3 {
 				sendTooManyFloodLimits(c)
 				return errors.New("too many flood limits")
