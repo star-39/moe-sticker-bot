@@ -1,67 +1,45 @@
 import { useEffect, useState } from 'react';
 import Edit from './Edit'
+import Export from './Export';
 import axios from 'axios';
+import { Route, Routes, useLocation } from "react-router-dom"
 
 function App() {
   let [isInitDataValid, setIsInitDataValid] = useState(null)
-  let [isBadWebAppState, setIsBadWebAppState] = useState(null)
-  let [ss, setSS] = useState([])
+  const route = useLocation().pathname
+  const qstring = window.location.search ? window.location.search + "&" : "?"
 
   useEffect(() => {
-    axios.post('/webapp/api/initData', new URLSearchParams(window.Telegram.WebApp.initData))
+    axios.post(`/webapp/api/initData${qstring}cmd=${route}`,
+      new URLSearchParams(window.Telegram.WebApp.initData))
       .then(res => {
         setIsInitDataValid(true)
       })
       .catch(err => {
         setIsInitDataValid(false)
-        if (err.response.data === "bad webapp state") {
-          setIsBadWebAppState(true)
-        }
-        return
-      })
-      .then(() => {
-        const uid = window.Telegram.WebApp.initDataUnsafe.user.id
-        const queryId = window.Telegram.WebApp.initDataUnsafe.query_id
-        axios.get(`/webapp/api/ss?uid=${uid}&qid=${queryId}`)
-          .then(res => {
-            setSS(res.data)
-          })
-      })
-      .catch(e => {
-
       })
   }, [])
 
   if (isInitDataValid === null) {
+    // initData not generated yet.
     return;
-  } else if (isInitDataValid) {
-    if (ss.length === 0) {
-      return;
-    }
+  } else if (!isInitDataValid) {
+    // Bad initData
+    return (<div className="App"><h1>Invalid WebApp initData!!!</h1></div>);
+  } else {
+    // initData OK
     window.Telegram.WebApp.ready();
     return (
-      <div className="App">
+      <div className='App'>
         <header className="App-header">
         </header>
-        <Edit ss={ss}></Edit>
+        <Routes>
+          <Route path="/webapp/edit" element={<Edit />} />
+          <Route path="/webapp/export" element={<Export />} />
+        </Routes>
       </div>
     );
-  } else {
-    if (isBadWebAppState) {
-      return (
-        <div className="App"><h3>Please launch WebApp through /manage command.</h3>
-        <br/>
-        <h3>請使用 /manage 指令後打開WebApp。</h3>
-        </div>
-      )
-    }
-    try {
-      window.Telegram.WebApp.showAlert("Invalid initData!!");
-      // window.Telegram.WebApp.close();
-    } catch { }
-    return (<div className="App"><h1>Invalid WebApp initData!!!</h1></div>);
   }
 }
-
 
 export default App;

@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
 )
 
 /*
@@ -64,9 +63,9 @@ value: -1
 var db *sql.DB
 
 func initDB(dbname string) error {
-	addr := config.Config.DbAddr
-	user := config.Config.DbUser
-	pass := config.Config.DbPass
+	addr := Config.DbAddr
+	user := Config.DbUser
+	pass := Config.DbPass
 	params := make(map[string]string)
 	params["autocommit"] = "1"
 	dsn := &mysql.Config{

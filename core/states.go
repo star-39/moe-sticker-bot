@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -114,6 +113,10 @@ func handleNoSession(c tele.Context) error {
 			c.Send("Please wait...")
 			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
 			return downloadLineSToZip(c, ud)
+		case CB_EXPORT_WA:
+			// initUserData(c, "export", "waitWebApp")
+			id := getSIDFromMessage(c.Message().ReplyTo)
+			return sendConfirmExportToWA(c, id)
 		case CB_BYE:
 			return c.Send("Bye. /start")
 		}
@@ -122,10 +125,11 @@ func handleNoSession(c tele.Context) error {
 
 	// bare sticker, ask user's choice.
 	if c.Message().Sticker != nil {
+		sn := c.Message().Sticker.SetName
 		if matchUserS(c.Sender().ID, c.Message().Sticker.SetName) {
-			return sendAskSChoice(c)
+			return sendAskSChoice(c, sn)
 		} else {
-			return sendAskSDownloadChoice(c)
+			return sendAskSDownloadChoice(c, sn)
 		}
 	}
 
@@ -204,7 +208,7 @@ func prepareSManage(c tele.Context) error {
 	}
 	ud.lastContext = c
 	// Allow admin to manage all sticker sets.
-	if c.Sender().ID == config.Config.AdminUid {
+	if c.Sender().ID == Config.AdminUid {
 		goto NEXT
 	}
 	if !matchUserS(c.Sender().ID, ud.stickerData.id) {
@@ -216,7 +220,7 @@ NEXT:
 	if err != nil {
 		return c.Send("bad sticker set! try again or /quit")
 	}
-	err = prepareSManWebApp(c, users.data[c.Sender().ID])
+	err = prepareWebAppEditStickers(users.data[c.Sender().ID], false)
 	if err != nil {
 		return c.Send("error preparing stickers for webapp /quit")
 	}
@@ -376,7 +380,7 @@ func waitSDownload(c tele.Context) error {
 	case c.Message().Sticker != nil:
 		// We handle this in "handleNoSession"
 		endSession(c)
-		return sendAskSDownloadChoice(c)
+		return sendAskSDownloadChoice(c, c.Message().Sticker.SetName)
 	case tp == LINK_TG:
 		ud.stickerData.id = path.Base(link)
 		ss, sserr := c.Bot().StickerSet(ud.stickerData.id)

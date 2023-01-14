@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -19,7 +20,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -34,15 +34,33 @@ func InitWebAppServer() {
 		webappApi.GET("/ss", apiSS)
 		webappApi.POST("/edit/result", apiEditResult)
 		webappApi.POST("/edit/move", apiEditMove)
+		webappApi.GET("/export", apiExport)
 	}
 
 	go func() {
-		err := r.Run(config.Config.WebappListenAddr)
+		err := r.Run(Config.WebappListenAddr)
 		if err != nil {
 			log.Fatalln("WebApp: Gin Run failed! Check your addr or disable webapp.\n", err)
 		}
-		log.Infoln("WebApp: Listening on ", config.Config.WebappListenAddr)
+		log.Infoln("WebApp: Listening on ", Config.WebappListenAddr)
 	}()
+}
+
+func apiExport(c *gin.Context) {
+	q := c.Request.URL.RawQuery
+	url := "msb://app/export?" + q
+	c.Redirect(http.StatusFound, url)
+}
+
+type webappStickerSet struct {
+	//Sticker objects
+	SS []webappStickerObject `json:"ss"`
+	//StickerSet Name
+	SSName string `json:"ssname"`
+	//StickerSet Title
+	SSTitle string `json:"sstitle"`
+	//StickerSet PNG Thumbnail
+	SSThumb string `json:"ssthumb"`
 }
 
 type webappStickerObject struct {
@@ -58,41 +76,70 @@ type webappStickerObject struct {
 	FileID string `json:"file_id"`
 	//Sticker unique ID
 	UniqueID string `json:"unique_id"`
-	//Sticker image URL.
+	//URL of sticker image.
 	Surl string `json:"surl"`
-	//StickerSet Name
-	SSName string `json:"ssname"`
 }
 
-// <- ?uid&query_id
-// <- [webappStickerObject, ...]
+// GET <- ?uid&query_id
 // -------------------------------------------
 // -> [webappStickerObject, ...]
 // -------------------------------------------
 // id starts from 1 !!!!
 // surl might be 404 when preparing stickers.
 func apiSS(c *gin.Context) {
+	cmd := c.Query("cmd")
+	sn := c.Query("sn")
 	uid := c.Query("uid")
 	qid := c.Query("qid")
-	ud, err := checkGetUd(uid, qid)
-	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
+	var ss *tele.StickerSet
+	var err error
+
+	switch cmd {
+	case "edit":
+		ud, err := checkGetUd(uid, qid)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+		// Refresh SS data since it might already changed.
+		retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
+		ss = ud.stickerData.stickerSet
+	case "export":
+		qid := c.Query("qid")
+		if sn == "" || qid == "" {
+			c.String(http.StatusBadRequest, "no_sn_or_qid")
+			return
+		}
+		ok := veriyQIDfromAuthList(sn, qid)
+		if !ok {
+			c.String(http.StatusBadRequest, "qid_not_authorized_for_this_sn")
+			return
+		}
+		ss, err = b.StickerSet(sn)
+		if err != nil {
+			c.String(http.StatusBadRequest, "bad_sn")
+			return
+		}
+	default:
+		c.String(http.StatusBadRequest, "no_cmd")
 		return
 	}
-	// Refresh SS data since it might already changed.
-	retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
-	sObjList := []webappStickerObject{}
-	for i, s := range ud.stickerData.stickerSet.Stickers {
+
+	wss := webappStickerSet{
+		SSTitle: ss.Title,
+		SSName:  ss.Name,
+	}
+	sl := []webappStickerObject{}
+	for i, s := range ss.Stickers {
 		var surl string
 		var fpath string
-		surl, _ = url.JoinPath(config.Config.WebappUrl, "data", s.SetName, s.UniqueID+".webp")
 		if s.Video {
-			fpath = filepath.Join(config.Config.WebappDataDir, s.SetName, s.UniqueID+".webm")
+			fpath = filepath.Join(Config.WebappDataDir, s.SetName, s.UniqueID+".webm")
 		} else {
-			fpath = filepath.Join(config.Config.WebappDataDir, s.SetName, s.UniqueID+".webp")
+			fpath = filepath.Join(Config.WebappDataDir, s.SetName, s.UniqueID+".webp")
 		}
-		sObjList = append(sObjList, webappStickerObject{
-			SSName:   ud.stickerData.stickerSet.Name,
+		surl, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", s.SetName, s.UniqueID+".webp")
+		sl = append(sl, webappStickerObject{
 			Id:       i + 1,
 			Emoji:    s.Emoji,
 			Surl:     surl,
@@ -100,14 +147,19 @@ func apiSS(c *gin.Context) {
 			FileID:   s.FileID,
 			FilePath: fpath,
 		})
+		if i == 0 {
+			wss.SSThumb, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", s.SetName, s.UniqueID+".png")
+		}
 	}
-	jsonSObjList, err := json.Marshal(sObjList)
+	wss.SS = sl
+
+	jsonWSS, err := json.Marshal(wss)
 	if err != nil {
-		log.Errorln("json marshal jsonSObjList in apiSS error!")
-		c.String(http.StatusInternalServerError, "json marshal jsonSObjList in apiSS error!")
+		log.Errorln("json marshal jsonWSS in apiSS error!")
+		c.String(http.StatusInternalServerError, "json marshal jsonWSS in apiSS error!")
 		return
 	}
-	c.String(http.StatusOK, string(jsonSObjList))
+	c.String(http.StatusOK, string(jsonWSS))
 }
 
 // <- ?qid&qid&sha256sum  [{"index", "emoji", "surl"}, ...]
@@ -116,33 +168,33 @@ func apiSS(c *gin.Context) {
 func apiEditResult(c *gin.Context) {
 	uid := c.Query("uid")
 	qid := c.Query("qid")
-	sum := c.Query("sha256sum")
 	body, _ := io.ReadAll(c.Request.Body)
-	if !validateSHA256(body, sum) {
-		c.String(http.StatusBadRequest, "bad result csum!")
-		return
-	}
+	// if !validateSHA256(body, sum) {
+	// 	c.String(http.StatusBadRequest, "bad result csum!")
+	// 	return
+	// }
 	if string(body) == "" {
 		//user did nothing
 		return
 	}
-	sObjs := []webappStickerObject{}
-	err := json.Unmarshal(body, &sObjs)
+	so := []webappStickerObject{}
+	err := json.Unmarshal(body, &so)
 	if err != nil {
-		c.String(http.StatusBadRequest, "bad")
+		c.String(http.StatusBadRequest, "bad_json")
+		return
 	}
 	ud, err := checkGetUd(uid, qid)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	log.Debugln(sObjs)
+	log.Debugln(so)
 
 	c.String(http.StatusOK, "")
 	ud.udSetState(ST_PROCESSING)
 
 	go func() {
-		err := commitEmojiChange(ud, sObjs)
+		err := commitEmojiChange(ud, so)
 		if err != nil {
 			sendFatalError(err, ud.lastContext)
 			endManageSession(ud.lastContext)
@@ -151,22 +203,22 @@ func apiEditResult(c *gin.Context) {
 	}()
 }
 
-func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
+func commitEmojiChange(ud *UserData, so []webappStickerObject) error {
 	ud.webAppWorkerPool.ReleaseTimeout(10 * time.Second)
 	// retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
 	//copy slice
 	ss := ud.stickerData.stickerSet.Stickers
 	notificationSent := false
 	for i, s := range ss {
-		if s.UniqueID != sObjs[i].UniqueID {
+		if s.UniqueID != so[i].UniqueID {
 			log.Error("sticker order mismatch! index:", i)
 			return errors.New("sticker order mismatch")
 		}
-		if !sObjs[i].EmojiChanged {
+		if !so[i].EmojiChanged {
 			continue
 		}
 		oldEmoji := findEmojis(s.Emoji)
-		newEmoji := findEmojis(sObjs[i].Emoji)
+		newEmoji := findEmojis(so[i].Emoji)
 		if newEmoji == "" || newEmoji == oldEmoji {
 			log.Warn("webapp: ignored one invalid emoji.")
 			continue
@@ -178,7 +230,7 @@ func commitEmojiChange(ud *UserData, sObjs []webappStickerObject) error {
 			notificationSent = true
 		}
 
-		err := editStickerEmoji(newEmoji, i, s.FileID, sObjs[i].FilePath, len(ss), ud)
+		err := editStickerEmoji(newEmoji, i, s.FileID, so[i].FilePath, len(ss), ud)
 		if err != nil {
 			return err
 		}
@@ -236,21 +288,44 @@ func apiInitData(c *gin.Context) {
 		return
 	}
 	log.Debug("WebApp initData DCS HMAC OK.")
+
+	initWebAppRequest(c)
+}
+
+func initWebAppRequest(c *gin.Context) {
+	user := c.PostForm("user")
+	queryID := c.PostForm("query_id")
+	cmd := c.Query("cmd")
+	cmd = path.Base(cmd)
 	webAppUser := &WebAppUser{}
 	err := json.Unmarshal([]byte(user), webAppUser)
 	if err != nil {
 		log.Error("json unmarshal webappuser error.")
 		return
 	}
-	ud, err := GetUd(strconv.Itoa(webAppUser.Id))
-	if err != nil {
-		log.Warning("Bad webapp user init, not in state?")
-		c.String(http.StatusBadRequest, "bad webapp state")
+
+	switch cmd {
+	case "edit":
+		ud, err := GetUd(strconv.Itoa(webAppUser.Id))
+		if err != nil {
+			c.String(http.StatusBadRequest, "bad_state")
+			return
+		}
+		ud.webAppWorkerPool, _ = ants.NewPoolWithFunc(1, wSubmitSMove)
+		ud.webAppQID = queryID
+	case "export":
+		sn := c.Query("sn")
+		ss, err := b.StickerSet(sn)
+		if err != nil {
+			c.String(http.StatusBadRequest, "bad_sn")
+			return
+		}
+		appendSStoQIDAuthList(sn, queryID)
+		prepareWebAppExportStickers(ss)
+	default:
+		c.String(http.StatusBadRequest, "bad_or_no_cmd")
 		return
 	}
-
-	ud.webAppWorkerPool, _ = ants.NewPoolWithFunc(1, wSubmitSMove)
-	ud.webAppQID = queryID
 
 	c.String(http.StatusOK, "webapp init ok")
 }
@@ -259,7 +334,7 @@ func apiInitData(c *gin.Context) {
 func validateHMAC(dataCheckString string, hash string) bool {
 	// This calculated secret will be used to "decrypt" DCS
 	h := hmac.New(sha256.New, []byte("WebAppData"))
-	h.Write([]byte(config.Config.BotToken))
+	h.Write([]byte(Config.BotToken))
 	secretByte := h.Sum(nil)
 
 	h = hmac.New(sha256.New, secretByte)
@@ -268,12 +343,12 @@ func validateHMAC(dataCheckString string, hash string) bool {
 	return hash == dcsHash
 }
 
-func validateSHA256(dataToCheck []byte, hash string) bool {
-	h := sha256.New()
-	h.Write(dataToCheck)
-	csum := fmt.Sprintf("%x", h.Sum(nil))
-	return hash == csum
-}
+// func validateSHA256(dataToCheck []byte, hash string) bool {
+// 	h := sha256.New()
+// 	h.Write(dataToCheck)
+// 	csum := fmt.Sprintf("%x", h.Sum(nil))
+// 	return hash == csum
+// }
 
 func checkGetUd(uid string, qid string) (*UserData, error) {
 	ud, err := GetUd(uid)
@@ -286,8 +361,8 @@ func checkGetUd(uid string, qid string) (*UserData, error) {
 	return ud, nil
 }
 
-func prepareSManWebApp(c tele.Context, ud *UserData) error {
-	dest := filepath.Join(config.Config.WebappDataDir, ud.stickerData.id)
+func prepareWebAppEditStickers(ud *UserData, wantHQ bool) error {
+	dest := filepath.Join(Config.WebappDataDir, ud.stickerData.id)
 	os.RemoveAll(dest)
 	os.MkdirAll(dest, 0755)
 
@@ -299,14 +374,85 @@ func prepareSManWebApp(c tele.Context, ud *UserData) error {
 			f = filepath.Join(dest, s.UniqueID+".webp")
 		}
 		obj := &StickerDownloadObject{
-			bot:       c.Bot(),
+			bot:       b,
 			dest:      f,
 			sticker:   s,
 			forWebApp: true,
+			webAppHQ:  wantHQ,
 		}
 		obj.wg.Add(1)
 		ud.stickerData.sDnObjects = append(ud.stickerData.sDnObjects, obj)
 		go wpDownloadStickerSet.Invoke(obj)
 	}
 	return nil
+}
+
+func prepareWebAppExportStickers(ss *tele.StickerSet) error {
+	dest := filepath.Join(Config.WebappDataDir, ss.Name)
+	stat, _ := os.Stat(dest)
+	if stat != nil {
+		mtime := stat.ModTime().Unix()
+		// Less than 1 minute, do not re-download
+		if time.Now().Unix()-mtime < 60 {
+			log.Debug("prepareWebAppExportStickers: dir still fresh, don't overwrite.")
+			return nil
+		}
+	}
+	os.RemoveAll(dest)
+	os.MkdirAll(dest, 0755)
+
+	for i, s := range ss.Stickers {
+		var f string
+		if ss.Video {
+			f = filepath.Join(dest, s.UniqueID+".webm")
+		} else {
+			f = filepath.Join(dest, s.UniqueID+".webp")
+		}
+		obj := &StickerDownloadObject{
+			bot:       b,
+			dest:      f,
+			sticker:   s,
+			forWebApp: true,
+			webAppHQ:  true,
+		}
+		//Use first image to create a thumbnail image
+		//for WhatsApp.
+		if i == 0 {
+			obj.webAppThumb = true
+		}
+		obj.wg.Add(1)
+		go wpDownloadStickerSet.Invoke(obj)
+	}
+	return nil
+}
+
+func appendSStoQIDAuthList(sn string, qid string) {
+	webAppSSAuthList.mu.Lock()
+	defer webAppSSAuthList.mu.Unlock()
+
+	obj := &WebAppQIDAuthObject{sn: sn, dt: time.Now().Unix()}
+	webAppSSAuthList.sa[qid] = obj
+}
+
+func removeSSfromQIDAuthList(sn string, qid string) {
+	webAppSSAuthList.mu.Lock()
+	defer webAppSSAuthList.mu.Unlock()
+
+	_, exist := webAppSSAuthList.sa[qid]
+	if !exist {
+		return
+	}
+	delete(webAppSSAuthList.sa, qid)
+}
+
+func veriyQIDfromAuthList(sn string, qid string) bool {
+	sa := webAppSSAuthList.sa[qid]
+	if sa == nil {
+		return false
+	}
+	if sa.sn == sn {
+		return true
+	} else {
+		return false
+	}
 }

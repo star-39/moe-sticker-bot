@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 	"gopkg.in/telebot.v3/middleware"
 )
@@ -20,7 +19,7 @@ func Init() {
 	initWorkspace(b)
 	initWorkersPool()
 	go initGoCron()
-	if config.Config.WebApp {
+	if Config.WebApp {
 		InitWebAppServer()
 	} else {
 		log.Info("WebApp not enabled.")
@@ -78,7 +77,7 @@ func endManageSession(c tele.Context) {
 	if ud.stickerData.id == "" {
 		return
 	}
-	path := filepath.Join(config.Config.WebappDataDir, ud.stickerData.id)
+	path := filepath.Join(Config.WebappDataDir, ud.stickerData.id)
 	os.RemoveAll(path)
 }
 
@@ -94,14 +93,14 @@ func onError(err error, c tele.Context) {
 
 func initBot() *tele.Bot {
 	pref := tele.Settings{
-		Token:       config.Config.BotToken,
+		Token:       Config.BotToken,
 		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
 		Synchronous: false,
 		// Genrally, issues are tackled inside each state, only fatal error should be returned to framework.
 		// onError will terminate current session and log to terminal.
 		OnError: onError,
 	}
-	log.WithField("token", config.Config.BotToken).Info("Attempting to initialize...")
+	log.WithField("token", Config.BotToken).Info("Attempting to initialize...")
 	b, err := tele.NewBot(pref)
 	if err != nil {
 		log.Fatal(err)
@@ -114,12 +113,13 @@ func initWorkspace(b *tele.Bot) {
 	dataDir = botName + "_data"
 	users = Users{data: make(map[int64]*UserData)}
 	downloadQueue = DownloadQueue{ss: make(map[string]bool)}
+	webAppSSAuthList = WebAppQIDAuthList{sa: make(map[string]*WebAppQIDAuthObject)}
 	err := os.MkdirAll(dataDir, 0755)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if config.Config.UseDB {
+	if Config.UseDB {
 		dbName := botName + "_db"
 		err = initDB(dbName)
 		if err != nil {
@@ -153,7 +153,7 @@ func initLogrus() {
 		DisableLevelTruncation: true,
 	})
 
-	level, err := log.ParseLevel(config.Config.LogLevel)
+	level, err := log.ParseLevel(Config.LogLevel)
 	if err != nil {
 		println("Error parsing log_level! Defaulting to TRACE level.\n")
 		log.SetLevel(log.TraceLevel)

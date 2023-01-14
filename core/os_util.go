@@ -10,7 +10,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
 )
 
 func fDownload(link string, savePath string) error {
@@ -201,14 +200,14 @@ func purgeOutdatedUserData() {
 		}
 	}
 
-	webappDataDirEntries, _ := os.ReadDir(config.Config.WebappDataDir)
+	webappDataDirEntries, _ := os.ReadDir(Config.WebappDataDir)
 	for _, f := range webappDataDirEntries {
 		if !f.IsDir() {
 			continue
 		}
 		fInfo, _ := f.Info()
 		fMTime := fInfo.ModTime().Unix()
-		fPath := filepath.Join(config.Config.WebappDataDir, f.Name())
+		fPath := filepath.Join(Config.WebappDataDir, f.Name())
 		// 2 Days
 		if fMTime < (time.Now().Unix() - 172800) {
 			os.RemoveAll(fPath)

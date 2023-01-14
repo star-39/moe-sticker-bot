@@ -5,8 +5,7 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
-	"github.com/star-39/moe-sticker-bot/pkg/core"
+	"github.com/star-39/moe-sticker-bot/core"
 )
 
 // main.go handles states and basic response,
@@ -37,7 +36,7 @@ func parseCmdLine() {
 		os.Exit(0)
 	}
 
-	conf := config.ConfigTemplate{}
+	conf := core.ConfigTemplate{}
 
 	conf.BotToken = *botToken
 	if conf.BotToken == "" {
@@ -66,5 +65,5 @@ func parseCmdLine() {
 
 	conf.AdminUid = *adminUid
 
-	config.Config = conf
+	core.Config = conf
 }

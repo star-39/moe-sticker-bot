@@ -20,6 +20,7 @@ var dataDir string
 var botName string
 
 var downloadQueue DownloadQueue
+var webAppSSAuthList WebAppQIDAuthList
 var users Users
 
 // Line sticker types
@@ -52,6 +53,7 @@ var CB_DONE_ADDING = "done"
 var CB_YES = "yes"
 var CB_NO = "no"
 var CB_DEFAULT_TITLE = "titledefault"
+var CB_EXPORT_WA = "exportwa"
 
 var ST_WAIT_WEBAPP = "waitWebApp"
 var ST_PROCESSING = "process"
@@ -169,6 +171,16 @@ type DownloadQueue struct {
 	ss map[string]bool
 }
 
+type WebAppQIDAuthList struct {
+	mu sync.Mutex
+	sa map[string]*WebAppQIDAuthObject
+}
+
+type WebAppQIDAuthObject struct {
+	sn string
+	dt int64
+}
+
 type Users struct {
 	mu   sync.Mutex
 	data map[int64]*UserData
@@ -185,6 +197,10 @@ type StickerDownloadObject struct {
 	shrinkGif bool
 	//Sticker is for WebApp?
 	forWebApp bool
+	//need HQ animated sticker for WhatsApp
+	webAppHQ bool
+	//need 96px PNG thumb for WhatsApp
+	webAppThumb bool
 	/*
 		Following fields are yielded by worker after wg is done.
 	*/

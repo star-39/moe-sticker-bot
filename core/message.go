@@ -11,7 +11,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/config"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -47,7 +46,7 @@ Thank you @StickerGroup for feedbacks and advices!
 <code>
 This free(as in freedom) software is released under the GPLv3 License.
 Comes with ABSOLUTELY NO WARRANTY! All rights reserved.
-本BOT為免費提供的自由軟體, 您可以自由使用/分發, 惟無任何保用(warranty)!
+本BOT為免費提供的自由軟體, 您可以自由使用/分發, 惟無任何保用(warranty)!	
 本軟體授權於通用公眾授權條款(GPL)v3, 保留所有權利.
 </code><b>
 Please send /start to start using
@@ -99,30 +98,60 @@ func sendAskEmoji(c tele.Context) error {
 	return c.Send(`
 Telegram sticker requires emoji to represent it.
 Press "Assign separately" to assign emoji one by one.
-You can also do batch assign, send a emoji or press button below.
+You can also do batch assign, send an emoji or press button below.
 Telegram要求為貼圖設定emoji來表示它.
 按下"分別設定"來為每個貼圖都分別設定相應的emoji.
 您也一口氣為全部貼圖設定一樣的emoji, 請傳送一個emoji, 抑或是點選下方按鈕.
 `, selector)
 }
 
-func sendAskSDownloadChoice(c tele.Context) error {
+func sendConfirmExportToWA(c tele.Context, sn string) error {
 	selector := &tele.ReplyMarkup{}
-	btnRand := selector.Data("This sticker/這張貼圖", CB_DN_SINGLE)
-	btnManu := selector.Data("Whole sticker set/整個貼圖包", CB_DN_WHOLE)
-	selector.Inline(selector.Row(btnRand), selector.Row(btnManu))
+	baseUrl, _ := url.JoinPath(Config.WebappUrl, "webapp", "export")
+	webAppUrl := fmt.Sprintf("%s?sn=%s", baseUrl, sn)
+	log.Debugln("webapp export link is:", webAppUrl)
+	webapp := tele.WebApp{URL: webAppUrl}
+	btnExport := selector.WebApp("Export to WhatsApp", &webapp)
+	selector.Inline(selector.Row(btnExport))
+
+	return c.Send(`
+Exporting sticker set to WhatsApp requires <a href="https://github.com/star-39/moe-sticker-bot/app">Moe Sticker App</a> being installed on your phone.
+匯出貼圖包到WhatsApp需要手機上安裝<a href="https://github.com/star-39/moe-sticker-bot/app">Moe Sticker App</a>
+
+<b>iOS</b> N/A yet. 暫不支援
+<b>Android</b> <a href="https://github.com/star-39/moe-sticker-bot/app">Link/連結</a>
+
+Continue export by tapping button below:
+請按下下方按鈕繼續：
+`, tele.ModeHTML, selector)
+}
+
+func genSDnMnEInline(canManage bool, sn string) *tele.ReplyMarkup {
+	selector := &tele.ReplyMarkup{}
+	btnSingle := selector.Data("This sticker/這張貼圖", CB_DN_SINGLE)
+	btnAll := selector.Data("Whole sticker set/整個貼圖包", CB_DN_WHOLE)
+	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
+	btnExport := selector.Data("Export to WhatsApp/匯出到WhatsApp", CB_EXPORT_WA)
+	if canManage {
+		selector.Inline(selector.Row(btnSingle), selector.Row(btnAll),
+			selector.Row(btnMan), selector.Row(btnExport))
+	} else {
+		selector.Inline(selector.Row(btnSingle), selector.Row(btnAll),
+			selector.Row(btnExport))
+	}
+	return selector
+}
+
+func sendAskSDownloadChoice(c tele.Context, sn string) error {
+	selector := genSDnMnEInline(false, sn)
 	return c.Reply(`
 You can download this sticker or the whole sticker set, please select below.
 您可以下載這個貼圖或者其所屬的整個貼圖包, 請選擇:
 `, selector)
 }
 
-func sendAskSChoice(c tele.Context) error {
-	selector := &tele.ReplyMarkup{}
-	btnRand := selector.Data("This sticker/下載這張貼圖", CB_DN_SINGLE)
-	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", CB_DN_WHOLE)
-	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
-	selector.Inline(selector.Row(btnRand), selector.Row(btnManu), selector.Row(btnMan))
+func sendAskSChoice(c tele.Context, sn string) error {
+	selector := genSDnMnEInline(true, sn)
 	return c.Reply(`
 You own this sticker set. You can download or manage this sticker set, please select below.
 您擁有這個貼圖包. 您可以下載或者管理這個貼圖包, 請選擇:
@@ -204,8 +233,6 @@ func sendAskTitle_Import(c tele.Context) error {
 		titleButtons = []tele.Row{selector.Row(btnDefault)}
 	}
 	selector.Inline(titleButtons...)
-
-	// lineTitle := escapeTagMark(ld.title) + " @" + botName
 
 	return c.Send("Please send a title for this sticker set. You can also select a appropriate original title below:\n"+
 		"請傳送貼圖包的標題.您也可以按下面的按鈕自動填上合適的原版標題:\n"+
@@ -526,9 +553,9 @@ func sendAskEditChoice(c tele.Context) error {
 	btnDel := selector.Data("Delete sticker/刪除貼圖", "del")
 	btnDelset := selector.Data("Delete sticker set/刪除貼圖包", "delset")
 	btnExit := selector.Data("Exit/退出", "bye")
-	baseUrl, _ := url.JoinPath(config.Config.WebappUrl, "edit", "index.html")
+	baseUrl, _ := url.JoinPath(Config.WebappUrl, "webapp", "edit")
 
-	if config.Config.WebApp {
+	if Config.WebApp {
 		url := fmt.Sprintf("%s?ss=%s&dt=%d",
 			baseUrl,
 			ud.stickerData.id,
@@ -542,8 +569,6 @@ func sendAskEditChoice(c tele.Context) error {
 	} else {
 		selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnExit))
 	}
-	// btnMov := selector.Data("Change order/調整順序", "mov")
-	// btnEmoji := selector.Data("Change emoji/修改Emoji", "emoji")
 
 	return c.Send(fmt.Sprintf(
 		`<code>ID: %s</code>

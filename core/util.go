@@ -5,7 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"hash/crc32"
+	"hash/crc64"
 	"io"
 	"math/big"
 	"net/http"
@@ -311,4 +313,11 @@ func compCRC32(f1 string, f2 string) bool {
 	} else {
 		return false
 	}
+}
+
+func hashCRC64(s string) string {
+	h := crc64.New(crc64.MakeTable(crc64.ISO))
+	h.Write([]byte(s))
+	csum := fmt.Sprintf("%x", h.Sum(nil))
+	return csum
 }

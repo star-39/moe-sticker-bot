@@ -1,6 +1,5 @@
 import React, { useEffect, useReducer, useState } from 'react';
 import axios from 'axios';
-import { sha256sum } from './utils';
 
 import {
   DndContext,
@@ -24,9 +23,10 @@ import { Sticker } from './Sticker'
 
 let resultArray;
 
-function Edit(props) {
-  const [items, setItems] = useState(props.ss);
+function Edit() {
+  const [items, setItems] = useState(null);
   const [activeId, setActiveId] = useState(null);
+  // const [ss, setSS] = useState(null)
 
   const [, forceUpdate] = useReducer(x => x + 1, 0);
 
@@ -37,7 +37,6 @@ function Edit(props) {
       },
     }),
     useSensor(TouchSensor, {
-      // Press delay of 250ms, with tolerance of 5px of movement
       activationConstraint: {
         delay: 250,
         tolerance: 5,
@@ -46,27 +45,31 @@ function Edit(props) {
   );
 
   useEffect(() => {
-    console.log(window.Telegram.WebApp.platform);
+    const uid = window.Telegram.WebApp.initDataUnsafe.user.id
+    const queryId = window.Telegram.WebApp.initDataUnsafe.query_id
+    axios.get(`/webapp/api/ss?uid=${uid}&qid=${queryId}&cmd=edit`)
+      .then(res => {
+        setItems(res.data.ss)
+      })
+      .catch(() => { })
+
     window.Telegram.WebApp.MainButton.setText('Done').show()
       .onClick(() => {
-        sha256sum(JSON.stringify(resultArray))
-          .then((sum) => {
-            const uid = window.Telegram.WebApp.initDataUnsafe.user.id
-            const queryId = window.Telegram.WebApp.initDataUnsafe.query_id
-            axios.post(
-              `/webapp/api/edit/result?uid=${uid}&qid=${queryId}&sha256sum=${sum}`,
-              JSON.stringify(resultArray))
-              .then(() => {
-                window.Telegram.WebApp.close();
-              })
-              .catch((error) => {
-                if (error.response) {
-                  window.Telegram.WebApp.showAlert(error + "\n" + error.response.data)
-                } else {
-                  window.Telegram.WebApp.showAlert(error)
-                }
-              });
+        const uid = window.Telegram.WebApp.initDataUnsafe.user.id
+        const queryId = window.Telegram.WebApp.initDataUnsafe.query_id
+        axios.post(
+          `/webapp/api/edit/result?uid=${uid}&qid=${queryId}`,
+          JSON.stringify(resultArray))
+          .then(() => {
+            window.Telegram.WebApp.close();
           })
+          .catch((error) => {
+            if (error.response) {
+              window.Telegram.WebApp.showAlert(error + "\n" + error.response.data)
+            } else {
+              window.Telegram.WebApp.showAlert(error)
+            }
+          });
       });
     // This is to address Android specific bug.
     // Expanding the webapp by swiping the content up
@@ -75,8 +78,24 @@ function Edit(props) {
     if (window.Telegram.WebApp.platform === "android") {
       window.Telegram.WebApp.expand()
     }
-  }, [])
+  }, []) //useEffect
 
+  if (items == null) {
+    return (
+      <p>
+        Please wait...
+      </p>
+    )
+  }
+  // Reject empty ss.
+  if (items === []) {
+    return (
+      <div className="App"><h3>Please launch WebApp through /manage command.</h3>
+        <br />
+        <h3>請使用 /manage 指令後打開WebApp。</h3>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -167,7 +186,7 @@ function Edit(props) {
         setItems(items) //Revert items.
         window.Telegram.WebApp.showAlert(
           `${err}\n${err.response.data}\nChange reverted, please try again`
-          )
+        )
       })
   }
 };

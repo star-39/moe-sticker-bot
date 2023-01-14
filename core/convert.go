@@ -22,6 +22,21 @@ func imToWebp(f string) (string, error) {
 	return pathOut, err
 }
 
+func imToWebpExactInPlace(f string) (string, error) {
+	pathOut := f
+	bin := CONVERT_BIN
+	args := CONVERT_ARGS
+	args = append(args, "-resize", "512x512", "-gravity", "center", "-extent", "512x512",
+		"-background", "none", f+"[0]", pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnln("imToWebp ERROR:", string(out))
+		return "", err
+	}
+	return pathOut, err
+}
+
 func imToPng(f string) (string, error) {
 	pathOut := f + ".png"
 	bin := CONVERT_BIN
@@ -187,6 +202,38 @@ func imToAnimatedWebpLQ(f string) error {
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
 		log.Warnln("imToWebp ERROR:", string(out))
+		return err
+	}
+	return err
+}
+
+// Replaces .webm ext to .webp
+func imToAnimatedWebpHQ(f string) error {
+	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
+	bin := CONVERT_BIN
+	args := CONVERT_ARGS
+	args = append(args, f, pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnln("imToWebp ERROR:", string(out))
+		return err
+	}
+	return err
+}
+
+// Replaces .webm or .webp to .png
+func imToPNGThumb(f string) error {
+	pathOut := strings.ReplaceAll(f, ".webm", ".png")
+	pathOut = strings.ReplaceAll(pathOut, ".webp", ".png")
+	bin := CONVERT_BIN
+	args := CONVERT_ARGS
+	args = append(args, "-resize", "96x96",
+		"-gravity", "center", "-extent", "96x96", f+"[0]", pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnln("imToPng ERROR:", string(out))
 		return err
 	}
 	return err

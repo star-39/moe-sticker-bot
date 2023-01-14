@@ -47,7 +47,16 @@ func wDownloadStickerObject(i interface{}) {
 			return
 		}
 		if obj.sticker.Video {
-			obj.err = imToAnimatedWebpLQ(obj.dest)
+			if obj.webAppHQ {
+				obj.err = imToAnimatedWebpHQ(obj.dest)
+			} else {
+				obj.err = imToAnimatedWebpLQ(obj.dest)
+			}
+		} else {
+			imToWebpExactInPlace(obj.dest)
+		}
+		if obj.webAppThumb {
+			obj.err = imToPNGThumb(obj.dest)
 		}
 		return
 	}
