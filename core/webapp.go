@@ -47,8 +47,10 @@ func InitWebAppServer() {
 }
 
 func apiExport(c *gin.Context) {
-	q := c.Request.URL.RawQuery
-	url := "msb://app/export?" + q
+	sn := c.Query("sn")
+	qid := c.Query("qid")
+	hex := c.Query("hex")
+	url := fmt.Sprintf("msb://app/export/%s/?qid=%s&hex=%s", sn, qid, hex)
 	c.Redirect(http.StatusFound, url)
 }
 
@@ -61,6 +63,11 @@ type webappStickerSet struct {
 	SSTitle string `json:"sstitle"`
 	//StickerSet PNG Thumbnail
 	SSThumb string `json:"ssthumb"`
+	//Is Animated WebP
+	Animated bool `json:"animated"`
+	Amount   int  `json:"amount"`
+	//Indicates that all sticker files are ready
+	Ready bool `json:"ready"`
 }
 
 type webappStickerObject struct {
@@ -80,7 +87,7 @@ type webappStickerObject struct {
 	Surl string `json:"surl"`
 }
 
-// GET <- ?uid&query_id
+// GET <- ?uid&qid&sn&cmd
 // -------------------------------------------
 // -> [webappStickerObject, ...]
 // -------------------------------------------
@@ -91,6 +98,7 @@ func apiSS(c *gin.Context) {
 	sn := c.Query("sn")
 	uid := c.Query("uid")
 	qid := c.Query("qid")
+	hex := c.Query("hex")
 	var ss *tele.StickerSet
 	var err error
 
@@ -105,14 +113,8 @@ func apiSS(c *gin.Context) {
 		retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
 		ss = ud.stickerData.stickerSet
 	case "export":
-		qid := c.Query("qid")
 		if sn == "" || qid == "" {
 			c.String(http.StatusBadRequest, "no_sn_or_qid")
-			return
-		}
-		ok := veriyQIDfromAuthList(sn, qid)
-		if !ok {
-			c.String(http.StatusBadRequest, "qid_not_authorized_for_this_sn")
 			return
 		}
 		ss, err = b.StickerSet(sn)
@@ -126,19 +128,21 @@ func apiSS(c *gin.Context) {
 	}
 
 	wss := webappStickerSet{
-		SSTitle: ss.Title,
-		SSName:  ss.Name,
+		SSTitle:  ss.Title,
+		SSName:   ss.Name,
+		Animated: ss.Video,
 	}
 	sl := []webappStickerObject{}
+	ready := true
 	for i, s := range ss.Stickers {
 		var surl string
 		var fpath string
 		if s.Video {
-			fpath = filepath.Join(Config.WebappDataDir, s.SetName, s.UniqueID+".webm")
+			fpath = filepath.Join(Config.WebappDataDir, hex, s.SetName, s.UniqueID+".webm")
 		} else {
-			fpath = filepath.Join(Config.WebappDataDir, s.SetName, s.UniqueID+".webp")
+			fpath = filepath.Join(Config.WebappDataDir, hex, s.SetName, s.UniqueID+".webp")
 		}
-		surl, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", s.SetName, s.UniqueID+".webp")
+		surl, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".webp")
 		sl = append(sl, webappStickerObject{
 			Id:       i + 1,
 			Emoji:    s.Emoji,
@@ -148,10 +152,14 @@ func apiSS(c *gin.Context) {
 			FilePath: fpath,
 		})
 		if i == 0 {
-			wss.SSThumb, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", s.SetName, s.UniqueID+".png")
+			wss.SSThumb, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".png")
+		}
+		if st, _ := os.Stat(fpath); st == nil {
+			ready = false
 		}
 	}
 	wss.SS = sl
+	wss.Ready = ready
 
 	jsonWSS, err := json.Marshal(wss)
 	if err != nil {
@@ -315,13 +323,18 @@ func initWebAppRequest(c *gin.Context) {
 		ud.webAppQID = queryID
 	case "export":
 		sn := c.Query("sn")
+		hex := c.Query("hex")
+		if sn == "" || hex == "" {
+			c.String(http.StatusBadRequest, "no_sn_or_hex")
+			return
+		}
 		ss, err := b.StickerSet(sn)
 		if err != nil {
 			c.String(http.StatusBadRequest, "bad_sn")
 			return
 		}
-		appendSStoQIDAuthList(sn, queryID)
-		prepareWebAppExportStickers(ss)
+		// appendSStoQIDAuthList(sn, queryID)
+		prepareWebAppExportStickers(ss, hex)
 	default:
 		c.String(http.StatusBadRequest, "bad_or_no_cmd")
 		return
@@ -387,13 +400,15 @@ func prepareWebAppEditStickers(ud *UserData, wantHQ bool) error {
 	return nil
 }
 
-func prepareWebAppExportStickers(ss *tele.StickerSet) error {
-	dest := filepath.Join(Config.WebappDataDir, ss.Name)
+func prepareWebAppExportStickers(ss *tele.StickerSet, hex string) error {
+	dest := filepath.Join(Config.WebappDataDir, hex, ss.Name)
+	// If the user is reusing the generated link to export.
+	// Do not re-download for every initData.
 	stat, _ := os.Stat(dest)
 	if stat != nil {
 		mtime := stat.ModTime().Unix()
-		// Less than 1 minute, do not re-download
-		if time.Now().Unix()-mtime < 60 {
+		// Less than 5 minutes, do not re-download
+		if time.Now().Unix()-mtime < 300 {
 			log.Debug("prepareWebAppExportStickers: dir still fresh, don't overwrite.")
 			return nil
 		}
@@ -426,33 +441,32 @@ func prepareWebAppExportStickers(ss *tele.StickerSet) error {
 	return nil
 }
 
-func appendSStoQIDAuthList(sn string, qid string) {
-	webAppSSAuthList.mu.Lock()
-	defer webAppSSAuthList.mu.Unlock()
+// func appendSStoQIDAuthList(sn string, qid string) {
+// 	webAppSSAuthList.mu.Lock()
+// 	defer webAppSSAuthList.mu.Unlock()
 
-	obj := &WebAppQIDAuthObject{sn: sn, dt: time.Now().Unix()}
-	webAppSSAuthList.sa[qid] = obj
-}
+// 	obj := &WebAppQIDAuthObject{sn: sn, dt: time.Now().Unix()}
+// 	webAppSSAuthList.sa[qid] = obj
+// }
 
-func removeSSfromQIDAuthList(sn string, qid string) {
-	webAppSSAuthList.mu.Lock()
-	defer webAppSSAuthList.mu.Unlock()
+// func removeSSfromQIDAuthList(sn string, qid string) {
+// 	webAppSSAuthList.mu.Lock()
+// 	defer webAppSSAuthList.mu.Unlock()
 
-	_, exist := webAppSSAuthList.sa[qid]
-	if !exist {
-		return
-	}
-	delete(webAppSSAuthList.sa, qid)
-}
+// 	_, exist := webAppSSAuthList.sa[qid]
+// 	if exist {
+// 		delete(webAppSSAuthList.sa, qid)
+// 	}
+// }
 
-func veriyQIDfromAuthList(sn string, qid string) bool {
-	sa := webAppSSAuthList.sa[qid]
-	if sa == nil {
-		return false
-	}
-	if sa.sn == sn {
-		return true
-	} else {
-		return false
-	}
-}
+// func veriyQIDfromAuthList(sn string, qid string) bool {
+// 	sa := webAppSSAuthList.sa[qid]
+// 	if sa == nil {
+// 		return false
+// 	}
+// 	if sa.sn == sn {
+// 		return true
+// 	} else {
+// 		return false
+// 	}
+// }

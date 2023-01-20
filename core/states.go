@@ -114,9 +114,11 @@ func handleNoSession(c tele.Context) error {
 			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
 			return downloadLineSToZip(c, ud)
 		case CB_EXPORT_WA:
-			// initUserData(c, "export", "waitWebApp")
+			hex := secHex(6)
 			id := getSIDFromMessage(c.Message().ReplyTo)
-			return sendConfirmExportToWA(c, id)
+			ss, _ := c.Bot().StickerSet(id)
+			go prepareWebAppExportStickers(ss, hex)
+			return sendConfirmExportToWA(c, id, hex)
 		case CB_BYE:
 			return c.Send("Bye. /start")
 		}

@@ -14,11 +14,11 @@ function Export() {
     get: (searchParams, prop) => searchParams.get(prop),
   });
 
-  const exportLinkHttps = `https://${process.env.REACT_APP_HOST}/webapp/api/export?sn=${params.sn}&qid=${queryId}`
-  const exportLinkMsb = `msb://app/export?sn=${params.sn}&qid=${queryId}`
+  const exportLinkHttps = `https://${process.env.REACT_APP_HOST}/webapp/api/export?sn=${params.sn}&qid=${queryId}&hex=${params.hex}`
+  const exportLinkMsb = `msb://app/export/{params.sn}/?qid=${queryId}&hex=${params.hex}`
 
   useEffect(() => {
-    axios.get(`/webapp/api/ss?sn=${params.sn}&uid=${uid}&qid=${queryId}&cmd=export`)
+    axios.get(`/webapp/api/ss?sn=${params.sn}&uid=${uid}&qid=${queryId}&hex=${params.hex}&cmd=export`)
       .then(res => {
         setSS(res.data.ss)
       })
@@ -38,6 +38,10 @@ function Export() {
   }, [])
   return (
     <div>
+      <button onClick={() => window.open(exportLinkHttps)}>
+        Export/匯出
+      </button>
+      <br />
       <h3>
         Preview 預覽:
       </h3>

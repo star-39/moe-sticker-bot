@@ -105,31 +105,28 @@ Telegram要求為貼圖設定emoji來表示它.
 `, selector)
 }
 
-func sendConfirmExportToWA(c tele.Context, sn string) error {
+func sendConfirmExportToWA(c tele.Context, sn string, hex string) error {
 	selector := &tele.ReplyMarkup{}
 	baseUrl, _ := url.JoinPath(Config.WebappUrl, "webapp", "export")
-	webAppUrl := fmt.Sprintf("%s?sn=%s", baseUrl, sn)
+	webAppUrl := fmt.Sprintf("%s?sn=%s&hex=%s", baseUrl, sn, hex)
 	log.Debugln("webapp export link is:", webAppUrl)
 	webapp := tele.WebApp{URL: webAppUrl}
-	btnExport := selector.WebApp("Export to WhatsApp", &webapp)
+	btnExport := selector.WebApp("Export to WhatsApp/匯出到WhatsApp", &webapp)
 	selector.Inline(selector.Row(btnExport))
 
 	return c.Send(`
-Exporting sticker set to WhatsApp requires <a href="https://github.com/star-39/moe-sticker-bot/app">Moe Sticker App</a> being installed on your phone.
-匯出貼圖包到WhatsApp需要手機上安裝<a href="https://github.com/star-39/moe-sticker-bot/app">Moe Sticker App</a>
+Exporting to WhatsApp requires <a href="https://github.com/star-39/moe-sticker-bot/app">Msb App</a> being installed on your phone.
+匯出到WhatsApp需要在手機上安裝<a href="https://github.com/star-39/moe-sticker-bot/app">Msb App</a>
 
-<b>iOS</b> N/A yet. 暫不支援
-<b>Android</b> <a href="https://github.com/star-39/moe-sticker-bot/app">Link/連結</a>
-
-Continue export by tapping button below:
-請按下下方按鈕繼續：
+<b>iPhone:</b> AppStore(N/A.暫無), <a href="https://github.com/star-39/moe-sticker-bot/app">IPA</a>
+<b>Android:</b> GooglePlay(N/A.暫無), <a href="https://github.com/star-39/moe-sticker-bot/app">APK</a>
 `, tele.ModeHTML, selector)
 }
 
 func genSDnMnEInline(canManage bool, sn string) *tele.ReplyMarkup {
 	selector := &tele.ReplyMarkup{}
-	btnSingle := selector.Data("This sticker/這張貼圖", CB_DN_SINGLE)
-	btnAll := selector.Data("Whole sticker set/整個貼圖包", CB_DN_WHOLE)
+	btnSingle := selector.Data("Download this sticker/下載這張貼圖", CB_DN_SINGLE)
+	btnAll := selector.Data("Download sticker set/下載整個貼圖包", CB_DN_WHOLE)
 	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
 	btnExport := selector.Data("Export to WhatsApp/匯出到WhatsApp", CB_EXPORT_WA)
 	if canManage {
@@ -160,7 +157,7 @@ You own this sticker set. You can download or manage this sticker set, please se
 
 func sendAskTGLinkChoice(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnManu := selector.Data("Whole sticker set/下載整個貼圖包", CB_DN_WHOLE)
+	btnManu := selector.Data("Download sticker set/下載整個貼圖包", CB_DN_WHOLE)
 	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
 	selector.Inline(selector.Row(btnManu), selector.Row(btnMan))
 	return c.Reply(`

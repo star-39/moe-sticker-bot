@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"strings"
@@ -22,19 +23,28 @@ func imToWebp(f string) (string, error) {
 	return pathOut, err
 }
 
-func imToWebpExactInPlace(f string) (string, error) {
+func imToWebpWA(f string) error {
 	pathOut := f
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
-	args = append(args, "-resize", "512x512", "-gravity", "center", "-extent", "512x512",
-		"-background", "none", f+"[0]", pathOut)
+	qualities := []string{"75", "50"}
+	for _, q := range qualities {
+		args = append(args, "-define", "webp:quality="+q,
+			"-resize", "512x512", "-gravity", "center", "-extent", "512x512",
+			"-background", "none", f+"[0]", pathOut)
 
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	if err != nil {
-		log.Warnln("imToWebp ERROR:", string(out))
-		return "", err
+		out, err := exec.Command(bin, args...).CombinedOutput()
+		if err != nil {
+			log.Warnln("imToWebp ERROR:", string(out))
+			return err
+		}
+		if st, _ := os.Stat(pathOut); st.Size() > 300*KiB {
+			continue
+		} else {
+			return nil
+		}
 	}
-	return pathOut, err
+	return errors.New("bad webp")
 }
 
 func imToPng(f string) (string, error) {
@@ -208,18 +218,73 @@ func imToAnimatedWebpLQ(f string) error {
 }
 
 // Replaces .webm ext to .webp
-func imToAnimatedWebpHQ(f string) error {
-	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
-	bin := CONVERT_BIN
-	args := CONVERT_ARGS
-	args = append(args, f, pathOut)
+// func imToAnimatedWebpWA(f string) error {
+// 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
+// 	bin := CONVERT_BIN
+// 	args := CONVERT_ARGS
 
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	if err != nil {
-		log.Warnln("imToWebp ERROR:", string(out))
-		return err
+// 	//Try qualities from best to worst.
+// 	qualities := []string{"75", "50", "20", "5"}
+// 	for _, q := range qualities {
+// 		args = append(args,
+// 			"-resize", "512x512", "-quality", q,
+// 			"-gravity", "center", "-extent", "512x512", "-background", "none",
+// 			f, pathOut)
+
+// 		out, err := exec.Command(bin, args...).CombinedOutput()
+// 		if err != nil {
+// 			log.Warnln("imToWebp ERROR:", string(out))
+// 			return err
+// 		}
+// 		//WhatsApp uses KiB.
+// 		if st, _ := os.Stat(pathOut); st.Size() > 300*KiB {
+// 			log.Warnf("convert: awebp exceeded 300k, q:%s z:%d s:%s", q, st.Size(), pathOut)
+// 			continue
+// 		} else {
+// 			return nil
+// 		}
+// 	}
+// 	log.Warnln("all retries failed! s:", pathOut)
+// 	return errors.New("bad animated webp?")
+// }
+
+// // animated webp has a pretty bad compression ratio comparing to VP9,
+// // shrink down quality as more as possible.
+func ffToAnimatedWebpWA(f string) error {
+	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
+	bin := "ffmpeg"
+	//Try qualities from best to worst.
+	qualities := []string{"75", "50", "20", "_DS384"}
+
+	for _, q := range qualities {
+		args := []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
+			"-vf", "scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:-1:-1:color=black@0",
+			"-quality", q, "-loop", "0", "-pix_fmt", "yuva420p",
+			"-an", "-y", pathOut}
+
+		if q == "_DS384" {
+			args = []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
+				"-vf", "scale=256:256:force_original_aspect_ratio=decrease,pad=512:512:-1:-1:color=black@0",
+				"-quality", "20", "-loop", "0", "-pix_fmt", "yuva420p",
+				"-an", "-y", pathOut}
+		}
+
+		out, err := exec.Command(bin, args...).CombinedOutput()
+		if err != nil {
+			log.Warnln("ffToAnimatedWebpWA ERROR:", string(out))
+			return err
+		}
+		//WhatsApp uses KiB.
+		if st, _ := os.Stat(pathOut); st.Size() > 500*KiB {
+			log.Warnf("convert: awebp exceeded 500k, q:%s z:%d s:%s", q, st.Size(), pathOut)
+			continue
+		} else {
+			return nil
+		}
 	}
-	return err
+	log.Warnln("all quality failed! s:", pathOut)
+
+	return errors.New("bad animated webp?")
 }
 
 // Replaces .webm or .webp to .png
@@ -228,8 +293,10 @@ func imToPNGThumb(f string) error {
 	pathOut = strings.ReplaceAll(pathOut, ".webp", ".png")
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
-	args = append(args, "-resize", "96x96",
-		"-gravity", "center", "-extent", "96x96", f+"[0]", pathOut)
+	args = append(args,
+		"-resize", "96x96",
+		"-gravity", "center", "-extent", "96x96", "-background", "none",
+		f+"[0]", pathOut)
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
