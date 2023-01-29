@@ -111,15 +111,15 @@ func sendConfirmExportToWA(c tele.Context, sn string, hex string) error {
 	webAppUrl := fmt.Sprintf("%s?sn=%s&hex=%s", baseUrl, sn, hex)
 	log.Debugln("webapp export link is:", webAppUrl)
 	webapp := tele.WebApp{URL: webAppUrl}
-	btnExport := selector.WebApp("Export to WhatsApp/匯出到WhatsApp", &webapp)
+	btnExport := selector.WebApp("Continue export/繼續匯出 →", &webapp)
 	selector.Inline(selector.Row(btnExport))
 
 	return c.Send(`
-Exporting to WhatsApp requires <a href="https://github.com/star-39/moe-sticker-bot/app">Msb App</a> being installed on your phone.
-匯出到WhatsApp需要在手機上安裝<a href="https://github.com/star-39/moe-sticker-bot/app">Msb App</a>
+Exporting to WhatsApp requires <a href="https://github.com/star-39/msb_app">Msb App</a> being installed.
+匯出到WhatsApp需要手機上安裝<a href="https://github.com/star-39/msb_app">Msb App</a>
 
-<b>iPhone:</b> AppStore(N/A.暫無), <a href="https://github.com/star-39/moe-sticker-bot/app">IPA</a>
-<b>Android:</b> GooglePlay(N/A.暫無), <a href="https://github.com/star-39/moe-sticker-bot/app">APK</a>
+<b>iPhone:</b> AppStore(N/A.暫無), <a href="https://github.com/star-39/msb_app/releases/latest/download/msb_app.ipa">IPA</a>
+<b>Android:</b> GooglePlay(N/A.暫無), <a href="https://github.com/star-39/msb_app/releases/latest/download/msb_app.apk">APK</a>
 `, tele.ModeHTML, selector)
 }
 
