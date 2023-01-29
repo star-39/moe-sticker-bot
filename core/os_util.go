@@ -175,7 +175,7 @@ func fCompressVol(f string, flist []string) []string {
 	return zipPaths
 }
 
-func purgeOutdatedUserData() {
+func purgeOutdatedStorageData() {
 	dirEntries, _ := os.ReadDir(dataDir)
 	for _, f := range dirEntries {
 		if !f.IsDir() {

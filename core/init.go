@@ -142,7 +142,7 @@ func initWorkspace(b *tele.Bot) {
 func initGoCron() {
 	time.Sleep(15 * time.Second)
 	cronScheduler = gocron.NewScheduler(time.UTC)
-	cronScheduler.Every(2).Days().Do(purgeOutdatedUserData)
+	cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
 	cronScheduler.Every(1).Weeks().Do(curateDatabase)
 	cronScheduler.StartAsync()
 }
