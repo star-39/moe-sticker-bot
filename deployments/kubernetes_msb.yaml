@@ -81,7 +81,7 @@ spec:
     - --bot_token=BOT_TOKEN
     - --webapp
     - --webapp_url
-    - https://example.com/webapp/
+    - https://example.com/
     - --webapp_data_dir
     - /webapp/data/
     - --webapp_listen_addr

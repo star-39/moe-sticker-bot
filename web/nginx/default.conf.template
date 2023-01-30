@@ -23,4 +23,10 @@ server {
     location /webapp/edit {
         alias ${WEBAPP_ROOT};
     }
+    location /webapp/export {
+        alias ${WEBAPP_ROOT};
+    }
+    location /webapp/static {
+        alias ${WEBAPP_ROOT}/static;
+    }
 }
