@@ -13,7 +13,7 @@ buildah copy $c1 web/nginx/default.conf.template /etc/nginx/templates/
 # Build react app
 cd web/webapp3/
 npm install
-PUBLIC_URL=/webapp npm run build
+PUBLIC_URL=/webapp REACT_APP_HOST=msb.cloudns.asia npm run build
 buildah copy $c1 build/ /webapp
 cd ../..
 
