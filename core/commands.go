@@ -46,6 +46,10 @@ func cmdFAQ(c tele.Context) error {
 	return nil
 }
 
+func cmdChangelog(c tele.Context) error {
+	return sendChangelog(c)
+}
+
 func cmdStart(c tele.Context) error {
 	return sendStartMessage(c)
 }

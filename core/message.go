@@ -21,8 +21,8 @@ func sendStartMessage(c tele.Context) error {
 創建或管理的Telegram貼圖包.</code>
 <b>/search</b> LINE or kakao sticker sets.<code>
 搜尋LINE和kakao貼圖包.</code>
-<b>/faq  /about</b><code>
-常見問題/關於.</code>
+<b>/faq  /about  /changelog</b><code>
+常見問題/關於/更新紀錄.</code>
 
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please:
 • Send <b>LINE/Kakao sticker share link</b> to import or download.
@@ -90,6 +90,32 @@ A:  It's you of course. You can manage them through /manage or Telegram's offici
     當然是您. 您可以通過 /manage 指令或者Telegram官方的 @Stickers 管理您的貼圖包.
 
 `, botName, botName, botName), tele.ModeHTML)
+}
+
+func sendChangelog(c tele.Context) error {
+	return c.Send(`
+https://github.com/star-39/moe-sticker-bot#changelog
+
+v2.2.0 (20230131)
+  * Support animated kakao sticker.
+  * 支援動態kakao貼圖。
+
+v2.1.0 (20230129)
+  * Support exporting sticker to WhatsApp.
+  * 支援匯出貼圖到WhatsApp
+
+v2.0.0 (20230105)
+  * Use new WebApp from /manage command to edit sticker set with ease.
+  * Send text or use /search command to search imported LINE/kakao sticker sets by all users.
+  * Auto import now happens on backgroud.
+  * Downloading sticker set is now lot faster.
+  * Fix many LINE import issues.
+  * 通過/manage指令使用新的WebApp輕鬆管理貼圖包.
+  * 直接傳送文字或使用/search指令來搜尋所有用戶匯入的LINE/KAKAO貼圖包.
+  * 自動匯入現在會在背景處理.
+  * 下載整個貼圖包的速度現在會快許多.
+  * 修復了許多LINE貼圖匯入的問題.
+	`, tele.NoPreview)
 }
 
 func sendAskEmoji(c tele.Context) error {
