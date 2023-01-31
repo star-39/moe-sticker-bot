@@ -58,6 +58,8 @@ var CB_EXPORT_WA = "exportwa"
 var ST_WAIT_WEBAPP = "waitWebApp"
 var ST_PROCESSING = "process"
 
+var FID_KAKAO_SHARE_LINK = "AgACAgEAAxkBAAI4mmPYy5-NBuJEoKN7dvIhFRpoe4w7AAJ8qzEbfPvARtoB1rm9Yj6GAQADAgADeQADLQQ"
+
 // See: http://en.wikipedia.org/wiki/Binary_prefix
 const (
 	// Decimal

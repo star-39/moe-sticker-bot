@@ -180,17 +180,6 @@ You can download this sticker set. Press Yes to continue.
 `, selector)
 }
 
-func sendAskWantImport(c tele.Context) error {
-	selector := &tele.ReplyMarkup{}
-	btn1 := selector.Data("Yes", CB_OK_IMPORT)
-	btnNo := selector.Data("Bye", CB_BYE)
-	selector.Inline(selector.Row(btn1), selector.Row(btnNo))
-	return c.Reply(`
-You can import this sticker set. Please confirm.
-您可以匯入這個貼圖包, 請確認.
-`, selector)
-}
-
 func sendAskWantImportOrDownload(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btn1 := selector.Data("Import to Telegram/匯入到Telegram", CB_OK_IMPORT)
@@ -724,3 +713,21 @@ func sendBadSearchKeyword(c tele.Context) error {
 // func sendDownloadInProgressWarning(c tele.Context) error {
 // 	return c.Send("Download already in progress, please wait...\n此貼圖已經正在下載, 請稍等.")
 // }
+
+func sendNeedKakaoAnimatedShareLinkWarning(c tele.Context) error {
+	log.Warn("need share link")
+	return c.Send(&tele.Photo{
+		File: tele.File{FileID: "AgACAgEAAxkBAAI4mmPYy5-NBuJEoKN7dvIhFRpoe4w7AAJ8qzEbfPvARtoB1rm9Yj6GAQADAgADeQADLQQ"},
+		Caption: `
+Importing animated kakao stickers requires a share link from KakaoTalk app.
+You can still continue import, in that case, static ones will be imported.
+You can obtain share link from sticker store in KakaoTalk app by tapping share->copy link.
+
+此貼圖包含有動態貼圖，您需要傳送KakaoTalk app分享連結來匯入動態貼圖。
+您也可以繼續匯入，但是匯入的貼圖將會是靜態。
+您可以在KakaoTalk App內的貼圖商店點選 分享->複製連結 來取得連結。
+
+eg: <code>https://emoticon.kakao.com/items/lV6K2fWmU7CpXlHcP9-ysQJx9rg=?referer=share_link</code>
+`,
+	}, tele.ModeHTML)
+}
