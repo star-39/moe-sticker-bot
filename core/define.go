@@ -118,6 +118,8 @@ type StickerData struct {
 	cAmount int
 }
 
+// This is called linedata due to historical reason,
+// instead, it handles "import" data, which includes kakao and line so far.
 type LineData struct {
 	store      string
 	link       string
@@ -141,9 +143,13 @@ type LineJson struct {
 }
 
 type KakaoJsonResult struct {
-	Title         string
+	Title string
+	//kakao ID
 	TitleUrl      string
 	ThumbnailUrls []string
+	TitleImageUrl string
+	//Cover image
+	TitleDetailUrl string
 }
 
 type KakaoJson struct {

@@ -137,25 +137,24 @@ func parseLineLink(link string, ld *LineData) error {
 	return nil
 }
 
-func prepImportStickers(ud *UserData, needConvert bool) error {
+func prepareImportStickers(ud *UserData, needConvert bool) error {
 	switch ud.lineData.store {
 	case "line":
-		return prepLineStickers(ud, needConvert)
+		return prepareLineStickers(ud, needConvert)
 	case "kakao":
-		return prepKakaoStickers(ud, needConvert)
+		return prepareKakaoStickers(ud, needConvert)
 	}
 	return nil
 }
 
-func prepLineStickers(ud *UserData, needConvert bool) error {
+func prepareLineStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 	ud.stickerData.isVideo = ud.lineData.isAnimated
 	ud.stickerData.id = "line_" + ud.lineData.id + secNum(4) + "_by_" + botName
-	// ud.stickerData.title = ud.lineData.title + " @" + botName
 
 	if ud.lineData.category == LINE_STICKER_MESSAGE {
-		return prepLineMessageS(ud)
+		return prepareLineMessageS(ud)
 	}
 
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
@@ -186,7 +185,7 @@ func prepLineStickers(ud *UserData, needConvert bool) error {
 
 	if needConvert {
 		log.Debugln("start converting...")
-		doConvert(ud)
+		convertSToTGFormat(ud)
 	}
 
 	log.Debug("Done preparing line files:")
@@ -284,32 +283,7 @@ func removeAPNGtEXtChunk(f string) bool {
 	return true
 }
 
-func doConvert(ud *UserData) {
-	sf := ud.stickerData.stickers
-	for _, s := range sf {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("doConvert received ctxDone!")
-			return
-		default:
-		}
-		var err error
-		s.wg.Add(1)
-		// If lineS is animated, commit to worker pool
-		// since encoding vp9 is time and resource costy.
-		if ud.lineData.isAnimated {
-			wpConvertWebm.Invoke(s)
-		} else {
-			s.cPath, err = imToWebp(s.oPath)
-			if err != nil {
-				s.cError = err
-			}
-			s.wg.Done()
-		}
-	}
-}
-
-func prepLineMessageS(ud *UserData) error {
+func prepareLineMessageS(ud *UserData) error {
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
 

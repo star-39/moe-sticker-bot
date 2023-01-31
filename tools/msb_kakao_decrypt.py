@@ -67,13 +67,19 @@ def xor_data(data):
 
 
 def main():
-    if len(sys.argv < 2):
+    if len(sys.argv) < 2:
         print('FATAL: no file specified on $1 arg.')
         return -1
     
     f = sys.argv[1]
-    dec_data = xor_data(open(f, 'rb'))
-    with open(f, 'wb') as fp:
-        fp.write(dec_data)
+    
+    fi =  open(f, 'rb')
+    data = fi.read()
+    fi.close()
+
+    dec_data = xor_data(data)
+    fo = open(f, 'wb')
+    fo.write(dec_data)
+    fo.close()
 
 main()

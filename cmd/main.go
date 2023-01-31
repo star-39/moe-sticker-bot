@@ -8,8 +8,9 @@ import (
 	"github.com/star-39/moe-sticker-bot/core"
 )
 
-// main.go handles states and basic response,
-// complex operations are done in other files.
+// Common abbr. in this project:
+// S : Sticker
+// SS : StickerSet
 
 func main() {
 	parseCmdLine()

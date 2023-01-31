@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
@@ -24,6 +25,9 @@ import (
 )
 
 var regexAlphanum = regexp.MustCompile(`[a-zA-Z0-9_]+`)
+var httpClient = &http.Client{
+	Timeout: 5 * time.Second,
+}
 
 func checkTitle(t string) bool {
 	if len(t) > 128 || len(t) < 1 {
@@ -85,7 +89,7 @@ func findLinkWithType(s string) (string, string) {
 		host = LINK_TG
 	} else if strings.HasSuffix(host, "line.me") {
 		host = LINK_IMPORT
-	} else if strings.HasSuffix(host, "e.kakao.com") {
+	} else if strings.HasSuffix(host, "kakao.com") {
 		host = LINK_IMPORT
 	}
 
@@ -106,10 +110,9 @@ func httpDownload(link string, f string) error {
 }
 
 func httpDownloadCurlUA(link string, f string) error {
-	client := &http.Client{}
 	req, _ := http.NewRequest("GET", link, nil)
 	req.Header.Set("User-Agent", "curl/7.61.1")
-	res, err := client.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -121,11 +124,10 @@ func httpDownloadCurlUA(link string, f string) error {
 }
 
 func httpGet(link string) (string, error) {
-	client := &http.Client{}
 	req, _ := http.NewRequest("GET", link, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
 	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
-	res, err := client.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -134,18 +136,44 @@ func httpGet(link string) (string, error) {
 	return string(content), nil
 }
 
-func httpGetCurlUA(link string) (string, error) {
+// redirected link, body, error
+func httpGetWithRedirLink(link string) (string, string, error) {
 	client := &http.Client{}
+	req, _ := http.NewRequest("GET", link, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
+	res, err := client.Do(req)
+	if err != nil {
+		return "", "", err
+	}
+	defer res.Body.Close()
+	content, _ := io.ReadAll(res.Body)
+	return res.Request.URL.String(), string(content), nil
+}
+
+func httpGetCurlUA(link string) (string, error) {
 	req, _ := http.NewRequest("GET", link, nil)
 	req.Header.Set("User-Agent", "curl/7.61.1")
 	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
-	res, err := client.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer res.Body.Close()
 	content, _ := io.ReadAll(res.Body)
 
+	return string(content), nil
+}
+
+func httpGetAndroidUA(link string) (string, error) {
+	req, _ := http.NewRequest("GET", link, nil)
+	req.Header.Set("User-Agent", "Android")
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	content, _ := io.ReadAll(res.Body)
 	return string(content), nil
 }
 

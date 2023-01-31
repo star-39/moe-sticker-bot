@@ -150,7 +150,7 @@ func downloadGifToZip(c tele.Context) error {
 }
 
 func downloadLineSToZip(c tele.Context, ud *UserData) error {
-	err := prepImportStickers(ud, false)
+	err := prepareImportStickers(ud, false)
 	if err != nil {
 		return err
 	}

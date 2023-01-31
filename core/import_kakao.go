@@ -2,53 +2,93 @@ package core
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func parseKakaoLink(link string, ld *LineData) error {
 	url, _ := url.Parse(link)
-	kakaoID := path.Base(url.Path)
 
+	var kakaoID string
+	var eid string
+	var err error
+
+	switch url.Host {
+	// Kakao web link.
+	case "e.kakao.com":
+		kakaoID = path.Base(url.Path)
+	// Kakao mobile app share link.
+	case "emoticon.kakao.com":
+		eid, kakaoID, err = fetchKakaoDetailsFromShareLink(link)
+	// unknown host
+	default:
+		return errors.New("unknown kakao link type")
+	}
+	if err != nil {
+		return err
+	}
+
+	var kakaoJson KakaoJson
+	err = fetchKakaoMetadata(&kakaoJson, kakaoID)
+	if err != nil {
+		return err
+	}
+
+	log.Debugln("Parsed kakao link:", link)
+	log.Debugln(kakaoJson.Result)
+
+	isAnimated := checkKakaoAnimated(kakaoJson.Result.TitleDetailUrl)
+	if isAnimated {
+		ld.dLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
+	} else {
+		ld.dLinks = kakaoJson.Result.ThumbnailUrls
+	}
+
+	ld.title = kakaoJson.Result.Title
+	ld.id = strings.ReplaceAll(kakaoJson.Result.TitleUrl, "-", "_")
+	ld.link = link
+	ld.isAnimated = isAnimated
+	ld.amount = len(ld.dLinks)
+	return nil
+}
+
+func fetchKakaoMetadata(kakaoJson *KakaoJson, kakaoID string) error {
 	apiUrl := "https://e.kakao.com/api/v1/items/t/" + kakaoID
 	page, err := httpGet(apiUrl)
 	if err != nil {
 		return err
 	}
 
-	var kakaoJson KakaoJson
 	err = json.Unmarshal([]byte(page), &kakaoJson)
 	if err != nil {
 		log.Errorln("Failed json parsing kakao link!", err)
 		return err
 	}
-	kakaoID = kakaoJson.Result.TitleUrl
-
-	log.Debugln("Parsed kakao link:", link)
-	log.Debugln(kakaoJson.Result)
-	t := kakaoJson.Result.Title
-	i := strings.ReplaceAll(kakaoID, "-", "_")
-
-	ld.dLinks = kakaoJson.Result.ThumbnailUrls
-	ld.title = t
-	ld.id = i
-	ld.link = link
-	ld.amount = len(ld.dLinks)
 	return nil
 }
 
-func prepKakaoStickers(ud *UserData, needConvert bool) error {
+func prepareKakaoStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
 	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
 
+	if ud.lineData.isAnimated {
+		return prepareKakaoAnimatedStickers(ud, needConvert)
+	}
+
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
+
 	for range ud.lineData.dLinks {
 		sf := &StickerFile{}
 		sf.wg.Add(1)
@@ -78,4 +118,93 @@ func prepKakaoStickers(ud *UserData, needConvert bool) error {
 	}
 	log.Debug("Done process ALL kakao emoticons")
 	return nil
+}
+
+func prepareKakaoAnimatedStickers(ud *UserData, needConvert bool) error {
+	workDir := filepath.Join(ud.workDir, ud.lineData.id)
+	savePath := filepath.Join(workDir, "kakao.zip")
+	os.MkdirAll(workDir, 0755)
+
+	ud.wg.Add(1)
+	err := fDownload(ud.lineData.dLink, savePath)
+	if err != nil {
+		return err
+	}
+
+	webpFiles := kakaoZipExtract(savePath, ud.lineData)
+	if len(webpFiles) == 0 {
+		return errors.New("no kakao image")
+	}
+	ud.wg.Done()
+
+	ud.lineData.files = webpFiles
+	ud.lineData.amount = len(webpFiles)
+	ud.stickerData.lAmount = len(webpFiles)
+
+	for _, f := range webpFiles {
+		sf := &StickerFile{oPath: f}
+		sf.wg = sync.WaitGroup{}
+		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
+	}
+
+	if needConvert {
+		convertSToTGFormat(ud)
+	}
+
+	log.Debug("Done preparing kakao files:")
+	log.Debugln(ud.lineData, ud.stickerData)
+
+	return nil
+
+}
+
+// Extract and decrypt kakao zip.
+func kakaoZipExtract(f string, ld *LineData) []string {
+	var files []string
+	workDir := fExtract(f)
+	if workDir == "" {
+		return nil
+	}
+	log.Debugln("scanning workdir:", workDir)
+	files = lsFiles(workDir, []string{".webp"}, []string{})
+
+	for _, f := range files {
+		//This script decrypts the file in-place.
+		exec.Command("msb_kakao_decrypt.py", f).Run()
+	}
+
+	return files
+}
+
+// kakao eid(code), kakao id
+func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
+	res, err := httpGetAndroidUA(link)
+	if err != nil {
+		return "", "", err
+	}
+	split1 := strings.Split(res, "kakaotalk://store/emoticon/")
+	if len(split1) < 2 {
+		return "", "", errors.New("error fetchKakaoDetailsFromShareLink")
+	}
+	eid := strings.Split(split1[1], "?")[0]
+	log.Debugln("kakao eid is: ", eid)
+	redirLink, _, err := httpGetWithRedirLink(link)
+	if err != nil {
+		return "", "", err
+	}
+	kakaoID := path.Base(redirLink)
+	return eid, kakaoID, nil
+}
+
+// Receive kakaoJson.Result.TitleDetailUrl
+func checkKakaoAnimated(ilink string) bool {
+	res, err := http.Get(ilink)
+	if err != nil {
+		return false
+	}
+	if res.Header.Get("Content-Type") == "image/gif" {
+		return true
+	} else {
+		return false
+	}
 }

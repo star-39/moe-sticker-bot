@@ -107,7 +107,7 @@ func handleNoSession(c tele.Context) error {
 			ud := initUserData(c, "import", "waitSTitle")
 			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
 			sendAskTitle_Import(c)
-			return prepImportStickers(ud, true)
+			return prepareImportStickers(ud, true)
 		case CB_OK_DN:
 			ud := initUserData(c, "download", "process")
 			c.Send("Please wait...")
@@ -122,7 +122,6 @@ func handleNoSession(c tele.Context) error {
 		case CB_BYE:
 			return c.Send("Bye. /start")
 		}
-
 	}
 
 	// bare sticker, ask user's choice.
@@ -318,7 +317,7 @@ func waitCbImportChoice(c tele.Context) error {
 		setCommand(c, "import")
 		setState(c, "waitSTitle")
 		sendAskTitle_Import(c)
-		return prepImportStickers(ud, true)
+		return prepareImportStickers(ud, true)
 	case "bye":
 		terminateSession(c)
 	}
@@ -428,7 +427,7 @@ func waitImportLink(c tele.Context) error {
 
 	setState(c, "waitSTitle")
 	sendAskTitle_Import(c)
-	return prepImportStickers(ud, true)
+	return prepareImportStickers(ud, true)
 
 }
 
