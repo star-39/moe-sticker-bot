@@ -25,13 +25,14 @@ func cmdManage(c tele.Context) error {
 }
 
 func cmdImport(c tele.Context) error {
-	initUserData(c, "import", "waitImportLink")
-	sendAskImportLink(c)
-	return nil
+	// V2.2: Do not init command on /import
+	// initUserData(c, "import", "waitImportLink")
+	return sendAskImportLink(c)
 }
 
 func cmdDownload(c tele.Context) error {
-	initUserData(c, "download", "waitSDownload")
+	// V2.2: Do not init command on /download
+	// initUserData(c, "download", "waitSDownload")
 	return sendAskWhatToDownload(c)
 }
 

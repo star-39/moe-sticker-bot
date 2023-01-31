@@ -9,6 +9,7 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
+// Handle conversation state during a command.
 func handleMessage(c tele.Context) error {
 	var err error
 	command, state := getState(c)
@@ -18,10 +19,6 @@ func handleMessage(c tele.Context) error {
 	switch command {
 	case "import":
 		switch state {
-		case "waitImportLink":
-			err = waitImportLink(c)
-		case "waitCbImportChoice":
-			err = waitCbImportChoice(c)
 		case "waitSTitle":
 			err = waitSTitle(c)
 		case "waitEmojiChoice":
@@ -30,13 +27,6 @@ func handleMessage(c tele.Context) error {
 			err = stateProcessing(c)
 		case "waitSEmojiAssign":
 			err = waitSEmojiAssign(c)
-		}
-	case "download":
-		switch state {
-		case "waitSDownload":
-			err = waitSDownload(c)
-		case "process":
-			err = stateProcessing(c)
 		}
 	case "create":
 		switch state {
@@ -58,7 +48,7 @@ func handleMessage(c tele.Context) error {
 	case "manage":
 		switch state {
 		case "waitSManage":
-			err = prepareSManage(c)
+			err = statePrepareSManage(c)
 		case "waitCbEditChoice":
 			err = waitCbEditChoice(c)
 		case "waitSFile":
@@ -91,9 +81,12 @@ func handleMessage(c tele.Context) error {
 	return err
 }
 
+// Received bare message without using a command.
 func handleNoSession(c tele.Context) error {
 	log.Debugf("user %d entered no session with message: %s", c.Sender().ID, c.Message().Text)
 
+	//During previous stage, bot will reply to a message with callback buttons.
+	//Now we react to user's choice.
 	if c.Callback() != nil && c.Message().ReplyTo != nil {
 		switch c.Callback().Data {
 		case CB_DN_SINGLE:
@@ -102,7 +95,7 @@ func handleNoSession(c tele.Context) error {
 			id := getSIDFromMessage(c.Message().ReplyTo)
 			return downloadStickersAndSend(nil, id, c)
 		case CB_MANAGE:
-			return prepareSManage(c)
+			return statePrepareSManage(c)
 		case CB_OK_IMPORT:
 			ud := initUserData(c, "import", "waitSTitle")
 			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
@@ -138,7 +131,7 @@ func handleNoSession(c tele.Context) error {
 		return downloadGifToZip(c)
 	}
 
-	// bare message, expect a link, if no link, search keyword.
+	// bare text message, expect a link, if no link, search keyword.
 	link, tp := findLinkWithType(c.Message().Text)
 
 	switch tp {
@@ -186,7 +179,7 @@ func stateProcessing(c tele.Context) error {
 	return c.Send("processing, please wait... 作業中, 請稍後... /quit")
 }
 
-func prepareSManage(c tele.Context) error {
+func statePrepareSManage(c tele.Context) error {
 	var ud *UserData
 	if c.Callback() != nil && c.Message().ReplyTo != nil {
 		if c.Callback().Data == CB_MANAGE {
@@ -307,23 +300,6 @@ func waitCbDelset(c tele.Context) error {
 	return nil
 }
 
-func waitCbImportChoice(c tele.Context) error {
-	if c.Callback() == nil {
-		return handleNoSession(c)
-	}
-	ud := users.data[c.Sender().ID]
-	switch c.Callback().Data {
-	case "yesimport":
-		setCommand(c, "import")
-		setState(c, "waitSTitle")
-		sendAskTitle_Import(c)
-		return prepareImportStickers(ud, true)
-	case "bye":
-		terminateSession(c)
-	}
-	return nil
-}
-
 func waitSType(c tele.Context) error {
 	if c.Callback() == nil {
 		return c.Send("Please press a button.")
@@ -370,67 +346,6 @@ NEXT:
 	return nil
 }
 
-func waitSDownload(c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	var err error
-	link, tp := findLinkWithType(c.Message().Text)
-
-	switch {
-	case c.Message().Animation != nil:
-		err = downloadGifToZip(c)
-	case c.Message().Sticker != nil:
-		// We handle this in "handleNoSession"
-		endSession(c)
-		return sendAskSDownloadChoice(c, c.Message().Sticker.SetName)
-	case tp == LINK_TG:
-		ud.stickerData.id = path.Base(link)
-		ss, sserr := c.Bot().StickerSet(ud.stickerData.id)
-		if sserr != nil {
-			return c.Send("bad link! try again or /quit")
-		}
-		err = downloadStickersAndSend(nil, ss.Name, c)
-	case tp == LINK_IMPORT:
-		c.Send("Please wait...")
-		err = parseImportLink(link, ud.lineData)
-		if err != nil {
-			return err
-		}
-
-		err = downloadLineSToZip(c, ud)
-	default:
-		return c.Send("send link or sticker or GIF or /exit ")
-	}
-
-	if err != nil {
-		return err
-	}
-	terminateSession(c)
-	return err
-}
-
-func waitImportLink(c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	link, tp := findLinkWithType(c.Message().Text)
-	if tp != LINK_IMPORT {
-		return sendBadImportLinkWarn(c)
-	}
-
-	err := parseImportLink(link, ud.lineData)
-	if err != nil {
-		return err
-	}
-
-	if sendNotifySExist(c, ud.lineData.id) {
-		setState(c, "waitCbImportChoice")
-		return sendAskWantImport(c)
-	}
-
-	setState(c, "waitSTitle")
-	sendAskTitle_Import(c)
-	return prepareImportStickers(ud, true)
-
-}
-
 func waitSTitle(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	command := ud.command
@@ -458,7 +373,6 @@ func waitSTitle(c tele.Context) error {
 	case "import":
 		setState(c, "waitEmojiChoice")
 		return sendAskEmoji(c)
-		// return prepImportStickers(users.data[c.Sender().ID], true)
 	case "create":
 		setState(c, "waitSID")
 		sendAskID(c)

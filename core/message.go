@@ -16,22 +16,25 @@ import (
 
 func sendStartMessage(c tele.Context) error {
 	message := `
-<b>/import</b> LINE or kakao stickers to Telegram<code>
-匯入LINE/kakao貼圖包至Telegram</code>
-<b>/download</b> Telegram/LINE/kakao sticker(s)<code>
-下載Telegram/LINE/kakao貼圖包</code>
-<b>/create</b> or <b>/manage</b> new sticker set<code>
-創建或管理的Telegram的貼圖包.</code>
+<b>/import</b> <b>/download</b> 
+<b>/create</b> or <b>/manage</b> sticker set<code>
+創建或管理的Telegram貼圖包.</code>
 <b>/search</b> LINE or kakao sticker sets.<code>
 搜尋LINE和kakao貼圖包.</code>
 <b>/faq  /about</b><code>
 常見問題/關於.</code>
 
-Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>!
-Send me LINE/kakao/Telegram link or sticker or GIF to import or download them, or keywords to search, or use a command above
+Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please:
+• Send <b>LINE/Kakao sticker share link</b> to import or download.
+• Send <b>Telegram sticker or GIF</b> to download or manage.
+• Send <b>keywords</b> to search titles.
+or use a command above.
 
-你好, 歡迎使用萌萌貼圖BOT!
-請傳送LINE/kakao/TG連結或貼圖或GIF來匯入或下載貼圖包喔, 也可以傳送文字來搜尋, 或從上方點選指令
+你好, 歡迎使用萌萌貼圖BOT! 請：
+• 傳送LINE/kakao貼圖包的分享連結來匯入或下載.
+• 傳送Telegram貼圖來下載或管理.
+• 傳送文字來搜尋貼圖標題.
+或 從上方點選指令.
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }
@@ -259,11 +262,14 @@ ID通常不重要, 建議您按下下方的"自動生成"按鈕.`, selector, tel
 }
 
 func sendAskImportLink(c tele.Context) error {
-	return c.Send("Please send LINE/kakao store link of the sticker set.\n"+
-		"請傳送貼圖包的LINE/kakao Store連結. 您可以在LINE App貼圖商店按右上角的分享->複製連結來取得連結.\n\n"+
-		"For example: 例如:\n"+
-		"<code>https://store.line.me/stickershop/product/7673/ja</code>\n"+
-		"<code>https://e.kakao.com/t/pretty-all-friends</code>", tele.ModeHTML)
+	return c.Send(`
+Please send LINE/kakao store link of the sticker set. You can obtain this link from App by going to sticker store and tapping Share->Copy Link.
+請傳送貼圖包的LINE/kakao Store連結. 您可以在App裡的貼圖商店按右上角的分享->複製連結來取得連結.
+For example: 例如:
+<code>https://store.line.me/stickershop/product/7673/ja</code>
+<code>https://e.kakao.com/t/pretty-all-friends</code>
+<code>https://emoticon.kakao.com/items/lV6K2fWmU7CpXlHcP9-ysQJx9rg=?referer=share_link</code>
+`, tele.ModeHTML)
 }
 
 func sendNotifySExist(c tele.Context, lineID string) bool {
@@ -329,18 +335,25 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 }
 
 func sendAskStickerFile(c tele.Context) error {
-	c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
-		"or send an archive containing image files,\n" +
-		"wait until upload complete, then tap 'Done adding'.\n\n" +
-		"請傳送任意格式的圖片/照片/貼圖(少於120張)\n" +
-		"或者傳送內有貼圖檔案的歸檔,\n" +
-		"請等候所有檔案上載完成, 然後按下「停止增添」\n")
 
 	if users.data[c.Sender().ID].stickerData.isVideo {
-		c.Send("Special note: Sending GIF with transparent background will lose transparent due to Telegram client problem.\n" +
+		c.Send("Please send images/photos/stickers/videos(less than 50 in total),\n" +
+			"or send an archive containing image files,\n" +
+			"wait until upload complete, then tap 'Done adding'.\n\n" +
+			"請傳送任意格式的圖片/照片/貼圖/影片(少於50張)\n" +
+			"或者傳送內有貼圖檔案的歸檔,\n" +
+			"請等候所有檔案上載完成, 然後按下「停止增添」\n")
+		c.Send("Special note: Sending GIF with transparent background will lose transparency due to client issue.\n" +
 			"You can compress your GIF into a ZIP file then send it to bot to bypass.\n" +
-			"特別提示: 傳送帶有透明背景的GIF動圖會被Telegram客戶端強制轉換為MP4並且丟失透明層.\n" +
+			"特別提示: 傳送帶有透明背景的GIF會被Telegram客戶端強制轉換並且丟失透明層.\n" +
 			"您可以將貼圖放入ZIP歸檔中再傳送給bot來繞過這個限制.")
+	} else {
+		c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
+			"or send an archive containing image files,\n" +
+			"wait until upload complete, then tap 'Done adding'.\n\n" +
+			"請傳送任意格式的圖片/照片/貼圖(少於120張)\n" +
+			"或者傳送內有貼圖檔案的歸檔,\n" +
+			"請等候所有檔案上載完成, 然後按下「停止增添」\n")
 	}
 	return nil
 }
@@ -349,9 +362,14 @@ func sendInStateWarning(c tele.Context) error {
 	command := users.data[c.Sender().ID].command
 	state := users.data[c.Sender().ID].state
 
-	return c.Send(fmt.Sprintf("Please follow instructions.\n"+
-		"Current command: %s\nCurrent state: %s\nYou can also send /quit to terminate session.", command, state))
-
+	return c.Send(fmt.Sprintf(`
+Please send content according to instructions.
+請按照bot提示傳送相應內容.
+Current command: %s
+Current state: %s
+You can also send /quit to terminate session.
+您也可以傳送 /quit 來中斷對話.
+`, command, state))
 }
 
 func sendNoSessionWarning(c tele.Context) error {
@@ -703,6 +721,6 @@ func sendBadSearchKeyword(c tele.Context) error {
 	return c.Send(fmt.Sprintf("Bad syntax.\n\n/search@%s keyword1 keyword2 ... \n/search@%s hololive aqua", botName, botName))
 }
 
-func sendDownloadInProgressWarning(c tele.Context) error {
-	return c.Send("Download already in progress, please wait...\n此貼圖已經正在下載, 請稍等.")
-}
+// func sendDownloadInProgressWarning(c tele.Context) error {
+// 	return c.Send("Download already in progress, please wait...\n此貼圖已經正在下載, 請稍等.")
+// }
