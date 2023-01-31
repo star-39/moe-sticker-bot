@@ -22,8 +22,9 @@ buildah commit $c1 moe-sticker-bot:base
 buildah push moe-sticker-bot:base ghcr.io/star-39/moe-sticker-bot:base
 
 fi
-#################################
+# End building base image.
 
+# Build container image.
 c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base)
 
 # Build MSB go bin
@@ -31,6 +32,8 @@ go version
 go build -o moe-sticker-bot cmd/main.go 
 buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
+# Copy tools.
+buildah copy $c1 tools/msb_kakao_decrypt.py /usr/local/bin/msb_kakao_decrypt.py
 
 buildah commit $c1 moe-sticker-bot:latest
 
@@ -65,6 +68,8 @@ go version
 GOOS=linux GOARCH=arm64 go build -o moe-sticker-bot cmd/main.go 
 buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
+# Copy tools.
+buildah copy $c1 tools/msb_kakao_decrypt.py /usr/local/bin/msb_kakao_decrypt.py
 
 buildah commit $c1 moe-sticker-bot:aarch64
 
