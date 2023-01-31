@@ -14,29 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func fetchLineI18nLinks(doc *goquery.Document) []string {
-	var i18nLinks []string
-	doc.Find("link").Each(func(i int, s *goquery.Selection) {
-		hreflang, exist := s.Attr("hreflang")
-		if !exist {
-			return
-		}
-		href, exist2 := s.Attr("href")
-		if !exist2 {
-			return
-		}
-		switch hreflang {
-		case "zh-Hant":
-			fallthrough
-		case "ja":
-			fallthrough
-		case "en":
-			i18nLinks = append(i18nLinks, href)
-		}
-	})
-	return i18nLinks
-}
-
 func parseLineLink(link string, ld *LineData) error {
 	page, err := httpGet(link)
 	if err != nil {
@@ -54,19 +31,6 @@ func parseLineLink(link string, ld *LineData) error {
 		log.Errorln("parseLineLink: ", err)
 		return err
 	}
-	// // For LINE STORE, the first script is always sticker's metadata in JSON.
-	// err = json.Unmarshal([]byte(doc.Find("script").First().Text()), &lineJson)
-	// if err != nil {
-	// 	log.Errorln("Failed json parsing line link!", err)
-	// 	log.Errorln("Special LINE type? Trying to guess info.")
-	// 	lineJson.Url = link
-	// 	err = parseLineDetails(doc, &lineJson)
-	// 	if err != nil {
-	// 		log.Errorln("parseLineLink: ", err)
-	// 		return err
-	// 	}
-	// 	log.Debugln("Guessed line details: ", lineJson)
-	// }
 
 	t := lineJson.Name
 	i := lineJson.Sku
@@ -137,16 +101,125 @@ func parseLineLink(link string, ld *LineData) error {
 	return nil
 }
 
-func prepareImportStickers(ud *UserData, needConvert bool) error {
-	switch ud.lineData.store {
-	case "line":
-		return prepareLineStickers(ud, needConvert)
-	case "kakao":
-		return prepareKakaoStickers(ud, needConvert)
+func fetchLineI18nLinks(doc *goquery.Document) []string {
+	var i18nLinks []string
+	doc.Find("link").Each(func(i int, s *goquery.Selection) {
+		hreflang, exist := s.Attr("hreflang")
+		if !exist {
+			return
+		}
+		href, exist2 := s.Attr("href")
+		if !exist2 {
+			return
+		}
+		switch hreflang {
+		case "zh-Hant":
+			fallthrough
+		case "ja":
+			fallthrough
+		case "en":
+			i18nLinks = append(i18nLinks, href)
+		}
+	})
+	return i18nLinks
+}
+
+func fetchLineI18nTitles(ld *LineData) {
+	log.Debugln("Fetching LINE i18n titles...")
+	log.Debugln(ld.i18nLinks)
+	defer ld.titleWg.Done()
+
+	var i18nTitles []string
+
+	for _, l := range ld.i18nLinks {
+		page, err := httpGet(l)
+		if err != nil {
+			continue
+		}
+		lineJson := &LineJson{}
+		doc, err := goquery.NewDocumentFromReader(strings.NewReader(page))
+		if err != nil {
+			continue
+		}
+		parseLineDetails(doc, lineJson)
+
+		for _, t := range i18nTitles {
+			// if title duplicates, skip loop
+			if t == lineJson.Name {
+				goto CONTINUE
+			}
+		}
+		i18nTitles = append(i18nTitles, lineJson.Name)
+
+	CONTINUE:
+		continue
 	}
+
+	ld.i18nTitles = i18nTitles
+	log.Debugln("I18N titles are:")
+	log.Debugln(ld.i18nTitles)
+}
+
+// This function goes after parseLineLink
+// Receives a gq document of LINE Store page and parse the details to *LineJson.
+func parseLineDetails(doc *goquery.Document, lj *LineJson) error {
+	// For typical line store page, the first script is sticker's metadata in JSON.
+	// Parse to json, if OK, return nil here.
+	err := json.Unmarshal([]byte(doc.Find("script").First().Text()), lj)
+	if err == nil {
+		return nil
+	}
+
+	// Some new line store page does not have a json metadata <script>
+	log.Warnln("Failed json parsing line link!", err)
+	log.Warnln("Special LINE type? Trying to guess info.")
+
+	// Find URL.
+	doc.Find("meta").Each(func(i int, s *goquery.Selection) {
+		value, _ := s.Attr("property")
+		if value == "og:url" {
+			lj.Url, _ = s.Attr("content")
+		}
+	})
+
+	// Find title.
+	doc.Find("h3").Each(func(i int, s *goquery.Selection) {
+		oa, _ := s.Attr("data-test")
+		if oa == "oa-sticker-title" {
+			lj.Name = s.Text()
+		}
+	})
+	// Find title again.
+	if lj.Name == "" {
+		doc.Find("p").Each(func(i int, s *goquery.Selection) {
+			oa, _ := s.Attr("data-test")
+			if oa == "sticker-name-title" {
+				lj.Name = s.Text()
+			}
+		})
+	}
+	if lj.Name == "" {
+		return errors.New("guess line: no title")
+	}
+
+	// Find ID.
+	var defaultLink string
+	doc.Find("link").Each(func(i int, s *goquery.Selection) {
+		hreflang, _ := s.Attr("hreflang")
+		if hreflang == "x-default" {
+			defaultLink, _ = s.Attr("href")
+		}
+	})
+	lj.Sku = path.Base(defaultLink)
+	if lj.Sku == "" {
+		return errors.New("guess line: no id(no link base)")
+	}
+
+	log.Debugln("parsed line detail:", lj)
 	return nil
 }
 
+// Download and convert sticker files after parseLineLink.
 func prepareLineStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
@@ -287,6 +360,7 @@ func prepareLineMessageS(ud *UserData) error {
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
 
+	//Only curl UA will work.
 	page, err := httpGetCurlUA(ud.lineData.link)
 	if err != nil {
 		return err
@@ -351,95 +425,5 @@ func prepareLineMessageS(ud *UserData) error {
 		log.Debugln("one message sticker OK:", f)
 	}
 
-	return nil
-}
-
-func fetchLineI18nTitles(ld *LineData) {
-	log.Debugln("Fetching LINE i18n titles...")
-	log.Debugln(ld.i18nLinks)
-	defer ld.titleWg.Done()
-
-	var i18nTitles []string
-
-	for _, l := range ld.i18nLinks {
-		page, err := httpGet(l)
-		if err != nil {
-			continue
-		}
-		lineJson := &LineJson{}
-		doc, err := goquery.NewDocumentFromReader(strings.NewReader(page))
-		if err != nil {
-			continue
-		}
-		parseLineDetails(doc, lineJson)
-
-		for _, t := range i18nTitles {
-			// if title duplicates, skip loop
-			if t == lineJson.Name {
-				goto CONTINUE
-			}
-		}
-		i18nTitles = append(i18nTitles, lineJson.Name)
-
-	CONTINUE:
-		continue
-	}
-
-	ld.i18nTitles = i18nTitles
-	log.Debugln("I18N titles are:")
-	log.Debugln(ld.i18nTitles)
-}
-
-func parseLineDetails(doc *goquery.Document, lj *LineJson) error {
-	// For LINE STORE, the first script is always sticker's metadata in JSON.
-	err := json.Unmarshal([]byte(doc.Find("script").First().Text()), lj)
-	if err == nil {
-		return nil
-	}
-
-	log.Warnln("Failed json parsing line link!", err)
-	log.Warnln("Special LINE type? Trying to guess info.")
-
-	// Find URL.
-	doc.Find("meta").Each(func(i int, s *goquery.Selection) {
-		value, _ := s.Attr("property")
-		if value == "og:url" {
-			lj.Url, _ = s.Attr("content")
-		}
-	})
-
-	// Find title.
-	doc.Find("h3").Each(func(i int, s *goquery.Selection) {
-		oa, _ := s.Attr("data-test")
-		if oa == "oa-sticker-title" {
-			lj.Name = s.Text()
-		}
-	})
-	if lj.Name == "" {
-		doc.Find("p").Each(func(i int, s *goquery.Selection) {
-			oa, _ := s.Attr("data-test")
-			if oa == "sticker-name-title" {
-				lj.Name = s.Text()
-			}
-		})
-	}
-	if lj.Name == "" {
-		return errors.New("guess line: no title")
-	}
-
-	// Find ID.
-	var defaultLink string
-	doc.Find("link").Each(func(i int, s *goquery.Selection) {
-		hreflang, _ := s.Attr("hreflang")
-		if hreflang == "x-default" {
-			defaultLink, _ = s.Attr("href")
-		}
-	})
-	lj.Sku = path.Base(defaultLink)
-	if lj.Sku == "" {
-		return errors.New("guess line: no id(no link base)")
-	}
-
-	log.Debugln("parsed line detail:", lj)
 	return nil
 }

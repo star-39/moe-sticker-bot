@@ -21,7 +21,7 @@ func waitRegLineLink(c tele.Context) error {
 	link := findLink(c.Message().Text)
 
 	ud := users.data[c.Sender().ID]
-	err := parseImportLink(link, ud.lineData)
+	err := parseImportLink(c, link, ud.lineData)
 	if err != nil {
 		return c.Send("Wrong link! Try again.")
 	}

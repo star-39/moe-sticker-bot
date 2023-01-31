@@ -75,6 +75,20 @@ func imToGIF(f string) (string, error) {
 	return pathOut, err
 }
 
+func imToApng(f string) (string, error) {
+	pathOut := f + ".apng"
+	bin := CONVERT_BIN
+	args := CONVERT_ARGS
+	args = append(args, f, pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnln("imToApng ERROR:", string(out))
+		return "", err
+	}
+	return pathOut, err
+}
+
 func ffToWebm(f string) (string, error) {
 	pathOut := f + ".webm"
 	bin := "ffmpeg"
@@ -89,7 +103,7 @@ func ffToWebm(f string) (string, error) {
 		return pathOut, err
 	}
 
-	if stat, _ := os.Stat(pathOut); stat.Size() > 260000 {
+	if stat, _ := os.Stat(pathOut); stat.Size() > 255*KiB {
 		log.Warn("ff to webm too big, retrying...")
 		args = []string{"-hide_banner", "-i", f,
 			"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
@@ -100,6 +114,7 @@ func ffToWebm(f string) (string, error) {
 	return pathOut, err
 }
 
+// This function will be called if Telegram's API rejected our webm.
 func ffToWebmSafe(f string) (string, error) {
 	pathOut := f + ".webm"
 	bin := "ffmpeg"
@@ -216,37 +231,6 @@ func imToAnimatedWebpLQ(f string) error {
 	}
 	return err
 }
-
-// Replaces .webm ext to .webp
-// func imToAnimatedWebpWA(f string) error {
-// 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
-// 	bin := CONVERT_BIN
-// 	args := CONVERT_ARGS
-
-// 	//Try qualities from best to worst.
-// 	qualities := []string{"75", "50", "20", "5"}
-// 	for _, q := range qualities {
-// 		args = append(args,
-// 			"-resize", "512x512", "-quality", q,
-// 			"-gravity", "center", "-extent", "512x512", "-background", "none",
-// 			f, pathOut)
-
-// 		out, err := exec.Command(bin, args...).CombinedOutput()
-// 		if err != nil {
-// 			log.Warnln("imToWebp ERROR:", string(out))
-// 			return err
-// 		}
-// 		//WhatsApp uses KiB.
-// 		if st, _ := os.Stat(pathOut); st.Size() > 300*KiB {
-// 			log.Warnf("convert: awebp exceeded 300k, q:%s z:%d s:%s", q, st.Size(), pathOut)
-// 			continue
-// 		} else {
-// 			return nil
-// 		}
-// 	}
-// 	log.Warnln("all retries failed! s:", pathOut)
-// 	return errors.New("bad animated webp?")
-// }
 
 // // animated webp has a pretty bad compression ratio comparing to VP9,
 // // shrink down quality as more as possible.

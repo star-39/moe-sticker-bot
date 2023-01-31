@@ -1,6 +1,8 @@
 package core
 
 import (
+	"strings"
+
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
 )
@@ -25,7 +27,13 @@ func wConvertWebm(i interface{}) {
 	log.Debugln("Converting in pool for:", sf)
 
 	var err error
+	//FFMpeg doest not support animated webp.
+	//IM convert it to apng then feed to webm.
+	if strings.HasSuffix(sf.oPath, ".webp") {
+		sf.oPath, _ = imToApng(sf.oPath)
+	}
 	sf.cPath, err = ffToWebm(sf.oPath)
+
 	if err != nil {
 		sf.cError = err
 	}

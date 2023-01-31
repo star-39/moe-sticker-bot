@@ -14,9 +14,10 @@ import (
 	"sync"
 
 	log "github.com/sirupsen/logrus"
+	tele "gopkg.in/telebot.v3"
 )
 
-func parseKakaoLink(link string, ld *LineData) error {
+func parseKakaoLink(c tele.Context, link string, ld *LineData) error {
 	url, _ := url.Parse(link)
 
 	var kakaoID string
@@ -30,12 +31,12 @@ func parseKakaoLink(link string, ld *LineData) error {
 	// Kakao mobile app share link.
 	case "emoticon.kakao.com":
 		eid, kakaoID, err = fetchKakaoDetailsFromShareLink(link)
+		if err != nil {
+			return err
+		}
 	// unknown host
 	default:
 		return errors.New("unknown kakao link type")
-	}
-	if err != nil {
-		return err
 	}
 
 	var kakaoJson KakaoJson
@@ -47,9 +48,15 @@ func parseKakaoLink(link string, ld *LineData) error {
 	log.Debugln("Parsed kakao link:", link)
 	log.Debugln(kakaoJson.Result)
 
+	// Only share link can be used to query kakao ss code(id).
 	isAnimated := checkKakaoAnimated(kakaoJson.Result.TitleDetailUrl)
 	if isAnimated {
-		ld.dLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
+		if url.Host != "emoticon.kakao.com" {
+			sendNeedKakaoAnimatedShareLinkWarning(c)
+			ld.dLinks = kakaoJson.Result.ThumbnailUrls
+		} else {
+			ld.dLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
+		}
 	} else {
 		ld.dLinks = kakaoJson.Result.ThumbnailUrls
 	}
@@ -80,9 +87,11 @@ func fetchKakaoMetadata(kakaoJson *KakaoJson, kakaoID string) error {
 func prepareKakaoStickers(ud *UserData, needConvert bool) error {
 	ud.udWg.Add(1)
 	defer ud.udWg.Done()
+	ud.stickerData.isVideo = ud.lineData.isAnimated
 	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
 
-	if ud.lineData.isAnimated {
+	// If no dLink, continue importing static ones.
+	if ud.lineData.isAnimated && ud.lineData.dLink != "" {
 		return prepareKakaoAnimatedStickers(ud, needConvert)
 	}
 
@@ -122,16 +131,16 @@ func prepareKakaoStickers(ud *UserData, needConvert bool) error {
 
 func prepareKakaoAnimatedStickers(ud *UserData, needConvert bool) error {
 	workDir := filepath.Join(ud.workDir, ud.lineData.id)
-	savePath := filepath.Join(workDir, "kakao.zip")
+	zipPath := filepath.Join(workDir, "kakao.zip")
 	os.MkdirAll(workDir, 0755)
 
 	ud.wg.Add(1)
-	err := fDownload(ud.lineData.dLink, savePath)
+	err := fDownload(ud.lineData.dLink, zipPath)
 	if err != nil {
 		return err
 	}
 
-	webpFiles := kakaoZipExtract(savePath, ud.lineData)
+	webpFiles := kakaoZipExtract(zipPath, ud.lineData)
 	if len(webpFiles) == 0 {
 		return errors.New("no kakao image")
 	}

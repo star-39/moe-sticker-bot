@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	tele "gopkg.in/telebot.v3"
 )
 
-func parseImportLink(link string, ld *LineData) error {
+func parseImportLink(c tele.Context, link string, ld *LineData) error {
 	u, err := url.Parse(link)
 	if err != nil {
 		return err
@@ -19,10 +20,20 @@ func parseImportLink(link string, ld *LineData) error {
 		return parseLineLink(link, ld)
 	case strings.HasSuffix(u.Host, "kakao.com"):
 		ld.store = "kakao"
-		return parseKakaoLink(link, ld)
+		return parseKakaoLink(c, link, ld)
 	default:
 		return errors.New("unknow import")
 	}
+}
+
+func prepareImportStickers(ud *UserData, needConvert bool) error {
+	switch ud.lineData.store {
+	case "line":
+		return prepareLineStickers(ud, needConvert)
+	case "kakao":
+		return prepareKakaoStickers(ud, needConvert)
+	}
+	return nil
 }
 
 func convertSToTGFormat(ud *UserData) {

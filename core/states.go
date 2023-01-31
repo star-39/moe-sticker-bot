@@ -98,13 +98,13 @@ func handleNoSession(c tele.Context) error {
 			return statePrepareSManage(c)
 		case CB_OK_IMPORT:
 			ud := initUserData(c, "import", "waitSTitle")
-			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
+			parseImportLink(c, findLink(c.Message().ReplyTo.Text), ud.lineData)
 			sendAskTitle_Import(c)
 			return prepareImportStickers(ud, true)
 		case CB_OK_DN:
 			ud := initUserData(c, "download", "process")
 			c.Send("Please wait...")
-			parseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
+			parseImportLink(c, findLink(c.Message().ReplyTo.Text), ud.lineData)
 			return downloadLineSToZip(c, ud)
 		case CB_EXPORT_WA:
 			hex := secHex(6)
@@ -143,7 +143,7 @@ func handleNoSession(c tele.Context) error {
 		}
 	case LINK_IMPORT:
 		ld := &LineData{}
-		err := parseImportLink(link, ld)
+		err := parseImportLink(c, link, ld)
 		if err != nil {
 			return sendBadImportLinkWarn(c)
 		} else {
