@@ -9,10 +9,18 @@ It is designed to be able to operate independentaly from moe-sticker-bot core so
 
 A typical workflow is to call `parseImportLink` then `prepareImportStickers`.
 
+```
+go get -u https://github.com/star-39/moe-sticker-bot
+```
+
+
 ```go
 import "github.com/star-39/moe-sticker-bot/pkg/msbimport"
 
+//Create a context, which can be used to interrupt the process.
 ctx, _ := context.WithCancel(context.Background())
+
+//Create a empty LineData struct pointer.
 ld := &msbimport.LineData{}
 
 //LineData will be parsed to ld.
