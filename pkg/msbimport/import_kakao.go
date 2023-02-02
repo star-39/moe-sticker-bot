@@ -158,7 +158,9 @@ func prepareKakaoAnimatedStickers(ctx context.Context, ld *LineData, workDir str
 		lf := &LineFile{
 			OriginalFile: wf,
 		}
-		lf.Wg.Add(1)
+		if needConvert {
+			lf.Wg.Add(1)
+		}
 		ld.Files = append(ld.Files, lf)
 	}
 	ld.Amount = len(webpFiles)

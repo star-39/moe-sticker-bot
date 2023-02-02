@@ -2,11 +2,7 @@ package msbimport
 
 import (
 	"sync"
-
-	tele "gopkg.in/telebot.v3"
 )
-
-type FuncSendWarning func(tele.Context) error
 
 // Line sticker types
 const (

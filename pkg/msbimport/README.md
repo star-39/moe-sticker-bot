@@ -12,15 +12,15 @@ A typical workflow is to call `parseImportLink` then `prepareImportStickers`.
 ```go
 import "github.com/star-39/moe-sticker-bot/pkg/msbimport"
 
-ctx, cancel := context.WithCancel(context.Background())
+ctx, _ := context.WithCancel(context.Background())
 ld := &msbimport.LineData{}
 
 //LineData will be parsed to ld.
-warn, err := msbimport.ParseLineLink("https://store.line.me/stickershop/product/27286", ld)
+warn, err := msbimport.ParseImportLink("https://store.line.me/stickershop/product/27286", ld)
 if err != nil {
     //handle error here.
 }
-if warn != nil {
+if warn != "" {
     //handle warning message here.
 }
 
@@ -29,7 +29,7 @@ if err != nil {
     //handle error here.
 }
 
-for i, lf := range ld.Files {
+for _, lf := range ld.Files {
     lf.Wg.Wait()
     if lf.CError != nil {
         //hanlde sticker error here.
