@@ -30,10 +30,10 @@ Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot<
 • Send <b>keywords</b> to search titles.
 or use a command above.
 
-你好, 歡迎使用萌萌貼圖BOT! 請：
-• 傳送LINE/kakao貼圖包的分享連結來匯入或下載.
-• 傳送Telegram貼圖來下載或管理.
-• 傳送文字來搜尋貼圖標題.
+你好, 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
+• 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
+• 傳送<b>Telegram貼圖</b>來下載或管理.
+• 傳送<b>文字</b>來搜尋貼圖標題.
 或 從上方點選指令.
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
@@ -95,7 +95,6 @@ A:  It's you of course. You can manage them through /manage or Telegram's offici
 func sendChangelog(c tele.Context) error {
 	return c.Send(`
 https://github.com/star-39/moe-sticker-bot#changelog
-
 v2.2.0 (20230131)
   * Support animated kakao sticker.
   * 支援動態kakao貼圖。
@@ -110,8 +109,8 @@ v2.0.0 (20230105)
   * Auto import now happens on backgroud.
   * Downloading sticker set is now lot faster.
   * Fix many LINE import issues.
-  * 通過/manage指令使用新的WebApp輕鬆管理貼圖包.
-  * 直接傳送文字或使用/search指令來搜尋所有用戶匯入的LINE/KAKAO貼圖包.
+  * 通過 /manage 指令使用新的WebApp輕鬆管理貼圖包.
+  * 直接傳送文字或使用 /search 指令來搜尋所有用戶匯入的LINE/KAKAO貼圖包.
   * 自動匯入現在會在背景處理.
   * 下載整個貼圖包的速度現在會快許多.
   * 修復了許多LINE貼圖匯入的問題.
@@ -225,14 +224,14 @@ func sendAskWhatToDownload(c tele.Context) error {
 
 func sendAskTitle_Import(c tele.Context) error {
 	ld := users.data[c.Sender().ID].lineData
-	ld.titleWg.Wait()
+	ld.TitleWg.Wait()
 	log.Debug("titles are::")
-	log.Debugln(ld.i18nTitles)
+	log.Debugln(ld.I18nTitles)
 	selector := &tele.ReplyMarkup{}
 
 	var titleButtons []tele.Row
 	var titleText string
-	for i, t := range ld.i18nTitles {
+	for i, t := range ld.I18nTitles {
 		if t == "" {
 			continue
 		}
@@ -244,7 +243,7 @@ func sendAskTitle_Import(c tele.Context) error {
 	}
 
 	if len(titleButtons) == 0 {
-		btnDefault := selector.Data(escapeTagMark(ld.title)+" @"+botName, CB_DEFAULT_TITLE)
+		btnDefault := selector.Data(escapeTagMark(ld.Title)+" @"+botName, CB_DEFAULT_TITLE)
 		titleButtons = []tele.Row{selector.Row(btnDefault)}
 	}
 	selector.Inline(titleButtons...)
@@ -448,6 +447,7 @@ func sendFatalError(err error, c tele.Context) {
 	}
 	log.Error("User encountered fatal error!")
 	log.Errorln("Raw error:", err)
+	debug.PrintStack()
 
 	c.Send("<b>Fatal error! Please try again. /start\n"+
 		"發生嚴重錯誤! 請您從頭再試一次. /start </b>\n\n"+
@@ -471,8 +471,8 @@ TG Title:</code><a href="%s">%s</a>
 
 <b>Progress / 進展</b>
 <code>%s</code>
-`, ud.lineData.category,
-		ud.lineData.id,
+`, ud.lineData.Category,
+		ud.lineData.Id,
 		ud.stickerData.id,
 		"https://t.me/addstickers/"+ud.stickerData.id,
 		escapeTagMark(ud.stickerData.title),

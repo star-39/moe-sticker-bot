@@ -1,15 +1,55 @@
-package core
+package convert
 
 import (
 	"errors"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func imToWebp(f string) (string, error) {
+var BSDTAR_BIN = "bsdtar"
+var CONVERT_BIN = "convert"
+var CONVERT_ARGS []string
+
+// See: http://en.wikipedia.org/wiki/Binary_prefix
+const (
+	// Decimal
+	KB = 1000
+	MB = 1000 * KB
+	GB = 1000 * MB
+	TB = 1000 * GB
+	PB = 1000 * TB
+
+	// Binary
+	KiB = 1024
+	MiB = 1024 * KiB
+	GiB = 1024 * MiB
+	TiB = 1024 * GiB
+	PiB = 1024 * TiB
+)
+
+// Should called before using functions in this package.
+// Otherwise, defaults to Linux environment.
+func InitConvert() {
+	switch runtime.GOOS {
+	case "linux":
+		BSDTAR_BIN = "bsdtar"
+		CONVERT_BIN = "convert"
+	case "darwin":
+		BSDTAR_BIN = "bsdtar"
+		CONVERT_BIN = "magick"
+		CONVERT_ARGS = []string{"convert"}
+	default:
+		BSDTAR_BIN = "tar"
+		CONVERT_BIN = "magick"
+		CONVERT_ARGS = []string{"convert"}
+	}
+}
+
+func IMToWebp(f string) (string, error) {
 	pathOut := f + ".webp"
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
@@ -23,7 +63,7 @@ func imToWebp(f string) (string, error) {
 	return pathOut, err
 }
 
-func imToWebpWA(f string) error {
+func IMToWebpWA(f string) error {
 	pathOut := f
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
@@ -47,7 +87,7 @@ func imToWebpWA(f string) error {
 	return errors.New("bad webp")
 }
 
-func imToPng(f string) (string, error) {
+func IMToPng(f string) (string, error) {
 	pathOut := f + ".png"
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
@@ -61,7 +101,7 @@ func imToPng(f string) (string, error) {
 	return pathOut, err
 }
 
-func imToGIF(f string) (string, error) {
+func IMToGIF(f string) (string, error) {
 	pathOut := f + ".gif"
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
@@ -75,7 +115,7 @@ func imToGIF(f string) (string, error) {
 	return pathOut, err
 }
 
-func imToApng(f string) (string, error) {
+func IMToApng(f string) (string, error) {
 	pathOut := f + ".apng"
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
@@ -89,7 +129,7 @@ func imToApng(f string) (string, error) {
 	return pathOut, err
 }
 
-func ffToWebm(f string) (string, error) {
+func FFToWebm(f string) (string, error) {
 	pathOut := f + ".webm"
 	bin := "ffmpeg"
 	args := []string{"-hide_banner", "-i", f,
@@ -115,7 +155,7 @@ func ffToWebm(f string) (string, error) {
 }
 
 // This function will be called if Telegram's API rejected our webm.
-func ffToWebmSafe(f string) (string, error) {
+func FFToWebmSafe(f string) (string, error) {
 	pathOut := f + ".webm"
 	bin := "ffmpeg"
 	args := []string{"-hide_banner", "-i", f,
@@ -128,7 +168,7 @@ func ffToWebmSafe(f string) (string, error) {
 	return pathOut, err
 }
 
-func ffToGifShrink(f string) (string, error) {
+func FFToGifShrink(f string) (string, error) {
 	var decoder []string
 	var args []string
 	if strings.HasSuffix(f, ".webm") {
@@ -149,7 +189,7 @@ func ffToGifShrink(f string) (string, error) {
 	return pathOut, err
 }
 
-func ffToGif(f string) (string, error) {
+func FFToGif(f string) (string, error) {
 	var decoder []string
 	var args []string
 	if strings.HasSuffix(f, ".webm") {
@@ -170,15 +210,15 @@ func ffToGif(f string) (string, error) {
 	return pathOut, err
 }
 
-func ffToGifSafe(f string) (string, error) {
-	of, err := ffToGif(f)
+func FFToGifSafe(f string) (string, error) {
+	of, err := FFToGif(f)
 	if err != nil {
 		return "", err
 	}
 	// GIF should not larget than 20MB
 	if stat, _ := os.Stat(of); stat.Size() > 20000000 {
 		log.Warn("GIF too big! try shrink")
-		of, err = ffToGifShrink(f)
+		of, err = FFToGifShrink(f)
 		if err != nil {
 			return "", err
 		}
@@ -186,7 +226,7 @@ func ffToGifSafe(f string) (string, error) {
 	return of, err
 }
 
-func imStackToWebp(base string, overlay string) (string, error) {
+func IMStackToWebp(base string, overlay string) (string, error) {
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
 	fOut := base + ".composite.webp"
@@ -204,7 +244,7 @@ func imStackToWebp(base string, overlay string) (string, error) {
 
 // lottie has severe problem when converting directly to GIF.
 // Convert to WEBP first, then GIF.
-func lottieToGIF(f string) (string, error) {
+func LottieToGIF(f string) (string, error) {
 	bin := "lottie_convert.py"
 	fOut := f + ".webp"
 	args := []string{f, fOut}
@@ -218,7 +258,7 @@ func lottieToGIF(f string) (string, error) {
 }
 
 // Replaces .webm ext to .webp
-func imToAnimatedWebpLQ(f string) error {
+func IMToAnimatedWebpLQ(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
@@ -234,7 +274,7 @@ func imToAnimatedWebpLQ(f string) error {
 
 // // animated webp has a pretty bad compression ratio comparing to VP9,
 // // shrink down quality as more as possible.
-func ffToAnimatedWebpWA(f string) error {
+func FFToAnimatedWebpWA(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
 	bin := "ffmpeg"
 	//Try qualities from best to worst.
@@ -272,7 +312,7 @@ func ffToAnimatedWebpWA(f string) error {
 }
 
 // Replaces .webm or .webp to .png
-func imToPNGThumb(f string) error {
+func IMToPNGThumb(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".png")
 	pathOut = strings.ReplaceAll(pathOut, ".webp", ".png")
 	bin := CONVERT_BIN

@@ -2,10 +2,12 @@ package core
 
 import (
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -65,13 +67,13 @@ func handleMessage(c tele.Context) error {
 			err = stateProcessing(c)
 		}
 
-	case "register":
-		switch state {
-		case "waitRegLineLink":
-			err = waitRegLineLink(c)
-		case "waitRegS":
-			err = waitRegS(c)
-		}
+	// case "register":
+	// 	switch state {
+	// 	case "waitRegLineLink":
+	// 		err = waitRegLineLink(c)
+	// 	case "waitRegS":
+	// 		err = waitRegS(c)
+	// 	}
 	case "search":
 		switch state {
 		case "waitSearchKW":
@@ -97,14 +99,11 @@ func handleNoSession(c tele.Context) error {
 		case CB_MANAGE:
 			return statePrepareSManage(c)
 		case CB_OK_IMPORT:
-			ud := initUserData(c, "import", "waitSTitle")
-			parseImportLink(c, findLink(c.Message().ReplyTo.Text), ud.lineData)
-			sendAskTitle_Import(c)
-			return prepareImportStickers(ud, true)
+			return confirmImport(c)
 		case CB_OK_DN:
 			ud := initUserData(c, "download", "process")
 			c.Send("Please wait...")
-			parseImportLink(c, findLink(c.Message().ReplyTo.Text), ud.lineData)
+			msbimport.ParseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
 			return downloadLineSToZip(c, ud)
 		case CB_EXPORT_WA:
 			hex := secHex(6)
@@ -142,14 +141,18 @@ func handleNoSession(c tele.Context) error {
 			return sendAskWantSDown(c)
 		}
 	case LINK_IMPORT:
-		ld := &LineData{}
-		err := parseImportLink(c, link, ld)
+		ld := &msbimport.LineData{}
+		warn, err := msbimport.ParseImportLink(link, ld)
 		if err != nil {
 			return sendBadImportLinkWarn(c)
-		} else {
-			sendNotifySExist(c, ld.id)
-			return sendAskWantImportOrDownload(c)
 		}
+		if warn != "" {
+			sendNeedKakaoAnimatedShareLinkWarning(c)
+		}
+
+		sendNotifySExist(c, ld.Id)
+		return sendAskWantImportOrDownload(c)
+
 	default:
 		// User sent plain text, attempt to search.
 		if trySearchKeyword(c) {
@@ -158,6 +161,40 @@ func handleNoSession(c tele.Context) error {
 			return sendNoSessionWarning(c)
 		}
 	}
+}
+
+func confirmImport(c tele.Context) error {
+	ud := initUserData(c, "import", "waitSTitle")
+	_, err := msbimport.ParseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
+	if err != nil {
+		return err
+	}
+	ud.stickerData.id = sanitizeLineID(ud.lineData.Category + ud.lineData.Id + secHex(2) + "_by_" + botName)
+	workDir := filepath.Join(ud.workDir, ud.lineData.Id)
+	sendAskTitle_Import(c)
+	ud.wg.Add(1)
+	err = msbimport.PrepareImportStickers(ud.ctx, ud.lineData, workDir, true)
+	ud.wg.Done()
+	if err != nil {
+		return err
+	}
+	ud.stickerData.lAmount = ud.lineData.Amount
+	ud.stickerData.isVideo = ud.lineData.IsAnimated
+
+	//After PrepareImportStickers returns, individual LineFile might not be ready yet.
+	//When transfering data to ud.stickerData.stickers, make sure transfer finished data only.
+	for range ud.lineData.Files {
+		sf := &StickerFile{}
+		sf.wg.Add(1)
+		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
+	}
+	for i, lf := range ud.lineData.Files {
+		lf.Wg.Wait()
+		ud.stickerData.stickers[i].wg.Done()
+		ud.stickerData.stickers[i].oPath = lf.OriginalFile
+		ud.stickerData.stickers[i].cPath = lf.ConvertedFile
+	}
+	return nil
 }
 
 func trySearchKeyword(c tele.Context) bool {
@@ -359,9 +396,9 @@ func waitSTitle(c tele.Context) error {
 		}
 		titleIndex, atoiErr := strconv.Atoi(c.Callback().Data)
 		if atoiErr == nil && titleIndex != -1 {
-			ud.stickerData.title = ud.lineData.i18nTitles[titleIndex] + " @" + botName
+			ud.stickerData.title = ud.lineData.I18nTitles[titleIndex] + " @" + botName
 		} else {
-			ud.stickerData.title = ud.lineData.title + " @" + botName
+			ud.stickerData.title = ud.lineData.Title + " @" + botName
 		}
 	}
 

@@ -1,6 +1,7 @@
-package core
+package msbimport
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,18 +12,20 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"sync"
+
+	"github.com/star-39/moe-sticker-bot/pkg/convert"
+	"github.com/star-39/moe-sticker-bot/pkg/util"
 
 	log "github.com/sirupsen/logrus"
-	tele "gopkg.in/telebot.v3"
 )
 
-func parseKakaoLink(c tele.Context, link string, ld *LineData) error {
-	url, _ := url.Parse(link)
-
+func parseKakaoLink(link string, ld *LineData) (string, error) {
 	var kakaoID string
 	var eid string
 	var err error
+	var warn string
+
+	url, _ := url.Parse(link)
 
 	switch url.Host {
 	// Kakao web link.
@@ -32,17 +35,17 @@ func parseKakaoLink(c tele.Context, link string, ld *LineData) error {
 	case "emoticon.kakao.com":
 		eid, kakaoID, err = fetchKakaoDetailsFromShareLink(link)
 		if err != nil {
-			return err
+			return warn, err
 		}
 	// unknown host
 	default:
-		return errors.New("unknown kakao link type")
+		return warn, errors.New("unknown kakao link type")
 	}
 
 	var kakaoJson KakaoJson
 	err = fetchKakaoMetadata(&kakaoJson, kakaoID)
 	if err != nil {
-		return err
+		return warn, err
 	}
 
 	log.Debugln("Parsed kakao link:", link)
@@ -52,21 +55,24 @@ func parseKakaoLink(c tele.Context, link string, ld *LineData) error {
 	isAnimated := checkKakaoAnimated(kakaoJson.Result.TitleDetailUrl)
 	if isAnimated {
 		if url.Host != "emoticon.kakao.com" {
-			sendNeedKakaoAnimatedShareLinkWarning(c)
-			ld.dLinks = kakaoJson.Result.ThumbnailUrls
+			ld.DLinks = kakaoJson.Result.ThumbnailUrls
+			ld.IsAnimated = false
+			warn = "need share link for animated kakao"
 		} else {
-			ld.dLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
+			ld.DLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
+			ld.IsAnimated = true
 		}
 	} else {
-		ld.dLinks = kakaoJson.Result.ThumbnailUrls
+		ld.DLinks = kakaoJson.Result.ThumbnailUrls
+		ld.IsAnimated = false
 	}
 
-	ld.title = kakaoJson.Result.Title
-	ld.id = strings.ReplaceAll(kakaoJson.Result.TitleUrl, "-", "_")
-	ld.link = link
-	ld.isAnimated = isAnimated
-	ld.amount = len(ld.dLinks)
-	return nil
+	ld.Title = kakaoJson.Result.Title
+	ld.Id = kakaoJson.Result.TitleUrl
+	ld.Link = link
+	ld.Amount = len(ld.DLinks)
+	ld.Category = KAKAO_EMOTICON
+	return warn, nil
 }
 
 func fetchKakaoMetadata(kakaoJson *KakaoJson, kakaoID string) error {
@@ -84,84 +90,85 @@ func fetchKakaoMetadata(kakaoJson *KakaoJson, kakaoID string) error {
 	return nil
 }
 
-func prepareKakaoStickers(ud *UserData, needConvert bool) error {
-	ud.udWg.Add(1)
-	defer ud.udWg.Done()
-	ud.stickerData.isVideo = ud.lineData.isAnimated
-	ud.stickerData.id = "kakao_" + ud.lineData.id + secHex(2) + "_by_" + botName
-
+// Download and convert(if needed) stickers to work directory.
+// *ld will be modified and loaded with local sticker information.
+func prepareKakaoStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
 	// If no dLink, continue importing static ones.
-	if ud.lineData.isAnimated && ud.lineData.dLink != "" {
-		return prepareKakaoAnimatedStickers(ud, needConvert)
+	if ld.IsAnimated && ld.DLink != "" {
+		return prepareKakaoAnimatedStickers(ctx, ld, workDir, needConvert)
+	} else {
+		//Set is aniamted to false if importing static ones of animated pack.
+		ld.IsAnimated = false
 	}
 
-	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	os.MkdirAll(workDir, 0755)
 
-	for range ud.lineData.dLinks {
-		sf := &StickerFile{}
-		sf.wg.Add(1)
-		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
-		ud.stickerData.lAmount += 1
+	//Initialize Files with wg added.
+	//This is intended for async operation.
+	//When user reached commitSticker state, sticker will be waited one by one.
+	for range ld.DLinks {
+		lf := &LineFile{}
+		lf.Wg.Add(1)
+		ld.Files = append(ld.Files, lf)
 	}
-	for i, l := range ud.lineData.dLinks {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("prepKakaoStickers received ctxDone!")
-			return nil
-		default:
-		}
-		f := filepath.Join(workDir, path.Base(l)+".png")
-		err := httpDownload(l, f)
-		if err != nil {
-			return err
-		}
-		cf, _ := imToWebp(f)
-		ud.lineData.files = append(ud.lineData.files, f)
-		ud.stickerData.stickers[i].oPath = f
-		ud.stickerData.stickers[i].cPath = cf
-		ud.stickerData.stickers[i].wg.Done()
 
-		log.Debug("Done process one kakao emoticon")
-		log.Debugf("f:%s, cf:%s", f, cf)
-	}
-	log.Debug("Done process ALL kakao emoticons")
+	//Download stickers one by one.
+	go func() {
+		for i, l := range ld.DLinks {
+			select {
+			case <-ctx.Done():
+				log.Warn("prepareKakaoStickers received ctxDone!")
+				return
+			default:
+			}
+
+			f := filepath.Join(workDir, path.Base(l)+".png")
+			err := httpDownload(l, f)
+			if err != nil {
+				ld.Files[i].CError = err
+			}
+			cf, _ := convert.IMToWebp(f)
+			ld.Files[i].OriginalFile = f
+			ld.Files[i].ConvertedFile = cf
+			ld.Files[i].Wg.Done()
+
+			log.Debug("Done process one kakao emoticon")
+			log.Debugf("f:%s, cf:%s", f, cf)
+		}
+		log.Debug("Done process ALL kakao emoticons")
+	}()
 	return nil
 }
 
-func prepareKakaoAnimatedStickers(ud *UserData, needConvert bool) error {
-	workDir := filepath.Join(ud.workDir, ud.lineData.id)
+func prepareKakaoAnimatedStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
 	zipPath := filepath.Join(workDir, "kakao.zip")
 	os.MkdirAll(workDir, 0755)
 
-	ud.wg.Add(1)
-	err := fDownload(ud.lineData.dLink, zipPath)
+	err := fDownload(ld.DLink, zipPath)
 	if err != nil {
 		return err
 	}
 
-	webpFiles := kakaoZipExtract(zipPath, ud.lineData)
+	webpFiles := kakaoZipExtract(zipPath, ld)
 	if len(webpFiles) == 0 {
 		return errors.New("no kakao image")
 	}
-	ud.wg.Done()
 
-	ud.lineData.files = webpFiles
-	ud.lineData.amount = len(webpFiles)
-	ud.stickerData.lAmount = len(webpFiles)
-
-	for _, f := range webpFiles {
-		sf := &StickerFile{oPath: f}
-		sf.wg = sync.WaitGroup{}
-		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
+	for _, wf := range webpFiles {
+		lf := &LineFile{
+			OriginalFile: wf,
+		}
+		lf.Wg.Add(1)
+		ld.Files = append(ld.Files, lf)
 	}
+	ld.Amount = len(webpFiles)
 
 	if needConvert {
-		convertSToTGFormat(ud)
+		go convertSToTGFormat(ctx, ld)
 	}
 
 	log.Debug("Done preparing kakao files:")
-	log.Debugln(ud.lineData, ud.stickerData)
+	log.Debugln(ld)
 
 	return nil
 
@@ -175,7 +182,7 @@ func kakaoZipExtract(f string, ld *LineData) []string {
 		return nil
 	}
 	log.Debugln("scanning workdir:", workDir)
-	files = lsFiles(workDir, []string{".webp"}, []string{})
+	files = util.LsFiles(workDir, []string{".webp"}, []string{})
 
 	for _, f := range files {
 		//This script decrypts the file in-place.

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
 	"gopkg.in/telebot.v3/middleware"
 )
@@ -43,7 +43,7 @@ func Init() {
 	b.Handle("/manage", cmdManage, checkState)
 	b.Handle("/search", cmdSearch, checkState)
 
-	b.Handle("/register", cmdRegister, checkState)
+	// b.Handle("/register", cmdRegister, checkState)
 	b.Handle("/statrep", cmdStatRep, checkState)
 
 	b.Handle("/start", cmdStart, checkState)
@@ -115,6 +115,7 @@ func initWorkspace(b *tele.Bot) {
 	users = Users{data: make(map[int64]*UserData)}
 	downloadQueue = DownloadQueue{ss: make(map[string]bool)}
 	webAppSSAuthList = WebAppQIDAuthList{sa: make(map[string]*WebAppQIDAuthObject)}
+	msbimport.InitWorkersPool()
 	err := os.MkdirAll(dataDir, 0755)
 	if err != nil {
 		log.Fatal(err)
@@ -130,21 +131,14 @@ func initWorkspace(b *tele.Bot) {
 		log.Warn("Not using database because --use_db is not set.")
 	}
 
-	if runtime.GOOS == "linux" {
-		BSDTAR_BIN = "bsdtar"
-		CONVERT_BIN = "convert"
-	} else {
-		BSDTAR_BIN = "tar"
-		CONVERT_BIN = "magick"
-		CONVERT_ARGS = []string{"convert"}
-	}
 }
 
 func initGoCron() {
 	time.Sleep(15 * time.Second)
 	cronScheduler = gocron.NewScheduler(time.UTC)
-	cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
-	cronScheduler.Every(1).Weeks().Do(curateDatabase)
+	//DEBUG
+	// cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
+	// cronScheduler.Every(1).Weeks().Do(curateDatabase)
 	cronScheduler.StartAsync()
 }
 

@@ -1,6 +1,7 @@
-package core
+package msbimport
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -8,28 +9,30 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/convert"
+	"github.com/star-39/moe-sticker-bot/pkg/util"
 )
 
-func parseLineLink(link string, ld *LineData) error {
+func parseLineLink(link string, ld *LineData) (string, error) {
+	var warn string
 	page, err := httpGet(link)
 	if err != nil {
-		return err
+		return warn, err
 	}
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(page))
 	if err != nil {
 		log.Errorln("Failed gq parsing line link!", err)
-		return err
+		return warn, err
 	}
 
 	var lineJson LineJson
 	err = parseLineDetails(doc, &lineJson)
 	if err != nil {
 		log.Errorln("parseLineLink: ", err)
-		return err
+		return warn, err
 	}
 
 	t := lineJson.Name
@@ -82,23 +85,24 @@ func parseLineLink(link string, ld *LineData) error {
 			d = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + i + "/iphone/package.zip"
 		}
 	} else {
-		return errors.New("unknown line store category")
+		return warn, errors.New("unknown line store category")
 	}
 	if ld == nil {
-		return nil
+		return warn, nil
 	}
 
-	ld.link = u
-	ld.i18nLinks = ls
-	ld.category = c
-	ld.dLink = d
-	ld.id = i
-	ld.title = t
-	ld.isAnimated = a
+	ld.Link = u
+	ld.I18nLinks = ls
+	ld.Category = c
+	ld.DLink = d
+	ld.Id = i
+	ld.Title = t
+	ld.IsAnimated = a
+
 	log.Debugln("line data parsed:", ld)
-	ld.titleWg.Add(1)
+
 	go fetchLineI18nTitles(ld)
-	return nil
+	return warn, nil
 }
 
 func fetchLineI18nLinks(doc *goquery.Document) []string {
@@ -125,13 +129,14 @@ func fetchLineI18nLinks(doc *goquery.Document) []string {
 }
 
 func fetchLineI18nTitles(ld *LineData) {
+	ld.TitleWg.Add(1)
+	defer ld.TitleWg.Done()
 	log.Debugln("Fetching LINE i18n titles...")
-	log.Debugln(ld.i18nLinks)
-	defer ld.titleWg.Done()
+	log.Debugln(ld.I18nLinks)
 
 	var i18nTitles []string
 
-	for _, l := range ld.i18nLinks {
+	for _, l := range ld.I18nLinks {
 		page, err := httpGet(l)
 		if err != nil {
 			continue
@@ -155,9 +160,9 @@ func fetchLineI18nTitles(ld *LineData) {
 		continue
 	}
 
-	ld.i18nTitles = i18nTitles
+	ld.I18nTitles = i18nTitles
 	log.Debugln("I18N titles are:")
-	log.Debugln(ld.i18nTitles)
+	log.Debugln(ld.I18nTitles)
 }
 
 // This function goes after parseLineLink
@@ -220,49 +225,40 @@ func parseLineDetails(doc *goquery.Document, lj *LineJson) error {
 }
 
 // Download and convert sticker files after parseLineLink.
-func prepareLineStickers(ud *UserData, needConvert bool) error {
-	ud.udWg.Add(1)
-	defer ud.udWg.Done()
-	ud.stickerData.isVideo = ud.lineData.isAnimated
-	ud.stickerData.id = "line_" + ud.lineData.id + secNum(4) + "_by_" + botName
-
-	if ud.lineData.category == LINE_STICKER_MESSAGE {
-		return prepareLineMessageS(ud)
+func prepareLineStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
+	if ld.Category == LINE_STICKER_MESSAGE {
+		return prepareLineMessageS(ctx, ld, workDir, needConvert)
 	}
 
-	workDir := filepath.Join(ud.workDir, ud.lineData.id)
 	savePath := filepath.Join(workDir, "line.zip")
 	os.MkdirAll(workDir, 0755)
 
-	ud.wg.Add(1)
-	err := fDownload(ud.lineData.dLink, savePath)
+	err := fDownload(ld.DLink, savePath)
 	if err != nil {
 		return err
 	}
 
-	pngFiles := lineZipExtract(savePath, ud.lineData)
+	pngFiles := lineZipExtract(savePath, ld)
 	if len(pngFiles) == 0 {
 		return errors.New("no line image")
 	}
-	ud.wg.Done()
 
-	ud.lineData.files = pngFiles
-	ud.lineData.amount = len(pngFiles)
-	ud.stickerData.lAmount = len(pngFiles)
-
-	for _, f := range pngFiles {
-		sf := &StickerFile{oPath: f}
-		sf.wg = sync.WaitGroup{}
-		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
+	for _, pf := range pngFiles {
+		lf := &LineFile{
+			OriginalFile: pf,
+		}
+		lf.Wg.Add(1)
+		ld.Files = append(ld.Files, lf)
 	}
+	ld.Amount = len(pngFiles)
 
 	if needConvert {
 		log.Debugln("start converting...")
-		convertSToTGFormat(ud)
+		go convertSToTGFormat(ctx, ld)
 	}
 
 	log.Debug("Done preparing line files:")
-	log.Debugln(ud.lineData, ud.stickerData)
+	log.Debugln(ld)
 
 	return nil
 }
@@ -275,7 +271,7 @@ func lineZipExtract(f string, ld *LineData) []string {
 	}
 	log.Debugln("scanning workdir:", workDir)
 
-	switch ld.category {
+	switch ld.Category {
 	case LINE_STICKER_ANIMATION:
 		files, _ = filepath.Glob(filepath.Join(workDir, "animation@2x", "*.png"))
 	case LINE_STICKER_POPUP:
@@ -285,9 +281,9 @@ func lineZipExtract(f string, ld *LineData) []string {
 		for _, pf := range pfs {
 			os.Rename(pf, filepath.Join(workDir, strings.TrimSuffix(filepath.Base(pf), ".png")+"@99.png"))
 		}
-		files = lsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
+		files = util.LsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	default:
-		files = lsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
+		files = util.LsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	}
 	sanitizeLinePNGs(files)
 	return files
@@ -323,7 +319,7 @@ func removeAPNGtEXtChunk(f string) bool {
 	}
 	textStart := 0
 	textEnd := 0
-	for i, _ := range bytes {
+	for i := range bytes {
 		if i > l-10 {
 			break
 		}
@@ -356,12 +352,14 @@ func removeAPNGtEXtChunk(f string) bool {
 	return true
 }
 
-func prepareLineMessageS(ud *UserData) error {
-	workDir := filepath.Join(ud.workDir, ud.lineData.id)
+// Line message sticker is a composition of two stickers.
+// One represents the backgroud and one represents the foreground text.
+// We need to composite them together.
+func prepareLineMessageS(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
 	os.MkdirAll(workDir, 0755)
 
 	//Only curl UA will work.
-	page, err := httpGetCurlUA(ud.lineData.link)
+	page, err := httpGetCurlUA(ld.Link)
 	if err != nil {
 		return err
 	}
@@ -393,37 +391,35 @@ func prepareLineMessageS(ud *UserData) error {
 	log.Debugln("overlay images:", overlayImages)
 
 	for range baseImages {
-		sf := &StickerFile{}
-		sf.wg = sync.WaitGroup{}
-		sf.wg.Add(1)
-		ud.stickerData.stickers = append(ud.stickerData.stickers, sf)
+		lf := &LineFile{}
+		lf.Wg.Add(1)
+		ld.Files = append(ld.Files, lf)
 	}
+	ld.Amount = len(baseImages)
 
-	ud.lineData.amount = len(baseImages)
-	ud.stickerData.lAmount = ud.lineData.amount
-
-	for i, b := range baseImages {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("prepLineMessageS received ctxDone!")
-			return nil
-		default:
+	go func() {
+		for i, b := range baseImages {
+			select {
+			case <-ctx.Done():
+				log.Warn("prepLineMessageS received ctxDone!")
+				return
+			default:
+			}
+			log.Debugln("Preparing one message sticker... index:", i)
+			bPath := filepath.Join(workDir, strconv.Itoa(i)+".base.png")
+			oPath := filepath.Join(workDir, strconv.Itoa(i)+".overlay.png")
+			httpDownloadCurlUA(b, bPath)
+			httpDownloadCurlUA(overlayImages[i], oPath)
+			f, err := convert.IMStackToWebp(bPath, oPath)
+			if err != nil {
+				ld.Files[i].CError = err
+			}
+			ld.Files[i].ConvertedFile = f
+			ld.Files[i].OriginalFile = f
+			ld.Files[i].Wg.Done()
+			log.Debugln("one line message sticker OK:", f)
 		}
-		log.Debugln("Preparing one message sticker... index:", i)
-		bPath := filepath.Join(workDir, strconv.Itoa(i)+".base.png")
-		oPath := filepath.Join(workDir, strconv.Itoa(i)+".overlay.png")
-		httpDownloadCurlUA(b, bPath)
-		httpDownloadCurlUA(overlayImages[i], oPath)
-		f, err := imStackToWebp(bPath, oPath)
-		if err != nil {
-			return err
-		}
-		ud.lineData.files = append(ud.lineData.files, f)
-		ud.stickerData.stickers[i].oPath = f
-		ud.stickerData.stickers[i].cPath = f
-		ud.stickerData.stickers[i].wg.Done()
-		log.Debugln("one message sticker OK:", f)
-	}
+	}()
 
 	return nil
 }

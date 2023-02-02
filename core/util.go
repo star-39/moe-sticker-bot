@@ -349,3 +349,9 @@ func hashCRC64(s string) string {
 	csum := fmt.Sprintf("%x", h.Sum(nil))
 	return csum
 }
+
+func sanitizeLineID(s string) string {
+	s = strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, "__", "_")
+	return s
+}

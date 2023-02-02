@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -52,7 +53,7 @@ func initUserData(c tele.Context, command string, state string) *UserData {
 		// userDir:       filepath.Join(dataDir, strconv.FormatInt(uid, 10)),
 		workDir:     filepath.Join(dataDir, sID),
 		command:     command,
-		lineData:    &LineData{},
+		lineData:    &msbimport.LineData{},
 		stickerData: &StickerData{},
 		// stickerManage: &StickerManage{},
 		ctx:    ctx,

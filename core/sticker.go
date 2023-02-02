@@ -8,9 +8,12 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/convert"
+	"github.com/star-39/moe-sticker-bot/pkg/util"
 	tele "gopkg.in/telebot.v3"
 )
 
+// Final stage of automated sticker submission.
 func execAutoCommit(createSet bool, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	pText, teleMsg, _ := sendProcessStarted(ud, c, "Preparing...")
@@ -78,7 +81,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	}
 	if createSet {
 		if ud.command == "import" {
-			insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, true)
+			insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, true)
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
@@ -135,7 +138,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	if ud.stickerData.pos == ud.stickerData.lAmount {
 		if createSet {
 			if ud.command == "import" {
-				insertLineS(ud.lineData.id, ud.lineData.link, ud.stickerData.id, ud.stickerData.title, false)
+				insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, false)
 			}
 			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 		}
@@ -167,7 +170,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 		if !safeMode {
 			f = sf.cPath
 		} else {
-			f, _ = ffToWebmSafe(sf.oPath)
+			f, _ = convert.FFToWebmSafe(sf.oPath)
 		}
 		ss.WebM = &tele.File{FileLocal: f}
 	} else {
@@ -339,7 +342,7 @@ func appendMedia(c tele.Context) error {
 		return errors.New("error downloading media")
 	}
 	if c.Message().Media().MediaType() == "document" && guessIsArchive(c.Message().Document.FileName) {
-		files = append(files, archiveExtract(savePath)...)
+		files = append(files, util.ArchiveExtract(savePath)...)
 	} else {
 		files = append(files, savePath)
 	}
@@ -352,10 +355,10 @@ func appendMedia(c tele.Context) error {
 			if c.Message().Sticker != nil && c.Message().Sticker.Video {
 				cf = f
 			} else {
-				cf, err = ffToWebm(f)
+				cf, err = convert.FFToWebm(f)
 			}
 		} else {
-			cf, err = imToWebp(f)
+			cf, err = convert.IMToWebp(f)
 		}
 		if err != nil {
 			log.Warnln("Failed converting one user sticker", err)

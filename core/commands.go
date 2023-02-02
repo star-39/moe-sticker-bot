@@ -83,7 +83,6 @@ func cmdQuit(c tele.Context) error {
 	}
 	c.Send("Please wait...")
 	ud.cancel()
-	ud.udWg.Wait()
 	// for _, s := range ud.stickerData.stickers {
 	// 	s.wg.Wait()
 	// }

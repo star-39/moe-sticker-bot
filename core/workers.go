@@ -1,10 +1,9 @@
 package core
 
 import (
-	"strings"
-
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/convert"
 )
 
 // Workers pool for converting webm
@@ -15,30 +14,30 @@ var wpDownloadStickerSet *ants.PoolWithFunc
 // var wpDownloadTGSSticker *ants.PoolWithFunc
 
 func initWorkersPool() {
-	wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
+	// wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
 	wpDownloadStickerSet, _ = ants.NewPoolWithFunc(
 		8, wDownloadStickerObject)
 }
 
-// *StickerFile
-func wConvertWebm(i interface{}) {
-	sf := i.(*StickerFile)
-	defer sf.wg.Done()
-	log.Debugln("Converting in pool for:", sf)
+// // *StickerFile
+// func wConvertWebm(i interface{}) {
+// 	sf := i.(*StickerFile)
+// 	defer sf.wg.Done()
+// 	log.Debugln("Converting in pool for:", sf)
 
-	var err error
-	//FFMpeg doest not support animated webp.
-	//IM convert it to apng then feed to webm.
-	if strings.HasSuffix(sf.oPath, ".webp") {
-		sf.oPath, _ = imToApng(sf.oPath)
-	}
-	sf.cPath, err = ffToWebm(sf.oPath)
+// 	var err error
+// 	//FFMpeg doest not support animated webp.
+// 	//IM convert it to apng then feed to webm.
+// 	if strings.HasSuffix(sf.oPath, ".webp") {
+// 		sf.oPath, _ = convert.IMToApng(sf.oPath)
+// 	}
+// 	sf.cPath, err = convert.FFToWebm(sf.oPath)
 
-	if err != nil {
-		sf.cError = err
-	}
-	log.Debugln("convert OK: ", sf.cPath)
-}
+// 	if err != nil {
+// 		sf.cError = err
+// 	}
+// 	log.Debugln("convert OK: ", sf.cPath)
+// }
 
 // *StickerDownloadObject
 func wDownloadStickerObject(i interface{}) {
@@ -56,15 +55,15 @@ func wDownloadStickerObject(i interface{}) {
 		}
 		if obj.sticker.Video {
 			if obj.webAppHQ {
-				obj.err = ffToAnimatedWebpWA(obj.dest)
+				obj.err = convert.FFToAnimatedWebpWA(obj.dest)
 			} else {
-				obj.err = imToAnimatedWebpLQ(obj.dest)
+				obj.err = convert.IMToAnimatedWebpLQ(obj.dest)
 			}
 		} else {
-			imToWebpWA(obj.dest)
+			convert.IMToWebpWA(obj.dest)
 		}
 		if obj.webAppThumb {
-			obj.err = imToPNGThumb(obj.dest)
+			obj.err = convert.IMToPNGThumb(obj.dest)
 		}
 		return
 	}
@@ -77,22 +76,22 @@ func wDownloadStickerObject(i interface{}) {
 		err = obj.bot.Download(&obj.sticker.File, f)
 		if obj.needConvert {
 			if obj.shrinkGif {
-				cf, _ = ffToGifShrink(f)
+				cf, _ = convert.FFToGifShrink(f)
 			} else {
-				cf, _ = ffToGif(f)
+				cf, _ = convert.FFToGif(f)
 			}
 		}
 	} else if obj.sticker.Animated {
 		f = obj.dest + ".tgs"
 		err = obj.bot.Download(&obj.sticker.File, f)
 		if obj.needConvert {
-			cf, _ = lottieToGIF(f)
+			cf, _ = convert.LottieToGIF(f)
 		}
 	} else {
 		f = obj.dest + ".webp"
 		err = obj.bot.Download(&obj.sticker.File, f)
 		if obj.needConvert {
-			cf, _ = imToPng(f)
+			cf, _ = convert.IMToPng(f)
 		}
 	}
 	if err != nil {
