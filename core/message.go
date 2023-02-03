@@ -148,7 +148,7 @@ Exporting to WhatsApp requires <a href="https://github.com/star-39/msb_app">Msb 
 
 <b>iPhone:</b> AppStore(N/A.暫無), <a href="https://github.com/star-39/msb_app/releases/latest/download/msb_app.ipa">IPA</a>
 <b>Android:</b> GooglePlay(N/A.暫無), <a href="https://github.com/star-39/msb_app/releases/latest/download/msb_app.apk">APK</a>
-`, tele.ModeHTML, selector)
+`, tele.ModeHTML, tele.NoPreview, selector)
 }
 
 func genSDnMnEInline(canManage bool, sn string) *tele.ReplyMarkup {
