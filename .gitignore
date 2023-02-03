@@ -1,7 +1,6 @@
 .vscode
 .env
 .venv
-moe-sticker-bot
 __debug*
 *_data/
 
