@@ -735,7 +735,14 @@ func sendUnsupportedCommandForGroup(c tele.Context) error {
 }
 
 func sendBadSearchKeyword(c tele.Context) error {
-	return c.Send(fmt.Sprintf("Bad syntax.\n\n/search@%s keyword1 keyword2 ... \n/search@%s hololive aqua", botName, botName))
+	return c.Send(fmt.Sprintf(`
+Please specify keyword
+請指定搜尋關鍵字.
+
+Example: 例如:
+/search@%s keyword1 keyword2 ...
+/search@%s nekomimi mia
+`, botName, botName))
 }
 
 // func sendDownloadInProgressWarning(c tele.Context) error {
