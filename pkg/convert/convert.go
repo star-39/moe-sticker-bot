@@ -132,26 +132,36 @@ func IMToApng(f string) (string, error) {
 func FFToWebm(f string) (string, error) {
 	pathOut := f + ".webm"
 	bin := "ffmpeg"
-	args := []string{"-hide_banner", "-i", f,
+	baseargs := []string{"-hide_banner", "-i", f,
 		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-		"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "350k", "-maxrate", "450k",
-		"-to", "00:00:03", "-an", "-y", pathOut}
-
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	if err != nil {
-		log.Warnln("ffToWebm ERROR:", string(out))
-		return pathOut, err
+		"-c:v", "libvpx-vp9", "-cpu-used", "5",
 	}
 
-	if stat, _ := os.Stat(pathOut); stat.Size() > 255*KiB {
-		log.Warn("ff to webm too big, retrying...")
-		args = []string{"-hide_banner", "-i", f,
-			"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-			"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
-			"-to", "00:00:03", "-an", "-y", pathOut}
-		err = exec.Command(bin, args...).Run()
+	for rc := 0; rc < 3; rc++ {
+		rcargs := []string{}
+		switch rc {
+		case 0:
+			rcargs = []string{"-minrate", "50k", "-b:v", "350k", "-maxrate", "450k"}
+		case 1:
+			rcargs = []string{"-minrate", "50k", "-b:v", "200k", "-maxrate", "300k"}
+		case 2:
+			rcargs = []string{"-minrate", "20k", "-b:v", "100k", "-maxrate", "200k"}
+		}
+		args := append(baseargs, rcargs...)
+		args = append(args, []string{"-to", "00:00:03", "-an", "-y", pathOut}...)
+		out, err := exec.Command(bin, args...).CombinedOutput()
+		if err != nil {
+			log.Warnln("ffToWebm ERROR:", string(out))
+			return pathOut, err
+		}
+		if stat, _ := os.Stat(pathOut); stat.Size() > 255*KiB {
+			continue
+		} else {
+			return pathOut, err
+		}
 	}
-	return pathOut, err
+	log.Errorln("fftowebm unable to compress below 256KiB:", pathOut)
+	return pathOut, errors.New("fftowebm unable to compress below 256KiB")
 }
 
 // This function will be called if Telegram's API rejected our webm.
