@@ -20,6 +20,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
 	"mvdan.cc/xurls/v2"
 )
@@ -38,7 +39,7 @@ func checkTitle(t string) bool {
 }
 
 func checkID(s string) bool {
-	maxL := 60 - len(botName)
+	maxL := 64 - len(botName)
 	if len(s) < 1 || len(s) > maxL {
 		return false
 	}
@@ -350,8 +351,20 @@ func hashCRC64(s string) string {
 	return csum
 }
 
-func sanitizeLineID(s string) string {
-	s = strings.ReplaceAll(s, "-", "_")
-	s = strings.ReplaceAll(s, "__", "_")
+func checkGnerateSIDFromLID(ld *msbimport.LineData) string {
+	id := ld.Id
+	id = strings.ReplaceAll(id, "-", "_")
+	id = strings.ReplaceAll(id, "__", "_")
+
+	s := ld.Store + id + secHex(2) + "_by_" + botName
+
+	if len(s) > 64 {
+		log.Debugln("id too long:", len(s))
+		extra := len(s) - 64
+		id = id[:len(id)-extra]
+		s = ld.Category + id + secHex(2) + "_by_" + botName
+		log.Debugln("Shortend id to:", s)
+	}
+
 	return s
 }
