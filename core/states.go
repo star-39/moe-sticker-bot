@@ -126,8 +126,13 @@ func handleNoSession(c tele.Context) error {
 		}
 	}
 
+	//Animation is MP4 video with no sound.
 	if c.Message().Animation != nil {
 		return downloadGifToZip(c)
+	}
+
+	if c.Message().Photo != nil || c.Message().Document != nil {
+		return sendUseCommandToImport(c)
 	}
 
 	// bare text message, expect a link, if no link, search keyword.
@@ -154,6 +159,9 @@ func handleNoSession(c tele.Context) error {
 		return sendAskWantImportOrDownload(c)
 
 	default:
+		if c.Message().Text == "" {
+			return sendNoSessionWarning(c)
+		}
 		// User sent plain text, attempt to search.
 		if trySearchKeyword(c) {
 			return sendNotifyNoSessionSearch(c)
@@ -169,7 +177,7 @@ func confirmImport(c tele.Context) error {
 	if err != nil {
 		return err
 	}
-	ud.stickerData.id = sanitizeLineID(ud.lineData.Category + ud.lineData.Id + secHex(2) + "_by_" + botName)
+	ud.stickerData.id = checkGnerateSIDFromLID(ud.lineData)
 	workDir := filepath.Join(ud.workDir, ud.lineData.Id)
 	sendAskTitle_Import(c)
 	ud.wg.Add(1)
@@ -199,6 +207,9 @@ func confirmImport(c tele.Context) error {
 
 func trySearchKeyword(c tele.Context) bool {
 	keywords := strings.Split(c.Text(), " ")
+	if len(keywords) == 0 {
+		return false
+	}
 	lines := searchLineS(keywords)
 	if len(lines) == 0 {
 		return false
@@ -484,9 +495,6 @@ func waitSEmojiAssign(c tele.Context) error {
 func waitSearchKeyword(c tele.Context) error {
 	keywords := strings.Split(c.Text(), " ")
 	lines := searchLineS(keywords)
-	if len(lines) == 0 {
-		return sendSearchNoResult(c)
-	}
 	sendSearchResult(-1, lines, c)
 	terminateSession(c)
 	return nil

@@ -757,3 +757,8 @@ eg: <code>https://emoticon.kakao.com/items/lV6K2fWmU7CpXlHcP9-ysQJx9rg=?referer=
 `,
 	}, tele.ModeHTML)
 }
+
+func sendUseCommandToImport(c tele.Context) error {
+	return c.Send("Please use /create to create sticker set using your own photos and videos.\n" +
+		"請使用 /create 指令來使用自己的圖片和影片和創建貼圖包.")
+}
