@@ -321,10 +321,32 @@ func FFToAnimatedWebpWA(f string) error {
 	return errors.New("bad animated webp?")
 }
 
+// appends png
+func FFtoPNG(f string, pathOut string) error {
+	var args []string
+	bin := "ffmpeg"
+	args = append(args, "-c:v", "libvpx-vp9", "-i", f, "-hide_banner",
+		"-loglevel", "error", "-frames", "1", "-y", pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnf("fftoPNG ERROR:\n%s", string(out))
+		return err
+	}
+	return err
+}
+
 // Replaces .webm or .webp to .png
 func IMToPNGThumb(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".png")
 	pathOut = strings.ReplaceAll(pathOut, ".webp", ".png")
+
+	if strings.HasSuffix(f, ".webm") {
+		tempThumb := f + ".thumb.png"
+		FFtoPNG(f, tempThumb)
+		f = tempThumb
+	}
+
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
 	args = append(args,
