@@ -637,8 +637,12 @@ func sendSFromSS(c tele.Context, ssid string, reply *tele.Message) error {
 }
 
 func sendFLWarning(c tele.Context) error {
-	return c.Send("It might take longer to process this request (< 1min), please wait...\n" +
-		"此貼圖可能需要更長時間處理(少於1分鐘), 請耐心等待...")
+	return c.Send(`
+It might take longer to process this sticker set (1-5 minutes)... 
+If you see this warning often, try to wait for several hours then try again if sticker set failed.
+此貼圖包可能需要更長時間處理(1-5分鐘)...
+如果您一直看見這條警告, 而且貼圖包創建失敗的話, 建議您等待幾小時後再試一次.
+`)
 }
 
 func sendTooManyFloodLimits(c tele.Context) error {

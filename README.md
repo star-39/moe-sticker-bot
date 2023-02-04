@@ -140,6 +140,7 @@ Check `--help` for detailed webapp configs.
 v2.2.1 (20230204)
   * Fix webm too big.
   * Fix id too long.
+  * Tuned flood limit algorithm.
 
 v2.2.0 (20230131)
   * Support animated kakao sticker.
@@ -218,7 +219,7 @@ v2.1.0 (20230129)
 
 1.2.4 (20221111)
   * Minor improvements.
-  * Fixed(almost) floot limit.
+  * Fixed(almost) flood limit.
   * Fixed kakao link with queries.
 
 1.2.2 (20220523)

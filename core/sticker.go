@@ -70,12 +70,6 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			} else {
 				committedStickers += 1
 			}
-
-			if flCount > 3 {
-				sendTooManyFloodLimits(c)
-				return errors.New("too many flood limits")
-			}
-
 		}
 		log.Debugln("one sticker commited. count: ", committedStickers)
 	}
@@ -194,7 +188,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		// Is flood limit error.
 		// Telegram's flood limit is strange.
-		// It only happens to specific user at a specific time.
+		// It only happens to a specific user at a specific time.
 		// It is "fake" most of time, since TDLib in API Server will automatically retry.
 		// However! API always return 429 without mentioning its self retry.
 		// Since API side will always do retry at TDLib level, message_id was also being kept so
@@ -204,13 +198,15 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 			// This reflects the retry count for entire SS.
 			*flCount += 1
 			log.Warnln("Current flood limit count:", *flCount)
-			// Tolerate 6 flood limits per set, means 3 stickers with 2 retries for each.
+			// Tolerate 5 flood limits per set.
 			// If flood limit encountered when creating set, return immediately.
-			if createSet || *flCount > 6 {
+			if createSet || *flCount > 5 {
 				sendTooManyFloodLimits(c)
 				return errors.New("too many flood limits")
 			}
-			sendFLWarning(c)
+			if *flCount == 2 {
+				sendFLWarning(c)
+			}
 			log.Warnf("Flood limit encountered for user:%d for set:%s", c.Sender().ID, ss.Name)
 			log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
 			if floodErr.RetryAfter > 60 {
@@ -219,8 +215,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 				time.Sleep(120 * time.Second)
 			} else {
 				// Sleep with some extra seconds due to bugs being reported.
-				// extraRA: 1 -> 30, 2-> 60, 3->90 seconds.
-				extraRA := 30 * *flCount
+				extraRA := 60 * *flCount
 				log.Warnf("Sleeping for %d seconds due to FL.", floodErr.RetryAfter+extraRA)
 				time.Sleep(time.Duration((floodErr.RetryAfter + extraRA) * int(time.Second)))
 			}
