@@ -70,6 +70,10 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			} else {
 				committedStickers += 1
 			}
+			// If encountered flood limit more than once, set a 10 second interval.
+			if flCount > 1 {
+				time.Sleep(10 * time.Second)
+			}
 		}
 		log.Debugln("one sticker commited. count: ", committedStickers)
 	}
