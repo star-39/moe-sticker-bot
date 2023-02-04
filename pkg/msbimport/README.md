@@ -50,6 +50,20 @@ for _, lf := range ld.Files {
 //Your stickers files will appear in the work dir you specified.
 ```
 
+## CLI Usage
+A CLI utilizing this package is on [/moe-sticker-bot/cmd/msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/cmd/msbimport)
+
+Build CLI:
+```bash
+git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
+go build -o msbimport cmd/msbimport/main.go
+```
+
+Example:
+```bash
+./msbimport --link "https://store.line.me/stickershop/product/1288222/ja" --convert false
+```
+
 ## License
 GPL v3 License.
 
