@@ -31,7 +31,7 @@ const (
 	PiB = 1024 * TiB
 )
 
-// Should called before using functions in this package.
+// Should call before using functions in this package.
 // Otherwise, defaults to Linux environment.
 func InitConvert() {
 	switch runtime.GOOS {

@@ -447,7 +447,6 @@ func sendFatalError(err error, c tele.Context) {
 	}
 	log.Error("User encountered fatal error!")
 	log.Errorln("Raw error:", err)
-	debug.PrintStack()
 
 	c.Send("<b>Fatal error! Please try again. /start\n"+
 		"發生嚴重錯誤! 請您從頭再試一次. /start </b>\n\n"+
