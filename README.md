@@ -137,6 +137,18 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+v2.2.1 (20230204)
+  * Fix webm too big.
+  * Fix id too long.
+
+v2.2.0 (20230131)
+  * Support animated kakao sticker.
+  * 支援動態kakao貼圖。
+
+v2.1.0 (20230129)
+  * Support exporting sticker to WhatsApp.
+  * 支援匯出貼圖到WhatsApp
+
 2.0.1 (20230106)
   * Fix special LINE officialaccount sticker.
   * Fix `--log_level` cmdline parsing.
