@@ -329,10 +329,9 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 		c.Send("Too many results, please narrow your keyword, truncated to 120 entries.\n" +
 			"搜尋結果過多，已縮減到120個，請使用更準確的搜尋關鍵字。")
 		entries = entries[:120]
-
-	} else if len(entries) > entriesWant {
+	}
+	if entriesWant != -1 && len(entries) > entriesWant {
 		entries = entries[:entriesWant]
-
 	}
 	if len(entries) > 30 {
 		eChunks := chunkSlice(entries, 30)

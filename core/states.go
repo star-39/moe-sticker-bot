@@ -495,6 +495,9 @@ func waitSEmojiAssign(c tele.Context) error {
 func waitSearchKeyword(c tele.Context) error {
 	keywords := strings.Split(c.Text(), " ")
 	lines := searchLineS(keywords)
+	if len(lines) == 0 {
+		return sendSearchNoResult(c)
+	}
 	sendSearchResult(-1, lines, c)
 	terminateSession(c)
 	return nil
