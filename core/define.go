@@ -11,7 +11,6 @@ import (
 )
 
 var BOT_VERSION = "2.2.1-GO"
-var DB_VER string = "1"
 
 // The telegram bot.
 var b *tele.Bot

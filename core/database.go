@@ -62,6 +62,8 @@ value: -1
 
 var db *sql.DB
 
+const DB_VER = "2"
+
 func initDB(dbname string) error {
 	addr := Config.DbAddr
 	user := Config.DbUser
@@ -143,6 +145,7 @@ func createMariadb(dsn *mysql.Config, dbname string) error {
 	db.Exec("CREATE TABLE line (line_id VARCHAR(128), tg_id VARCHAR(128), tg_title VARCHAR(255), line_link VARCHAR(512), auto_emoji BOOL)")
 	db.Exec("CREATE TABLE properties (name VARCHAR(128) PRIMARY KEY, value VARCHAR(128))")
 	db.Exec("CREATE TABLE stickers (user_id BIGINT, tg_id VARCHAR(128), tg_title VARCHAR(255), timestamp BIGINT)")
+	db.Exec("INSERT properties (name, value) VALUES (?, ?)", "last_line_dedup_index", "-1")
 	db.Exec("INSERT properties (name, value) VALUES (?, ?)", "DB_VER", DB_VER)
 	log.Infoln("Mariadb initialized with DB_VER :", DB_VER)
 	return nil
