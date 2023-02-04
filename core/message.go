@@ -32,8 +32,8 @@ or use a command above.
 
 你好, 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
 • 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
-• 傳送<b>Telegram貼圖</b>來下載或管理.
-• 傳送<b>文字</b>來搜尋貼圖標題.
+• 傳送<b>Telegram貼圖/GIF</b>來下載或管理.
+• 傳送<b>關鍵字</b>來搜尋貼圖包.
 或 從上方點選指令.
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
