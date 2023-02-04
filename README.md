@@ -7,7 +7,7 @@ Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, �
   * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
   * Batch download and convert Telegram stickers or GIFs to original or common formats.
   * Export Telegram stickers to WhatsApp (requires [Msb App](https://github.com/star-39/msb_app)).
-  * Create your own sticker set with your own images easily.
+  * Create your own sticker set with your own images or videos in any format.
   * Manage your sticker set interactively through WebApp: add/move/remove/edit sticker and emoji.
   * Top class performance with simultaneous execution to save your time.
 
