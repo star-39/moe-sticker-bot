@@ -336,8 +336,8 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 	if len(entries) > 30 {
 		eChunks := chunkSlice(entries, 30)
 		for _, eChunk := range eChunks {
-			message += strings.Join(eChunk, "\n")
-			c.Send(message, tele.ModeHTML)
+			msgToSend := message + strings.Join(eChunk, "\n")
+			c.Send(msgToSend, tele.ModeHTML)
 		}
 	} else {
 		message += strings.Join(entries, "\n")
