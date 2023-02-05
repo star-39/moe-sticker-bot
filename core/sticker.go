@@ -71,7 +71,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				committedStickers += 1
 			}
 			// If encountered flood limit more than once, set a 10 second interval.
-			if flCount > 1 {
+			if flCount > 0 {
 				time.Sleep(10 * time.Second)
 			}
 		}
