@@ -97,8 +97,10 @@ func sendChangelog(c tele.Context) error {
 Details: 詳細:
 https://github.com/star-39/moe-sticker-bot#changelog
 v2.3.0 (2023027)
-  * Fix flood limit error.
-  * 修復flood limit錯誤。
+  * Fix flood limit error during import.
+  * Improved performance.
+  * 修復匯入貼圖時flood limit錯誤。
+  * 提升了性能.
   
 v2.2.0 (20230131)
   * Support animated kakao sticker.
