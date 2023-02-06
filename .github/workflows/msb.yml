@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: '>=1.18'
-      - name: Build MSB OCI container amd64
+      - name: Build MSB OCI container
         run: |
           go version
           bash .github/workflows/msb.sh ${{ secrets.GITHUB_TOKEN }}

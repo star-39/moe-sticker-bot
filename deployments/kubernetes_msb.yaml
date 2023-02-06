@@ -5,31 +5,6 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  annotations:
-    io.kubernetes.cri-o.ContainerType/msb: container
-    io.kubernetes.cri-o.ContainerType/msbemoji: container
-    io.kubernetes.cri-o.ContainerType/msbnginx: container
-    io.kubernetes.cri-o.ContainerType/msbmariadb: container
-    io.kubernetes.cri-o.SandboxID/msb: p-moe-sticker-bot
-    io.kubernetes.cri-o.SandboxID/msbemoji: p-moe-sticker-bot
-    io.kubernetes.cri-o.SandboxID/msbnginx: p-moe-sticker-bot
-    io.kubernetes.cri-o.SandboxID/msbmariadb: p-moe-sticker-bot
-    io.podman.annotations.autoremove/msb: "FALSE"
-    io.podman.annotations.autoremove/msbemoji: "FALSE"
-    io.podman.annotations.autoremove/msbnginx: "FALSE"
-    io.podman.annotations.autoremove/msbmariadb: "FALSE"
-    io.podman.annotations.init/msb: "FALSE"
-    io.podman.annotations.init/msbemoji: "FALSE"
-    io.podman.annotations.init/msbnginx: "FALSE"
-    io.podman.annotations.init/msbmariadb: "FALSE"
-    io.podman.annotations.privileged/msb: "FALSE"
-    io.podman.annotations.privileged/msbemoji: "FALSE"
-    io.podman.annotations.privileged/msbnginx: "FALSE"
-    io.podman.annotations.privileged/msbmariadb: "FALSE"
-    io.podman.annotations.publish-all/msb: "FALSE"
-    io.podman.annotations.publish-all/msbemoji: "FALSE"
-    io.podman.annotations.publish-all/msbnginx: "FALSE"
-    io.podman.annotations.publish-all/msbmariadb: "FALSE"
   creationTimestamp: "2022-12-09T17:58:22Z"
   labels:
     app: p-moe-sticker-bot
@@ -68,6 +43,7 @@ spec:
       name: etc-letsencrypt-host-0
     - mountPath: /webapp/data
       name: moe-sticker-bot-webapp-data-ed
+
   - image: ghcr.io/star-39/moe-sticker-bot:msb_emoji_aarch64
     name: msbemoji
     resources: {}
@@ -76,6 +52,7 @@ spec:
         drop:
         - CAP_MKNOD
         - CAP_AUDIT_WRITE
+
   - command:
     - /moe-sticker-bot
     - --bot_token=BOT_TOKEN
@@ -104,6 +81,23 @@ spec:
     volumeMounts:
     - mountPath: /webapp/data
       name: moe-sticker-bot-webapp-data-ed
+    - mountPath: /apidata
+      name: telegram-api-data-ed
+
+  - args:
+    - telegram-bot-api
+    - --api-id
+    - "YOUR API ID HERE"
+    - --api-hash
+    - "YOUR HASH HERE"
+    - --local
+    image: docker://aofei/telegram-bot-api:latest
+    name: telegram-bot-api
+    resources: {}
+    volumeMounts:
+    - mountPath: /apidata
+      name: telegram-api-data-ed
+
   - args:
     - mariadbd
     env:
@@ -122,12 +116,15 @@ spec:
       name: moe-sticker-bot-db-pvc
 
   hostname: p-moe-sticker-bot
+
   volumes:
   - hostPath:
       path: /etc/letsencrypt
       type: Directory
     name: etc-letsencrypt-host-0
   - name: moe-sticker-bot-webapp-data-ed
+    emptyDir: {}
+  - name: telegram-api-data-ed
     emptyDir: {}
   - name: moe-sticker-bot-db-pvc
     persistentVolumeClaim:
