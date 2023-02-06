@@ -377,7 +377,7 @@ func curateDatabase() error {
 
 					fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
 					f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
-					b.Download(&s.File, f)
+					teleDownload(&s.File, f)
 
 					if compCRC32(f, fp) {
 						b.DeleteSticker(s.FileID)

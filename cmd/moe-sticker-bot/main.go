@@ -31,6 +31,10 @@ func parseCmdLine() {
 	var dbUser = flag.String("db_user", "", "mariadb usernmae")
 	var dbPass = flag.String("db_pass", "", "mariadb password")
 	var logLevel = flag.String("log_level", "debug", "Log level")
+	var localBotApiAddr = flag.String("local_botapi_addr", "", "Local Bot API Server Address")
+	var localBotApiDir = flag.String("local_botapi_dir", "", "Local Bot API Working directory(Absolute)")
+	var webhookPublicAddr = flag.String("webhook_public_addr", "", "Webhook public address(WebhookEndpoint).")
+	var webhookListenAddr = flag.String("webhook_listen_addr", "", "Webhook listen address.")
 	flag.Parse()
 	if *help {
 		flag.Usage()
@@ -61,6 +65,11 @@ func parseCmdLine() {
 	}
 	conf.WebappDataDir = *webappDataDir
 	conf.WebappListenAddr = *WebappListenAddr
+
+	conf.LocalBotApiAddr = *localBotApiAddr
+	conf.LocalBotApiDir = *localBotApiDir
+	conf.WebhookPublicAddr = *webhookPublicAddr
+	conf.WebhookListenAddr = *webhookListenAddr
 
 	conf.LogLevel = *logLevel
 

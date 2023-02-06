@@ -44,7 +44,7 @@ func Init() {
 	b.Handle("/search", cmdSearch, checkState)
 
 	// b.Handle("/register", cmdRegister, checkState)
-	b.Handle("/statrep", cmdStatRep, checkState)
+	b.Handle("/sitrep", cmdSitRep, checkState)
 
 	b.Handle("/start", cmdStart, checkState)
 
@@ -93,9 +93,24 @@ func onError(err error, c tele.Context) {
 }
 
 func initBot() *tele.Bot {
+	var poller tele.Poller
+	var url string
+	if Config.LocalBotApiAddr != "" {
+		poller = &tele.Webhook{
+			Endpoint: &tele.WebhookEndpoint{
+				PublicURL: Config.WebhookPublicAddr,
+			},
+			Listen: Config.WebhookListenAddr,
+		}
+		url = Config.LocalBotApiAddr
+	} else {
+		poller = &tele.LongPoller{Timeout: 10 * time.Second}
+		url = tele.DefaultApiURL
+	}
 	pref := tele.Settings{
+		URL:         url,
 		Token:       Config.BotToken,
-		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
+		Poller:      poller,
 		Synchronous: false,
 		// Genrally, issues are tackled inside each state, only fatal error should be returned to framework.
 		// onError will terminate current session and log to terminal.
@@ -130,15 +145,13 @@ func initWorkspace(b *tele.Bot) {
 	} else {
 		log.Warn("Not using database because --use_db is not set.")
 	}
-
 }
 
 func initGoCron() {
 	time.Sleep(15 * time.Second)
 	cronScheduler = gocron.NewScheduler(time.UTC)
-	//DEBUG
-	// cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
-	// cronScheduler.Every(1).Weeks().Do(curateDatabase)
+	cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
+	cronScheduler.Every(1).Weeks().Do(curateDatabase)
 	cronScheduler.StartAsync()
 }
 

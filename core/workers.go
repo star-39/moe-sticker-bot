@@ -47,7 +47,7 @@ func wDownloadStickerObject(i interface{}) {
 
 	//WebApp does not need special conversion.
 	if obj.forWebApp {
-		err := obj.bot.Download(&obj.sticker.File, obj.dest)
+		err := teleDownload(&obj.sticker.File, obj.dest)
 		if err != nil {
 			log.Warnln("download: error downloading sticker:", err)
 			obj.err = err
@@ -73,7 +73,7 @@ func wDownloadStickerObject(i interface{}) {
 	var err error
 	if obj.sticker.Video {
 		f = obj.dest + ".webm"
-		err = obj.bot.Download(&obj.sticker.File, f)
+		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
 			if obj.shrinkGif {
 				cf, _ = convert.FFToGifShrink(f)
@@ -83,13 +83,13 @@ func wDownloadStickerObject(i interface{}) {
 		}
 	} else if obj.sticker.Animated {
 		f = obj.dest + ".tgs"
-		err = obj.bot.Download(&obj.sticker.File, f)
+		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
 			cf, _ = convert.LottieToGIF(f)
 		}
 	} else {
 		f = obj.dest + ".webp"
-		err = obj.bot.Download(&obj.sticker.File, f)
+		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
 			cf, _ = convert.IMToPng(f)
 		}

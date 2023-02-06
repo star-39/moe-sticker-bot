@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -202,6 +203,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 			// This reflects the retry count for entire SS.
 			*flCount += 1
 			log.Warnln("Current flood limit count:", *flCount)
+			flRecords += fmt.Sprintf("FL: time:%s RA:%d count:%d\n", time.Now().String(), floodErr.RetryAfter, *flCount)
 			// Tolerate 5 flood limits per set.
 			// If flood limit encountered when creating set, return immediately.
 			if createSet || *flCount > 5 {
@@ -336,7 +338,7 @@ func appendMedia(c tele.Context) error {
 	workDir := users.data[c.Sender().ID].workDir
 	savePath := filepath.Join(workDir, secHex(4))
 
-	err := c.Bot().Download(c.Message().Media().MediaFile(), savePath)
+	err := teleDownload(c.Message().Media().MediaFile(), savePath)
 	if err != nil {
 		return errors.New("error downloading media")
 	}
