@@ -94,7 +94,12 @@ A:  It's you of course. You can manage them through /manage or Telegram's offici
 
 func sendChangelog(c tele.Context) error {
 	return c.Send(`
+Details: 詳細:
 https://github.com/star-39/moe-sticker-bot#changelog
+v2.3.0 (2023027)
+  * Fix flood limit error.
+  * 修復flood limit錯誤。
+  
 v2.2.0 (20230131)
   * Support animated kakao sticker.
   * 支援動態kakao貼圖。

@@ -55,38 +55,11 @@ Simply run:
 ```
 docker run -dt ghcr.io/star-39/moe-sticker-bot --bot_token="..."
 ```
-If you are on ARM64(AArch64) arch, append `aarch64` all tags.
+If you are on ARM64(AArch64) arch, append `aarch64` to all tags.
 
-To deploy all features, it is recommended through podman and pods.
-```
-podman pod create --name p-moe-sticker-bot -p 443:443
-podman volume create moe-sticker-bot-db
-podman volume create moe-sticker-bot-webapp-data
+To deploy all features - including database/webapp/emoji,
 
-podman run -dt --pod p-moe-sticker-bot \
--v moe-sticker-bot-db:/var/lib/mysql -e MARIADB_ROOT_PASSWORD=DB_ROOT_PASS docker://mariadb:10.6
-
-podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot:msb_emoji
-
-podman run -dt --pod p-moe-sticker-bot -v CERT_LOCATION:/certs \
--v moe-sticker-bot-webapp-data:/webapp/data \
--e WEBAPP_ROOT=/webapp -e WEBAPP_ADDR=127.0.0.1:3921 -e NGINX_PORT=443 \
--e NGINX_CERT=/certs/fullchain.pem -e NGINX_KEY=/certs/privkey.pem \
-ghcr.io/star-39/moe-sticker-bot:msb_nginx
-
-podman run -dt --pod p-moe-sticker-bot ghcr.io/star-39/moe-sticker-bot \
-        -v moe-sticker-bot-webapp-data:/webapp/data \
-        /moe-sticker-bot \
-        --bot_token=YOUR_TOKEN_HERE \
-        --webapp --webapp_url https://example.com/webapp/ \
-        --webapp_api_url https://example.com/webapp/ \
-        --webapp_data_dir /webapp/data/ \
-        --webapp_listen_addr 127.0.0.1:3921 \
-        --use_db --db_addr 127.0.0.1:3306 --db_user root --db_pass DB_ROOT_PASS
-```
-Use `podman ps -a` and `podman pod ls` to review the pod and containers.
-
-You can also use `podman generate kube` to generate Kubernetes YAML to deploy on your container cluster.
+please use kubernetes or podman with a yaml deployment file.
 
 See a real world deployment example on [deployments/kubernetes_msb.yaml](https://github.com/star-39/moe-sticker-bot/blob/master/deployments/kubernetes_msb.yaml).
 
@@ -137,6 +110,12 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+v2.3.0 (20230207)
+  * Fix flood limit by using local api server.
+  * Support webhook and local api server.
+  * Huge performance gain.
+  * Fix /search panic.
+
 v2.2.1 (20230204)
   * Fix webm too big.
   * Fix id too long.
