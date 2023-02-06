@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -73,7 +74,8 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 			}
 			// If encountered flood limit more than once, set a 10 second interval.
 			if flCount > 0 {
-				time.Sleep(10 * time.Second)
+				sleepTime := 10 + rand.Intn(10)
+				time.Sleep(time.Duration(sleepTime) * time.Second)
 			}
 		}
 		log.Debugln("one sticker commited. count: ", committedStickers)
