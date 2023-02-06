@@ -126,7 +126,11 @@ func initBot() *tele.Bot {
 
 func initWorkspace(b *tele.Bot) {
 	botName = b.Me.Username
-	dataDir = botName + "_data"
+	if Config.DataDir != "" {
+		dataDir = Config.DataDir
+	} else {
+		dataDir = botName + "_data"
+	}
 	users = Users{data: make(map[int64]*UserData)}
 	downloadQueue = DownloadQueue{ss: make(map[string]bool)}
 	webAppSSAuthList = WebAppQIDAuthList{sa: make(map[string]*WebAppQIDAuthObject)}

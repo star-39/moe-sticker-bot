@@ -4,6 +4,7 @@ var Config ConfigTemplate
 
 type ConfigTemplate struct {
 	AdminUid          int64
+	DataDir           string
 	LogLevel          string
 	UseDB             bool
 	BotToken          string
