@@ -137,7 +137,7 @@ func FFToWebm(f string) (string, error) {
 		"-c:v", "libvpx-vp9", "-cpu-used", "5",
 	}
 
-	for rc := 0; rc < 3; rc++ {
+	for rc := 0; rc < 4; rc++ {
 		rcargs := []string{}
 		switch rc {
 		case 0:
@@ -146,6 +146,8 @@ func FFToWebm(f string) (string, error) {
 			rcargs = []string{"-minrate", "50k", "-b:v", "200k", "-maxrate", "300k"}
 		case 2:
 			rcargs = []string{"-minrate", "20k", "-b:v", "100k", "-maxrate", "200k"}
+		case 3:
+			rcargs = []string{"-minrate", "10k", "-b:v", "50k", "-maxrate", "100k"}
 		}
 		args := append(baseargs, rcargs...)
 		args = append(args, []string{"-to", "00:00:03", "-an", "-y", pathOut}...)
