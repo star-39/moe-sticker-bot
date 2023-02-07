@@ -101,6 +101,7 @@ func parseLineLink(link string, ld *LineData) (string, error) {
 
 	log.Debugln("line data parsed:", ld)
 
+	ld.TitleWg.Add(1)
 	go fetchLineI18nTitles(ld)
 	return warn, nil
 }
@@ -125,15 +126,13 @@ func fetchLineI18nLinks(doc *goquery.Document) []string {
 			i18nLinks = append(i18nLinks, href)
 		}
 	})
+	log.Debugln("Fetched LINE I18n Links: ", i18nLinks)
 	return i18nLinks
 }
 
 func fetchLineI18nTitles(ld *LineData) {
-	ld.TitleWg.Add(1)
 	defer ld.TitleWg.Done()
 	log.Debugln("Fetching LINE i18n titles...")
-	log.Debugln(ld.I18nLinks)
-
 	var i18nTitles []string
 
 	for _, l := range ld.I18nLinks {
@@ -161,7 +160,7 @@ func fetchLineI18nTitles(ld *LineData) {
 	}
 
 	ld.I18nTitles = i18nTitles
-	log.Debugln("I18N titles are:")
+	log.Debugln("Fetched I18N titles are:")
 	log.Debugln(ld.I18nTitles)
 }
 
