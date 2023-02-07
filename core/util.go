@@ -369,7 +369,7 @@ func checkGnerateSIDFromLID(ld *msbimport.LineData) string {
 	return s
 }
 
-// Local bot api returns a absolute path as a file.
+// Local bot api returns a absolute path in FilePath.
 // We need to separate "real" api server and local api server.
 // We move the file from api server to target location.
 // Be careful, this does not work when crossing mount points.
@@ -379,7 +379,11 @@ func teleDownload(tf *tele.File, f string) error {
 		if err != nil {
 			return err
 		}
-		return os.Rename(tf2.FilePath, f)
+		err = os.Rename(tf2.FilePath, f)
+		if err != nil {
+			return err
+		}
+		return os.Chmod(f, 0644)
 	} else {
 		return b.Download(tf, f)
 	}
