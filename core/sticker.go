@@ -229,7 +229,8 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 			// This reflects the retry count for entire SS.
 			*flCount += 1
 			log.Warnln("Current flood limit count:", *flCount)
-			flRecords += fmt.Sprintf("FL: time:%s RA:%d count:%d\n", time.Now().String(), floodErr.RetryAfter, *flCount)
+			//Do not expose set name.
+			flRecords = append(flRecords, fmt.Sprintf("FL: time:%s, Set: %s, RA:%d count:%d\n", time.Now().String(), hashCRC64(ss.Name), floodErr.RetryAfter, *flCount))
 			// Tolerate 5 flood limits per set.
 			// If flood limit encountered when creating set, return immediately.
 			if createSet || *flCount > 5 {

@@ -6,7 +6,7 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-var flRecords string
+var flRecords []string
 
 func cmdSitRep(c tele.Context) error {
 	// Report status.
@@ -14,10 +14,13 @@ func cmdSitRep(c tele.Context) error {
 	py_emoji_ok, _ := httpGet("http://127.0.0.1:5000/status")
 	stat = append(stat, "py_emoji_ok? :"+py_emoji_ok)
 	c.Send(strings.Join(stat, "\n"))
-	if flRecords == "" {
-		c.Send("no fl")
-	} else {
-		c.Send(flRecords)
+	var flMsgs [][]string
+	if len(flRecords) > 30 {
+		flMsgs = chunkSlice(flRecords, 30)
 	}
+	for _, flmsg := range flMsgs {
+		c.Send(strings.Join(flmsg, "\n"))
+	}
+
 	return nil
 }
