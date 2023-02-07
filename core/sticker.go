@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -113,8 +115,8 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	if createSet {
 		if ud.command == "import" {
 			insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, true)
-			if flCount > 0 {
-				go verifyFloodedStickerSet(flCount, errorCount, ud.lineData.Amount, ud.stickerData.id)
+			if flCount > 1 {
+				verifyFloodedStickerSet(c, flCount, errorCount, ud.lineData.Amount, ud.stickerData.id)
 			}
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
@@ -442,14 +444,32 @@ func moveSticker(oldIndex int, newIndex int, ud *UserData) error {
 	return b.SetStickerPosition(sid, newIndex)
 }
 
-func verifyFloodedStickerSet(fc int, ec int, desiredAmount int, ssn string) {
-	time.Sleep(65 * time.Second)
+func verifyFloodedStickerSet(c tele.Context, fc int, ec int, desiredAmount int, ssn string) {
+	time.Sleep(31 * time.Second)
 	ss, err := b.StickerSet(ssn)
 	if err != nil {
 		return
 	}
-	if desiredAmount != len(ss.Stickers) {
-		log.Warnf("A flooded sticker set corrupted! floodCount:%d, errorCount:%d, ssn:%s, desired:%d, got:%d", fc, ec, ssn, desiredAmount, len(ss.Stickers))
+	if desiredAmount < len(ss.Stickers) {
+		log.Warnf("A flooded sticker set duplicated! floodCount:%d, errorCount:%d, ssn:%s, desired:%d, got:%d", fc, ec, ssn, desiredAmount, len(ss.Stickers))
+		log.Warnf("Attempting dedup!")
+		workdir := filepath.Join(dataDir, secHex(8))
+		os.MkdirAll(workdir, 0755)
+		for si, s := range ss.Stickers {
+			if si > 0 {
+				fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
+				f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
+				teleDownload(&s.File, f)
+
+				if compCRC32(f, fp) {
+					b.DeleteSticker(s.FileID)
+				}
+			}
+		}
+		os.RemoveAll(workdir)
+	} else if desiredAmount > len(ss.Stickers) {
+		log.Warnf("A flooded sticker set missing sticker! floodCount:%d, errorCount:%d, ssn:%s, desired:%d, got:%d", fc, ec, ssn, desiredAmount, len(ss.Stickers))
+		c.Reply("Sorry, this sticker set seems corrupted, please check.\n抱歉, 這個貼圖包似乎有缺失貼圖, 請檢查一下.")
 	} else {
 		log.Infof("A flooded sticker set seems ok. floodCount:%d, errorCount:%d, ssn:%s, desired:%d, got:%d", fc, ec, ssn, desiredAmount, len(ss.Stickers))
 	}
