@@ -90,15 +90,18 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		} else {
 			err = commitSticker(false, &flCount, false, sf, c, ss)
 			if err != nil {
-				log.Warnln("a sticker failed to add. ", err)
+				log.Warnln("execAutoCommit: a sticker failed to add. ", err)
 				c.Send("one sticker failed to add, index is:%d\nError is:%s", index, err)
 				errorCount += 1
 			} else {
 				committedStickers += 1
 			}
-			// If encountered flood limit more than once, set a 10 second interval.
-			if flCount > 0 {
+			// If encountered flood limit more than once, set a interval.
+			if flCount == 1 {
 				sleepTime := 10 + rand.Intn(10)
+				time.Sleep(time.Duration(sleepTime) * time.Second)
+			} else if flCount > 1 {
+				sleepTime := 60 + rand.Intn(10)
 				time.Sleep(time.Duration(sleepTime) * time.Second)
 			}
 		}
@@ -150,7 +153,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 				return c.Send("Sorry, this emoji is invalid. Try another one.\n抱歉, 這個emoji無效, 請另試一次.")
 			}
 			c.Send("one sticker failed to add, index is:" + strconv.Itoa(ud.stickerData.pos))
-			log.Warnln("a sticker failed to add. ", err)
+			log.Warnln("execEmojiAssign: a sticker failed to add. ", err)
 		} else {
 			ud.stickerData.cAmount += 1
 		}
@@ -230,7 +233,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 			*flCount += 1
 			log.Warnln("Current flood limit count:", *flCount)
 			//Do not expose set name.
-			flRecords = append(flRecords, fmt.Sprintf("FL: time:%s, Set: %s, RA:%d count:%d\n", time.Now().String(), hashCRC64(ss.Name), floodErr.RetryAfter, *flCount))
+			flRecords = append(flRecords, fmt.Sprintf("FL: time:%s, Set:%s, RA:%d count:%d\n", time.Now().String(), hashCRC64(ss.Name), floodErr.RetryAfter, *flCount))
 			// Tolerate 5 flood limits per set.
 			// If flood limit encountered when creating set, return immediately.
 			if createSet || *flCount > 5 {
@@ -247,8 +250,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 				log.Error("Attempt to sleep for 120 seconds.")
 				time.Sleep(120 * time.Second)
 			} else {
-				// Sleep with some extra seconds due to bugs being reported.
-				extraRA := 60 * *flCount
+				extraRA := 30 * *flCount
 				log.Warnf("Sleeping for %d seconds due to FL.", floodErr.RetryAfter+extraRA)
 				time.Sleep(time.Duration((floodErr.RetryAfter + extraRA) * int(time.Second)))
 			}
