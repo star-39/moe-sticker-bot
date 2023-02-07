@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
@@ -381,7 +382,7 @@ func teleDownload(tf *tele.File, f string) error {
 		}
 		err = os.Rename(tf2.FilePath, f)
 		if err != nil {
-			return err
+			exec.Command("cp", tf2.FilePath, f).CombinedOutput()
 		}
 		return os.Chmod(f, 0644)
 	} else {
