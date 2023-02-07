@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -80,7 +79,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
 		if index == 0 && createSet {
-			err = commitSticker(true, &flCount, false, sf, c, ss)
+			err = commitSticker(true, index, &flCount, false, sf, c, ss)
 			if err != nil {
 				log.Errorln("create failed. ", err)
 				return err
@@ -88,12 +87,13 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				committedStickers += 1
 			}
 		} else {
-			err = commitSticker(false, &flCount, false, sf, c, ss)
+			err = commitSticker(false, index, &flCount, false, sf, c, ss)
 			if err != nil {
 				log.Warnln("execAutoCommit: a sticker failed to add. ", err)
-				c.Send("one sticker failed to add, index is:%d\nError is:%s", index, err)
+				sendOneStickerFailedToAdd(c, index, err)
 				errorCount += 1
 			} else {
+				log.Debugln("one sticker commited. count: ", committedStickers)
 				committedStickers += 1
 			}
 			// If encountered flood limit more than once, set a interval.
@@ -105,7 +105,6 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				time.Sleep(time.Duration(sleepTime) * time.Second)
 			}
 		}
-		log.Debugln("one sticker commited. count: ", committedStickers)
 	}
 	if createSet {
 		if ud.command == "import" {
@@ -139,7 +138,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	log.Debugln(ss)
 
 	if createSet && ud.stickerData.pos == 0 {
-		err = commitSticker(true, new(int), false, sf, c, ss)
+		err = commitSticker(true, ud.stickerData.pos, new(int), false, sf, c, ss)
 		if err != nil {
 			log.Errorln("create failed. ", err)
 			return err
@@ -147,19 +146,19 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 			ud.stickerData.cAmount += 1
 		}
 	} else {
-		err = commitSticker(false, new(int), false, sf, c, ss)
+		err = commitSticker(false, ud.stickerData.pos, new(int), false, sf, c, ss)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid sticker emojis") {
 				return c.Send("Sorry, this emoji is invalid. Try another one.\n抱歉, 這個emoji無效, 請另試一次.")
 			}
-			c.Send("one sticker failed to add, index is:" + strconv.Itoa(ud.stickerData.pos))
+			sendOneStickerFailedToAdd(c, ud.stickerData.pos, err)
 			log.Warnln("execEmojiAssign: a sticker failed to add. ", err)
 		} else {
 			ud.stickerData.cAmount += 1
 		}
 	}
 
-	log.Debugf("one sticker commit attempted. pos:%d, lAmount:%d, cAmount:%d", ud.stickerData.pos, ud.stickerData.lAmount, ud.stickerData.cAmount)
+	log.Debugf("execEmojiAssign: one sticker commit attempted. pos:%d, lAmount:%d, cAmount:%d", ud.stickerData.pos, ud.stickerData.lAmount, ud.stickerData.cAmount)
 
 	ud.stickerData.pos += 1
 
@@ -188,7 +187,8 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 // therefore, Video? must be set.
 //
 // flCount counts the total flood limit for entire sticker set.
-func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
+// pos is for logging only.
+func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
 	var err error
 	var floodErr tele.FloodError
 	var f string
@@ -219,7 +219,12 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 		if err == nil {
 			break
 		}
+		//Deal with error below
 		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
+		if i == 2 {
+			log.Warn("too many retries, end retry loop")
+			return err
+		}
 		// Is flood limit error.
 		// Telegram's flood limit is strange.
 		// It only happens to a specific user at a specific time.
@@ -231,32 +236,38 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 		if errors.As(err, &floodErr) {
 			// This reflects the retry count for entire SS.
 			*flCount += 1
-			log.Warnln("Current flood limit count:", *flCount)
+			log.Warnf("commitSticker: Flood limit encountered for user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, ss.Name, *flCount, pos)
+			log.Warnln("commitSticker: commit sticker retry after: ", floodErr.RetryAfter)
 			//Do not expose set name.
-			flRecords = append(flRecords, fmt.Sprintf("FL: time:%s, Set:%s, RA:%d count:%d\n", time.Now().String(), hashCRC64(ss.Name), floodErr.RetryAfter, *flCount))
-			// Tolerate 5 flood limits per set.
+			flRecords = append(flRecords, fmt.Sprintf("FL: time:%s, Set:%s, RA:%d count:%d\n", time.Now().Format(time.Stamp), hashCRC64(ss.Name), floodErr.RetryAfter, *flCount))
 			// If flood limit encountered when creating set, return immediately.
-			if createSet || *flCount > 5 {
+			if createSet {
 				sendTooManyFloodLimits(c)
-				return errors.New("too many flood limits")
+				return errors.New("flood limit when creating set")
 			}
 			if *flCount == 2 {
 				sendFLWarning(c)
 			}
-			log.Warnf("Flood limit encountered for user:%d for set:%s", c.Sender().ID, ss.Name)
-			log.Warnln("commit sticker retry after: ", floodErr.RetryAfter)
+
+			//Sleep
 			if floodErr.RetryAfter > 60 {
-				log.Error("RA too long! Telegram's bug?")
-				log.Error("Attempt to sleep for 120 seconds.")
+				log.Error("RA too long! Telegram's bug? Attempt to sleep for 120 seconds.")
 				time.Sleep(120 * time.Second)
 			} else {
-				extraRA := 30 * *flCount
+				extraRA := *flCount * 30
 				log.Warnf("Sleeping for %d seconds due to FL.", floodErr.RetryAfter+extraRA)
-				time.Sleep(time.Duration((floodErr.RetryAfter + extraRA) * int(time.Second)))
+				time.Sleep(time.Duration(floodErr.RetryAfter+extraRA) * time.Second)
 			}
 
-			log.Warn("woke up from RA sleep. ignoring this error.")
-			break
+			log.Warnf("Woken up from RA sleep. ignoring this error. user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, ss.Name, *flCount, pos)
+
+			//According to collected logs, exceeding 2 flood counts will cause api server to stop auto retrying.
+			//Hence, we do retry here, else, break retry loop.
+			if *flCount > 2 {
+				continue
+			} else {
+				break
+			}
 
 		} else if strings.Contains(strings.ToLower(err.Error()), "video_long") {
 			// Redo with safe mode on.
@@ -267,7 +278,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 				return err
 			} else {
 				log.Warnln("returned video_long, attempting safe mode.")
-				return commitSticker(createSet, flCount, true, sf, c, ss)
+				return commitSticker(createSet, pos, flCount, true, sf, c, ss)
 			}
 		} else if strings.Contains(err.Error(), "400") {
 			// return remaining 400 BAD REQUEST immediately to parent without retry.
@@ -275,11 +286,7 @@ func commitSticker(createSet bool, flCount *int, safeMode bool, sf *StickerFile,
 		} else {
 			// Handle unknown error here.
 			// We simply retry for 2 more times with 5 sec interval.
-			if i == 2 {
-				log.Warn("too many retries, end retry loop")
-				return err
-			}
-			log.Warn("retrying...")
+			log.Warnln("commitSticker: retrying... cause:", err)
 			time.Sleep(5 * time.Second)
 		}
 	}
@@ -306,7 +313,7 @@ func editStickerEmoji(newEmoji string, index int, fid string, f string, ssLen in
 		cPath: f,
 	}
 	flCount := 0
-	err := commitSticker(false, &flCount, false, sf, c, ss)
+	err := commitSticker(false, -1, &flCount, false, sf, c, ss)
 	if err != nil {
 		return errors.New("error commiting temp sticker " + err.Error())
 	}

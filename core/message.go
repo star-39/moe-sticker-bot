@@ -778,3 +778,12 @@ func sendUseCommandToImport(c tele.Context) error {
 	return c.Send("Please use /create to create sticker set using your own photos and videos. /start\n" +
 		"請使用 /create 指令來使用自己的圖片和影片和創建貼圖包. /start")
 }
+
+func sendOneStickerFailedToAdd(c tele.Context, pos int, err error) error {
+	return c.Reply(fmt.Sprintf(`
+Failed to add one sticker.
+一張貼圖添加失敗.
+Index: %d
+Error: %s
+`, pos, err.Error()))
+}
