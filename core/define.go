@@ -10,7 +10,7 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-var BOT_VERSION = "2.3.0-GO"
+var BOT_VERSION = "2.3.1-GO"
 
 // The telegram bot.
 var b *tele.Bot
