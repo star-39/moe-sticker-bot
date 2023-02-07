@@ -105,6 +105,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				time.Sleep(time.Duration(sleepTime) * time.Second)
 			}
 		}
+		// Tolerate at most 3 errors when importing sticker set.
 		if ud.command == "import" && errorCount > 3 {
 			return errors.New("too many errors importing")
 		}
@@ -112,6 +113,9 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	if createSet {
 		if ud.command == "import" {
 			insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, true)
+			if flCount > 0 {
+				go verifyFloodedStickerSet(flCount, errorCount, ud.lineData.Amount, ud.stickerData.id)
+			}
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
@@ -436,4 +440,18 @@ func guessIsArchive(f string) bool {
 func moveSticker(oldIndex int, newIndex int, ud *UserData) error {
 	sid := ud.stickerData.stickerSet.Stickers[oldIndex].FileID
 	return b.SetStickerPosition(sid, newIndex)
+}
+
+func verifyFloodedStickerSet(fc int, ec int, desiredAmount int, ssn string) {
+	time.Sleep(65 * time.Second)
+	ss, err := b.StickerSet(ssn)
+	if err != nil {
+		return
+	}
+	if desiredAmount != len(ss.Stickers) {
+		log.Warnf("A flooded sticker set corrupted! floodCount:%d, errorCount:%d, ssn:%s, desired:%d, got:%d", fc, ec, ssn, desiredAmount, len(ss.Stickers))
+	} else {
+		log.Infof("A flooded sticker set seems ok. floodCount:%d, errorCount:%d, ssn:%s, desired:%d, got:%d", fc, ec, ssn, desiredAmount, len(ss.Stickers))
+	}
+
 }
