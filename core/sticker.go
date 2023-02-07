@@ -17,21 +17,45 @@ import (
 
 // Final stage of automated sticker submission.
 func execAutoCommit(createSet bool, c tele.Context) error {
-	ud := users.data[c.Sender().ID]
-	pText, teleMsg, _ := sendProcessStarted(ud, c, "Preparing...")
+	uid := c.Sender().ID
+	ud := users.data[uid]
+	pText, teleMsg, _ := sendProcessStarted(ud, c, "Waiting...")
 	ud.wg.Wait()
 
 	// cache ud and clean, allow user to be release from session.
 	// lock is ignored here.
-	cud := *users.data[c.Sender().ID]
+	cud := *users.data[uid]
 	ud = &cud
 	cleanUserData(c.Sender().ID)
-
 	sendNotifyWorkingOnBackground(c)
 
 	if len(ud.stickerData.stickers) == 0 {
 		log.Error("No sticker to commit!")
 		return errors.New("no sticker available")
+	}
+
+	// wait for all channels to be done.
+	// cache the list.
+	list := autocommitWorkersList[uid]
+	// append a new channel to original list
+	done := make(chan bool)
+	autocommitWorkersList[uid] = append(autocommitWorkersList[uid], done)
+	defer func() {
+		done <- true
+		close(done)
+	}()
+	for _, c := range list {
+		select {
+		case _, ok := <-c:
+			if !ok {
+				//channel already closed
+				log.Debug("channel already closed")
+				continue
+			}
+		//Should never be triggered
+		case <-time.After(30 * time.Minute):
+			log.Warn("Channel wait reached 10m timeout!")
+		}
 	}
 
 	log.Debugln("stickerData summary:")

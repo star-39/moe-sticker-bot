@@ -21,6 +21,9 @@ var botName string
 
 var downloadQueue DownloadQueue
 var webAppSSAuthList WebAppQIDAuthList
+
+// ['uid'] -> bool channels
+var autocommitWorkersList = make(map[int64][]chan bool)
 var users Users
 
 const (
