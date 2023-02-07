@@ -363,7 +363,7 @@ func curateDatabase() error {
 		for si := range ss.Stickers {
 			if si > 0 {
 				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
-					log.Warnln("Setting auto emoji to FALSE for ", l.Tg_id)
+					log.Infoln("Setting auto emoji to FALSE for ", l.Tg_id)
 					updateLineSAE(false, l.Tg_id)
 				}
 			}
