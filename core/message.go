@@ -149,7 +149,7 @@ func sendConfirmExportToWA(c tele.Context, sn string, hex string) error {
 	btnExport := selector.WebApp("Continue export/繼續匯出 →", &webapp)
 	selector.Inline(selector.Row(btnExport))
 
-	return c.Send(`
+	return c.Reply(`
 Exporting to WhatsApp requires <a href="https://github.com/star-39/msb_app">Msb App</a> being installed.
 匯出到WhatsApp需要手機上安裝<a href="https://github.com/star-39/msb_app">Msb App</a>
 
