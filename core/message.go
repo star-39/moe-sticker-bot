@@ -652,8 +652,8 @@ If you see this warning often, try to wait for several hours then try again if s
 }
 
 func sendTooManyFloodLimits(c tele.Context) error {
-	return c.Send("Sorry, you have triggered Telegram's flood limit for too many times, it's recommended try again after a while.\n" +
-		"抱歉, 您暫時超過了Telegram的貼圖製作次數限制, 建議您過一段時間後再試一次.")
+	return c.Send("Sorry, it seems that you have triggered Telegram's flood limit for too many times, it's recommended try again after a while.\n" +
+		"抱歉, 您似乎觸發了Telegram的貼圖製作次數限制, 建議您過一段時間後再試一次.")
 }
 
 func sendNoCbWarn(c tele.Context) error {
