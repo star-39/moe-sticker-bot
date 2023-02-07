@@ -644,10 +644,12 @@ func sendSFromSS(c tele.Context, ssid string, reply *tele.Message) error {
 
 func sendFLWarning(c tele.Context) error {
 	return c.Send(`
-It might take longer to process this sticker set (1-5 minutes)... 
-If you see this warning often, try to wait for several hours then try again if sticker set failed.
-此貼圖包可能需要更長時間處理(1-5分鐘)...
-如果您一直看見這條警告, 而且貼圖包創建失敗的話, 建議您等待幾小時後再試一次.
+It might take longer to process this sticker set (2-8 minutes)... 
+This warning indicates that you might triggered Telegram's flood limit, and bot is trying to re-submit.
+Due to this mechanism, resulted sticker set might contains duplicate or missing sticker, please double check.
+
+此貼圖包可能需要更長時間處理(2-8分鐘)...
+看到這一條警告表示Telegram可能限制了您創建貼圖包的頻度, 且bot正在自動嘗試重新製作, 因此得出的貼圖包可能會重複或缺失貼圖, 請在完成製作後再檢查一下.
 `)
 }
 
