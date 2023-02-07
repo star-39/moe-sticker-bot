@@ -105,6 +105,9 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				time.Sleep(time.Duration(sleepTime) * time.Second)
 			}
 		}
+		if ud.command == "import" && errorCount > 3 {
+			return errors.New("too many errors importing")
+		}
 	}
 	if createSet {
 		if ud.command == "import" {
