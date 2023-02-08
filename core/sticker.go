@@ -42,7 +42,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	done := make(chan bool)
 	autocommitWorkersList[uid] = append(autocommitWorkersList[uid], done)
 	defer func() {
-		done <- true
+		// done <- true
 		close(done)
 	}()
 	for _, c := range list {
@@ -83,7 +83,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		if index == 0 && createSet {
 			err = commitSticker(true, index, &flCount, false, sf, c, ss)
 			if err != nil {
-				log.Errorln("create failed. ", err)
+				log.Errorln("create failed!. ", err)
 				return err
 			} else {
 				committedStickers += 1
@@ -229,7 +229,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 			break
 		}
 		//Deal with error below
-		log.Warnf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
+		log.Errorf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		if i == 2 {
 			log.Warn("too many retries, end retry loop")
 			return err
