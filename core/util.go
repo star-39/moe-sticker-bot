@@ -53,6 +53,10 @@ func checkID(s string) bool {
 	if strings.Contains(s, " ") {
 		return false
 	}
+	//Telegram does not allow sticker name having the word "telegram"
+	if strings.Contains(s, "telegram") {
+		return false
+	}
 
 	return true
 }
