@@ -340,7 +340,10 @@ func searchLineS(keywords []string) []LineStickerQ {
 }
 
 func curateDatabase() error {
+	log.Info("Starting database curation...")
 	lastIndexOfDedupOK := getLastLineDedupIndex()
+	invalidSSCount := 0
+	dupSSCount := 0
 	//Line stickers.
 	ls := queryLineS("QUERY_ALL")
 	for i, l := range ls {
@@ -352,6 +355,7 @@ func curateDatabase() error {
 		if err != nil {
 			if strings.Contains(err.Error(), "is invalid") {
 				log.Infof("SS:%s is invalid. purging it from db...", l.Tg_id)
+				invalidSSCount++
 				deleteLineS(l.Tg_id)
 				deleteUserS(l.Tg_id)
 			} else {
@@ -363,7 +367,7 @@ func curateDatabase() error {
 		for si := range ss.Stickers {
 			if si > 0 {
 				if ss.Stickers[si].Emoji != ss.Stickers[si-1].Emoji {
-					log.Infoln("Setting auto emoji to FALSE for ", l.Tg_id)
+					log.Debugln("Setting auto emoji to FALSE for ", l.Tg_id)
 					updateLineSAE(false, l.Tg_id)
 				}
 			}
@@ -374,12 +378,13 @@ func curateDatabase() error {
 			os.MkdirAll(workdir, 0755)
 			for si, s := range ss.Stickers {
 				if si > 0 {
-
 					fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
 					f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
 					teleDownload(&s.File, f)
 
 					if compCRC32(f, fp) {
+						dupSSCount++
+						log.Warnln("Found dup sticker in ss:%s,index:%d, deleting...", ss.Name, si)
 						b.DeleteSticker(s.FileID)
 					}
 				}
@@ -393,7 +398,7 @@ func curateDatabase() error {
 	//User stickers.
 	us := queryUserS(-1)
 	for _, u := range us {
-		log.Infof("Checking:%s", u.tg_id)
+		log.Debugf("Checking:%s", u.tg_id)
 		_, err := b.StickerSet(u.tg_id)
 		if err != nil {
 			if strings.Contains(err.Error(), "is invalid") {
@@ -405,6 +410,7 @@ func curateDatabase() error {
 		}
 	}
 
+	log.Info("Database curation done. dup:%d, invalid:%d", dupSSCount, invalidSSCount)
 	return nil
 }
 
