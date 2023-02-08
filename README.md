@@ -110,10 +110,11 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
-v2.3.1 (20230207)
+v2.3.1-2.3.4 (20230207)
   * Fix i18n titles.
   * Fix flood limit by implementing channel to limit autocommit cocurrency.
   * Fix error on webapp
+  * Fix import hang
   
 v2.3.0 (20230207)
   * Fix flood limit by using local api server.
