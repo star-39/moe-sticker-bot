@@ -363,7 +363,8 @@ func checkGnerateSIDFromLID(ld *msbimport.LineData) string {
 		log.Debugln("id too long:", len(s))
 		extra := len(s) - 64
 		id = id[:len(id)-extra]
-		s = ld.Category + id + secHex(2) + "_by_" + botName
+		s = ld.Store + id + secHex(2) + "_by_" + botName
+		s = strings.ReplaceAll(s, "__", "_")
 		log.Debugln("Shortend id to:", s)
 	}
 
