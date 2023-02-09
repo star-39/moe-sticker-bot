@@ -53,11 +53,12 @@ func parseKakaoLink(link string, ld *LineData) (string, error) {
 
 	// Only share link can be used to query kakao ss code(id).
 	isAnimated := checkKakaoAnimated(kakaoJson.Result.TitleDetailUrl)
+	log.Debugf("Kakao:%s is animated? %t", kakaoID, isAnimated)
 	if isAnimated {
 		if url.Host != "emoticon.kakao.com" {
 			ld.DLinks = kakaoJson.Result.ThumbnailUrls
 			ld.IsAnimated = false
-			warn = "need share link for animated kakao"
+			warn = WARN_KAKAO_ANIM_NEED_SHARE_LINK
 		} else {
 			ld.DLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
 			ld.IsAnimated = true

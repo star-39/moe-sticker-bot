@@ -18,6 +18,8 @@ const (
 
 	StoreLine  = "line"
 	StoreKakao = "kakao"
+
+	WARN_KAKAO_ANIM_NEED_SHARE_LINK = "need share link for animated kakao"
 )
 
 type LineFile struct {
