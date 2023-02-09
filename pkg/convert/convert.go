@@ -172,6 +172,13 @@ func FFToWebm(f string) (string, error) {
 		out, err := exec.Command(bin, args...).CombinedOutput()
 		if err != nil {
 			log.Warnln("ffToWebm ERROR:", string(out))
+			//FFMPEG does not support animated webp.
+			//Convert to APNG first than WEBM.
+			if strings.Contains(string(out), "skipping unsupported chunk: ANIM") {
+				log.Warnln("Trying to convert to APNG first.")
+				f2, _ := IMToApng(f)
+				return FFToWebm(f2)
+			}
 			return pathOut, err
 		}
 		if stat, _ := os.Stat(pathOut); stat.Size() > 255*KiB {
