@@ -11,7 +11,6 @@ import (
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
 	"github.com/star-39/moe-sticker-bot/pkg/convert"
-	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -173,7 +172,6 @@ func initWorkspace(b *tele.Bot) {
 	users = Users{data: make(map[int64]*UserData)}
 	downloadQueue = DownloadQueue{ss: make(map[string]bool)}
 	webAppSSAuthList = WebAppQIDAuthList{sa: make(map[string]*WebAppQIDAuthObject)}
-	msbimport.InitWorkersPool()
 	err := os.MkdirAll(dataDir, 0755)
 	if err != nil {
 		log.Fatal(err)
