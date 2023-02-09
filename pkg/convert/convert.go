@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var FFMPEG_BIN = "ffmpeg"
 var BSDTAR_BIN = "bsdtar"
 var CONVERT_BIN = "convert"
 var CONVERT_ARGS []string
@@ -33,20 +34,37 @@ const (
 
 // Should call before using functions in this package.
 // Otherwise, defaults to Linux environment.
+// This function also call CheckDeps to check if executables exist and return a string slice
+// containing binaries that are not found in PATH.
 func InitConvert() {
 	switch runtime.GOOS {
 	case "linux":
-		BSDTAR_BIN = "bsdtar"
 		CONVERT_BIN = "convert"
-	case "darwin":
-		BSDTAR_BIN = "bsdtar"
-		CONVERT_BIN = "magick"
-		CONVERT_ARGS = []string{"convert"}
 	default:
-		BSDTAR_BIN = "tar"
 		CONVERT_BIN = "magick"
 		CONVERT_ARGS = []string{"convert"}
 	}
+	unfoundBins := CheckDeps()
+	if len(unfoundBins) != 0 {
+		log.Warning("Following required executables not found!:")
+		log.Warnln(strings.Join(unfoundBins, "\n"))
+		log.Warning("Please install missing executables to your PATH, or converting will not work!")
+	}
+}
+
+func CheckDeps() []string {
+	unfoundBins := []string{}
+
+	if _, err := exec.LookPath(FFMPEG_BIN); err != nil {
+		unfoundBins = append(unfoundBins, FFMPEG_BIN)
+	}
+	if _, err := exec.LookPath(BSDTAR_BIN); err != nil {
+		unfoundBins = append(unfoundBins, BSDTAR_BIN)
+	}
+	if _, err := exec.LookPath(CONVERT_BIN); err != nil {
+		unfoundBins = append(unfoundBins, CONVERT_BIN)
+	}
+	return unfoundBins
 }
 
 func IMToWebp(f string) (string, error) {
@@ -131,7 +149,7 @@ func IMToApng(f string) (string, error) {
 
 func FFToWebm(f string) (string, error) {
 	pathOut := f + ".webm"
-	bin := "ffmpeg"
+	bin := FFMPEG_BIN
 	baseargs := []string{"-hide_banner", "-i", f,
 		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
 		"-c:v", "libvpx-vp9", "-cpu-used", "5",
@@ -169,7 +187,7 @@ func FFToWebm(f string) (string, error) {
 // This function will be called if Telegram's API rejected our webm.
 func FFToWebmSafe(f string) (string, error) {
 	pathOut := f + ".webm"
-	bin := "ffmpeg"
+	bin := FFMPEG_BIN
 	args := []string{"-hide_banner", "-i", f,
 		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
 		"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
@@ -187,7 +205,7 @@ func FFToGifShrink(f string) (string, error) {
 		decoder = []string{"-c:v", "libvpx-vp9"}
 	}
 	pathOut := f + ".gif"
-	bin := "ffmpeg"
+	bin := FFMPEG_BIN
 	args = append(args, decoder...)
 	args = append(args, "-i", f, "-hide_banner",
 		"-lavfi", "scale=256:256:force_original_aspect_ratio=decrease,split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
@@ -208,7 +226,7 @@ func FFToGif(f string) (string, error) {
 		decoder = []string{"-c:v", "libvpx-vp9"}
 	}
 	pathOut := f + ".gif"
-	bin := "ffmpeg"
+	bin := FFMPEG_BIN
 	args = append(args, decoder...)
 	args = append(args, "-i", f, "-hide_banner",
 		"-lavfi", "split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
@@ -288,7 +306,7 @@ func IMToAnimatedWebpLQ(f string) error {
 // // shrink down quality as more as possible.
 func FFToAnimatedWebpWA(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
-	bin := "ffmpeg"
+	bin := FFMPEG_BIN
 	//Try qualities from best to worst.
 	qualities := []string{"75", "50", "20", "_DS384"}
 
@@ -326,7 +344,7 @@ func FFToAnimatedWebpWA(f string) error {
 // appends png
 func FFtoPNG(f string, pathOut string) error {
 	var args []string
-	bin := "ffmpeg"
+	bin := FFMPEG_BIN
 	args = append(args, "-c:v", "libvpx-vp9", "-i", f, "-hide_banner",
 		"-loglevel", "error", "-frames", "1", "-y", pathOut)
 

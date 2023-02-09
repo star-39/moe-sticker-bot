@@ -18,7 +18,7 @@ func sendStartMessage(c tele.Context) error {
 	message := `
 <b>/import</b> <b>/download</b> 
 <b>/create</b> or <b>/manage</b> sticker set<code>
-創建或管理的Telegram貼圖包.</code>
+創建或管理Telegram貼圖包.</code>
 <b>/search</b> LINE or kakao sticker sets.<code>
 搜尋LINE和kakao貼圖包.</code>
 <b>/faq  /about  /changelog</b><code>
@@ -26,13 +26,15 @@ func sendStartMessage(c tele.Context) error {
 
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please:
 • Send <b>LINE/Kakao sticker share link</b> to import or download.
-• Send <b>Telegram sticker or GIF</b> to download or manage.
+• Send <b>Telegram sticker or link</b> to download or manage or export to WhatsApp.
+• Send <b>Telegram GIF</b> to download.
 • Send <b>keywords</b> to search titles.
 or use a command above.
 
 你好, 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
 • 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
-• 傳送<b>Telegram貼圖/GIF</b>來下載或管理.
+• 傳送<b>Telegram貼圖或連結</b>來下載或管理或匯出到WhatsApp.
+• 傳送<b>Telegram GIF</b>來下載.
 • 傳送<b>關鍵字</b>來搜尋貼圖包.
 或 從上方點選指令.
 `
@@ -43,7 +45,7 @@ func sendAboutMessage(c tele.Context) {
 	c.Send(fmt.Sprintf(`
 @%s by @plow283
 <b>Please star for this project on Github if you like this bot!
-如果您喜歡這個bot, 歡迎Github給本專案標Star喔!
+如果您喜歡這個bot, 歡迎在Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
 Thank you @StickerGroup for feedbacks and advices!
 <code>
@@ -57,8 +59,6 @@ Please send /start to start using
 </b><code>
 BOT_VERSION: %s
 </code>
-View changelog <a href="https://github.com/star-39/moe-sticker-bot#changelog">here</a>.
-按<a href="https://github.com/star-39/moe-sticker-bot#changelog">這裡</a>檢視更新紀錄.
 `, botName, BOT_VERSION), tele.ModeHTML)
 }
 
@@ -69,7 +69,7 @@ func sendFAQ(c tele.Context) {
 如果您喜歡這個bot, 歡迎在Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
 ------------------------------------
-<b>Q: I'm trapped!! I can't quit from command!
+<b>Q: I'm stuck!! I can't quit from command!
 我卡住了! 我沒辦法從指令中退出!</b>
 A: Please send /quit to interrupt.
 請傳送 /quit 來中斷.
@@ -96,7 +96,7 @@ func sendChangelog(c tele.Context) error {
 	return c.Send(`
 Details: 詳細:
 https://github.com/star-39/moe-sticker-bot#changelog
-v2.3.0 (2023027)
+v2.3.x (20230208)
   * Fix flood limit error during import.
   * Improved performance.
   * 修復匯入貼圖時flood limit錯誤。
@@ -438,12 +438,10 @@ Send emoji(s) representing this sticker.
 }
 
 func sendFatalError(err error, c tele.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Error("Recovered panic in sendFatalError")
-		}
-	}()
-	var errMsg string
+	if c == nil {
+		return
+	}
+	errMsg := ""
 	if err != nil {
 		errMsg = err.Error()
 		if strings.Contains(errMsg, "500") {
@@ -451,8 +449,6 @@ func sendFatalError(err error, c tele.Context) {
 				"此錯誤為Telegram伺服器之內部錯誤, 無法由bot解決, 只能等候官方修復. 建議您稍後再嘗試一次.\n"
 		}
 	}
-	log.Error("User encountered fatal error!")
-	log.Errorln("Raw error:", err)
 
 	c.Send("<b>Fatal error! Please try again. /start\n"+
 		"發生嚴重錯誤! 請您從頭再試一次. /start </b>\n\n"+
@@ -496,21 +492,6 @@ func editProgressMsg(cur int, total int, progressText string, originalText strin
 			log.Errorln("editProgressMsg encountered panic! ignoring...", string(debug.Stack()))
 		}
 	}()
-
-	// ud, exist := users.data[c.Sender().ID]
-	// if teleMsg == nil {
-	// 	if !exist {
-	// 		return nil
-	// 	}
-	// 	select {
-	// 	case <-ud.ctx.Done():
-	// 		log.Warn("editProgressMsg received ctxDone!")
-	// 		return nil
-	// 	default:
-	// 	}
-	// 	originalText = ud.progress
-	// 	teleMsg = ud.progressMsg
-	// }
 
 	header := originalText[:strings.LastIndex(originalText, "<code>")]
 	prog := ""
@@ -754,14 +735,9 @@ Example: 例如:
 `, botName, botName))
 }
 
-// func sendDownloadInProgressWarning(c tele.Context) error {
-// 	return c.Send("Download already in progress, please wait...\n此貼圖已經正在下載, 請稍等.")
-// }
-
 func sendNeedKakaoAnimatedShareLinkWarning(c tele.Context) error {
-	log.Warn("need share link")
 	return c.Send(&tele.Photo{
-		File: tele.File{FileID: "AgACAgEAAxkBAAI4mmPYy5-NBuJEoKN7dvIhFRpoe4w7AAJ8qzEbfPvARtoB1rm9Yj6GAQADAgADeQADLQQ"},
+		File: tele.File{FileID: FID_KAKAO_SHARE_LINK},
 		Caption: `
 Importing animated kakao stickers requires a share link from KakaoTalk app.
 You can still continue import, in that case, static ones will be imported.

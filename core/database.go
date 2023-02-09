@@ -225,6 +225,9 @@ func queryLineS(id string) []LineStickerQ {
 
 // Pass -1 to query all rows.
 func queryUserS(uid int64) []UserStickerQ {
+	if db == nil {
+		return nil
+	}
 	var usq []UserStickerQ
 	var q *sql.Rows
 	var tgTitle string

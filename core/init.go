@@ -1,20 +1,23 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"time"
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
+	"github.com/star-39/moe-sticker-bot/pkg/convert"
 	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
-	"gopkg.in/telebot.v3/middleware"
 )
 
 func Init() {
 	initLogrus()
+	convert.InitConvert()
 	b = initBot()
 	initWorkspace(b)
 	initWorkersPool()
@@ -28,7 +31,7 @@ func Init() {
 	log.WithFields(log.Fields{"botName": botName, "dataDir": dataDir}).Info("Bot OK.")
 
 	// complies to telebot v3.1
-	b.Use(middleware.Recover())
+	b.Use(Recover())
 
 	b.Handle("/quit", cmdQuit)
 	b.Handle("/cancel", cmdQuit)
@@ -59,6 +62,35 @@ func Init() {
 	b.Start()
 }
 
+// Recover returns a middleware that recovers a panic happened in
+// the handler.
+func Recover(onError ...func(error)) tele.MiddlewareFunc {
+	return func(next tele.HandlerFunc) tele.HandlerFunc {
+		return func(c tele.Context) error {
+			var f func(error)
+			if len(onError) > 0 {
+				f = onError[0]
+			} else {
+				f = func(err error) {
+					c.Bot().OnError(err, c)
+				}
+			}
+
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						f(err)
+					} else if s, ok := r.(string); ok {
+						f(errors.New(s))
+					}
+				}
+			}()
+
+			return next(c)
+		}
+	}
+}
+
 // This one never say goodbye.
 func endSession(c tele.Context) {
 	cleanUserDataAndDir(c.Sender().ID)
@@ -83,11 +115,18 @@ func endManageSession(c tele.Context) {
 }
 
 func onError(err error, c tele.Context) {
+	log.Error("User encountered fatal error!")
+	log.Errorln("Raw error:", err)
+	log.Errorln(string(debug.Stack()))
+
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorln("Recovered from onError!!", r)
 		}
 	}()
+	if c == nil {
+		return
+	}
 	sendFatalError(err, c)
 	cleanUserDataAndDir(c.Sender().ID)
 }
