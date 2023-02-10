@@ -30,8 +30,10 @@ Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, �
 <img width="511" alt="スクリーンショット 2022-03-24 19 58 09" src="https://user-images.githubusercontent.com/75669297/159902095-fefbcbbf-1c5e-4c3e-9e55-eb28b48567e0.png"> -->
 
 <!--<img width="500" alt="スクリーンショット 2022-05-11 19 33 27" src="https://user-images.githubusercontent.com/75669297/167830628-1dfc9941-4b3c-408d-bf64-1ef814e3efe8.png"> <img width="500" alt="スクリーンショット 2022-05-11 19 51 46" src="https://user-images.githubusercontent.com/75669297/167833015-806b4f11-ecd9-4f10-9b9c-ecb7a20f8f97.png">-->
-<!-- 
-<img width="500" alt="スクリーンショット 2022-05-11 19 58 52" src="https://user-images.githubusercontent.com/75669297/167834522-f1e988e8-bd24-44b1-a90c-f69791a9a623.png">
+
+<!--<img width="500" alt="スクリーンショット 2022-05-11 19 58 52" src="https://user-images.githubusercontent.com/75669297/167834522-f1e988e8-bd24-44b1-a90c-f69791a9a623.png">-->
+
+<img width="500" alt="スクリーンショット 2023-02-11 午前1 53 55" src="https://user-images.githubusercontent.com/75669297/218149914-65db79c0-c3f9-44ed-8043-1673eba41bc0.png">
 
 <img width="500" alt="スクリーンショット 2022-05-11 19 59 46" src="https://user-images.githubusercontent.com/75669297/167834725-425a6b32-ba60-4201-b27e-33588ceff1df.png">
 
