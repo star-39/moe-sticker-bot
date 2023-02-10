@@ -47,6 +47,8 @@ Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, �
 
 <img width="517" alt="スクリーンショット 2022-12-12 午後2 47 22" src="https://user-images.githubusercontent.com/75669297/206969650-cff19478-898a-4344-a73a-80469184053c.png">
 
+<img width="500" alt="IMG_3560" src="https://user-images.githubusercontent.com/75669297/218153727-5fb1d3e0-3770-4dc8-a2b5-3e0ecd89a003.png">
+
 
 ## Deployment
 ### Deploy with pre-built containers
