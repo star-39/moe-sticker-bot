@@ -7,37 +7,13 @@ import (
 )
 
 // Workers pool for converting webm
-var wpConvertWebm *ants.PoolWithFunc
 var wpDownloadStickerSet *ants.PoolWithFunc
-
-// var wpDownloadSticker *ants.PoolWithFunc
-// var wpDownloadTGSSticker *ants.PoolWithFunc
 
 func initWorkersPool() {
 	// wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
 	wpDownloadStickerSet, _ = ants.NewPoolWithFunc(
 		8, wDownloadStickerObject)
 }
-
-// // *StickerFile
-// func wConvertWebm(i interface{}) {
-// 	sf := i.(*StickerFile)
-// 	defer sf.wg.Done()
-// 	log.Debugln("Converting in pool for:", sf)
-
-// 	var err error
-// 	//FFMpeg doest not support animated webp.
-// 	//IM convert it to apng then feed to webm.
-// 	if strings.HasSuffix(sf.oPath, ".webp") {
-// 		sf.oPath, _ = convert.IMToApng(sf.oPath)
-// 	}
-// 	sf.cPath, err = convert.FFToWebm(sf.oPath)
-
-// 	if err != nil {
-// 		sf.cError = err
-// 	}
-// 	log.Debugln("convert OK: ", sf.cPath)
-// }
 
 // *StickerDownloadObject
 func wDownloadStickerObject(i interface{}) {

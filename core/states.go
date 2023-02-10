@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -49,8 +50,8 @@ func handleMessage(c tele.Context) error {
 		}
 	case "manage":
 		switch state {
-		case "waitSManage":
-			err = statePrepareSManage(c)
+		// case "waitSManage":
+		// 	err = statePrepareSManage(c)
 		case "waitCbEditChoice":
 			err = waitCbEditChoice(c)
 		case "waitSFile":
@@ -193,7 +194,7 @@ func confirmImport(c tele.Context) error {
 	ud.stickerData.isVideo = ud.lineData.IsAnimated
 
 	//After PrepareImportStickers returns, individual LineFile might not be ready yet.
-	//When transfering data to ud.stickerData.stickers, make sure transfer finished data only.
+	//When transfering data to ud.stickerData.stickers, make sure to transfer finished data only.
 	for range ud.lineData.Files {
 		sf := &StickerFile{}
 		sf.wg.Add(1)
@@ -232,25 +233,14 @@ func stateProcessing(c tele.Context) error {
 
 func statePrepareSManage(c tele.Context) error {
 	var ud *UserData
-	if c.Callback() != nil && c.Message().ReplyTo != nil {
-		if c.Callback().Data == CB_MANAGE {
-			ud = initUserData(c, "manage", "waitCbEditChoice")
-			id := getSIDFromMessage(c.Message().ReplyTo)
-			ud.stickerData.id = id
-		}
-	} else {
-		ud = users.data[c.Sender().ID]
-		if c.Message().Sticker != nil {
-			ud.stickerData.sticker = c.Message().Sticker
-			ud.stickerData.id = c.Message().Sticker.SetName
-		} else {
-			link, tp := findLinkWithType(c.Message().Text)
-			if tp != LINK_TG {
-				return c.Send("Send telegram sticker or link or /quit")
-			}
-			ud.stickerData.id = path.Base(link)
-		}
+	if c.Message().ReplyTo == nil {
+		return errors.New("unknown error: no reply to")
 	}
+
+	ud = initUserData(c, "manage", "waitCbEditChoice")
+	id := getSIDFromMessage(c.Message().ReplyTo)
+	ud.stickerData.id = id
+
 	ud.lastContext = c
 	// Allow admin to manage all sticker sets.
 	if c.Sender().ID == Config.AdminUid {
@@ -353,7 +343,7 @@ func waitCbDelset(c tele.Context) error {
 
 func waitSType(c tele.Context) error {
 	if c.Callback() == nil {
-		return c.Send("Please press a button.")
+		return c.Send("Please press a button. /quit")
 	}
 
 	if strings.Contains(c.Callback().Data, "video") {
@@ -472,7 +462,7 @@ func waitEmojiChoice(c tele.Context) error {
 	} else {
 		emojis := findEmojis(c.Message().Text)
 		if emojis == "" {
-			return c.Send("Send emoji or press button!")
+			return c.Send("Send emoji or press button a button. /quit")
 		}
 		users.data[c.Sender().ID].stickerData.emojis = []string{emojis}
 	}

@@ -17,10 +17,9 @@ func cmdManage(c tele.Context) error {
 	if err != nil {
 		return sendNoSToManage(c)
 	}
-
-	initUserData(c, "manage", "waitSManage")
+	// V2.3: Do not init command on /manage
+	// initUserData(c, "manage", "waitSManage")
 	sendAskSToManage(c)
-	setState(c, "waitSManage")
 	return nil
 }
 
