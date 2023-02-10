@@ -16,26 +16,25 @@ import (
 
 func sendStartMessage(c tele.Context) error {
 	message := `
-<b>/import</b> <b>/download</b> 
-<b>/create</b> or <b>/manage</b> sticker set<code>
-創建或管理Telegram貼圖包.</code>
-<b>/search</b> LINE or kakao sticker sets.<code>
-搜尋LINE和kakao貼圖包.</code>
+<b>/import</b>  <b>/search</b> LINE/Kakao stickers.<code>
+匯入或搜尋LINE/Kaka貼圖包.</code>
+<b>/download</b>  <b>/create</b>  <b>/manage</b> Telegram stickers.<code>
+下載、創建、管理Telegram貼圖包.</code>
 <b>/faq  /about  /changelog</b><code>
-常見問題/關於/更新紀錄.</code>
+常見問題 / 關於 / 更新紀錄.</code>
 
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please:
 • Send <b>LINE/Kakao sticker share link</b> to import or download.
-• Send <b>Telegram sticker or link</b> to download or manage or export to WhatsApp.
-• Send <b>Telegram GIF</b> to download.
-• Send <b>keywords</b> to search titles.
+• Send <b>Telegram sticker/link/GIF</b> to download or export to WhatsApp.
+• Send <b>keywords</b> or <b>/search</b> to search titles.
+• Send /create or /manage to create or manage Telegram sticker set.
 or use a command above.
 
 你好, 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
 • 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
-• 傳送<b>Telegram貼圖或連結</b>來下載或管理或匯出到WhatsApp.
-• 傳送<b>Telegram GIF</b>來下載.
-• 傳送<b>關鍵字</b>來搜尋貼圖包.
+• 傳送<b>Telegram貼圖/連結/GIF</b>來下載或匯出到WhatsApp.
+• 傳送<b>關鍵字</b>或<b>/search</b> 來搜尋貼圖包.
+• 傳送 <b>/create</b> 或 <b>/manage</b> 來創建或管理Telegram貼圖包。
 或 從上方點選指令.
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
@@ -57,7 +56,7 @@ Comes with ABSOLUTELY NO WARRANTY! All rights reserved.
 Please send /start to start using
 請傳送 /start 來開始
 </b><code>
-BOT_VERSION: %s
+Version:版本: %s
 </code>
 `, botName, BOT_VERSION), tele.ModeHTML)
 }
@@ -69,7 +68,7 @@ func sendFAQ(c tele.Context) {
 如果您喜歡這個bot, 歡迎在Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
 ------------------------------------
-<b>Q: I'm stuck!! I can't quit from command!
+<b>Q: I got stucked! I can't quit from command!
 我卡住了! 我沒辦法從指令中退出!</b>
 A: Please send /quit to interrupt.
 請傳送 /quit 來中斷.
