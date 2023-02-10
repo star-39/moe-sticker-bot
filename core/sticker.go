@@ -360,6 +360,8 @@ func editStickerEmoji(newEmoji string, index int, fid string, f string, ssLen in
 			log.Errorln("error setting position, retrying...", err)
 			continue
 		}
+
+		time.Sleep(1 * time.Second)
 		//commit back the lastest set.
 		ud.stickerData.stickerSet = ssNew
 		return c.Bot().DeleteSticker(fid)
