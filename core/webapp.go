@@ -212,15 +212,32 @@ func apiEditResult(c *gin.Context) {
 }
 
 func commitEmojiChange(ud *UserData, so []webappStickerObject) error {
+	waitTime := 0
+	for ud.webAppWorkerPool.Waiting() > 0 {
+		time.Sleep(500 * time.Millisecond)
+		waitTime++
+		if waitTime > 20 {
+			break
+		}
+	}
 	ud.webAppWorkerPool.ReleaseTimeout(10 * time.Second)
 	// retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
 	//copy slice
 	ss := ud.stickerData.stickerSet.Stickers
 	notificationSent := false
+	emojiChanged := false
+	for _, s := range so {
+		if s.EmojiChanged {
+			emojiChanged = true
+		}
+	}
+	if !emojiChanged {
+		goto NEXT
+	}
 	for i, s := range ss {
 		if s.UniqueID != so[i].UniqueID {
 			log.Error("sticker order mismatch! index:", i)
-			return errors.New("sticker order mismatch")
+			return errors.New("sticker order mismatch, no emoji change committed")
 		}
 		if !so[i].EmojiChanged {
 			continue
@@ -245,6 +262,7 @@ func commitEmojiChange(ud *UserData, so []webappStickerObject) error {
 		// Have a rest.
 		time.Sleep(2 * time.Second)
 	}
+NEXT:
 	sendSEditOK(ud.lastContext)
 	sendSFromSS(ud.lastContext, ud.stickerData.id, nil)
 	endManageSession(ud.lastContext)
