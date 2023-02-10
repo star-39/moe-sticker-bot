@@ -769,3 +769,7 @@ Index: %d
 Error: %s
 `, pos, err.Error()))
 }
+
+func sendBadSNWarn(c tele.Context) error {
+	return c.Reply("Wrong sticker or link!\n貼圖或連結錯誤!")
+}

@@ -89,7 +89,7 @@ func wSubmitSMove(i interface{}) {
 	log.Debugf("Moving in pool %d(%s) -> %d", obj.oldIndex, sid, obj.newIndex)
 	err := b.SetStickerPosition(sid, obj.newIndex)
 	if err != nil {
-		log.Debugln("SMove failed!!", err)
+		log.Errorln("SMove failed!!", err)
 		obj.err = err
 	} else {
 		log.Debugf("Sticker move OK for %s", obj.sd.stickerSet.Name)

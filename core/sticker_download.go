@@ -63,7 +63,10 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		return err
 	}
 
-	ss, _ := c.Bot().StickerSet(setID)
+	ss, err := c.Bot().StickerSet(setID)
+	if err != nil {
+		return sendBadSNWarn(c)
+	}
 	ud.stickerData.id = ss.Name
 	ud.stickerData.title = ss.Title
 	pText, pMsg, _ := sendProcessStarted(ud, c, "")
