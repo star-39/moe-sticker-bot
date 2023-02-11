@@ -196,6 +196,11 @@ func apiEditResult(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
+	if ud.state == ST_PROCESSING {
+		c.String(http.StatusOK, "already processing...")
+		return
+	}
+
 	log.Debugln(so)
 
 	c.String(http.StatusOK, "")
