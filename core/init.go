@@ -47,6 +47,7 @@ func Init() {
 
 	// b.Handle("/register", cmdRegister, checkState)
 	b.Handle("/sitrep", cmdSitRep, checkState)
+	b.Handle("/getfid", cmdGetFID, checkState)
 
 	b.Handle("/start", cmdStart, checkState)
 

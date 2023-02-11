@@ -67,7 +67,6 @@ func handleMessage(c tele.Context) error {
 		case "process":
 			err = stateProcessing(c)
 		}
-
 	// case "register":
 	// 	switch state {
 	// 	case "waitRegLineLink":
@@ -80,6 +79,8 @@ func handleMessage(c tele.Context) error {
 		case "waitSearchKW":
 			err = waitSearchKeyword(c)
 		}
+	case "getfid":
+		err = cmdGetFID(c)
 	}
 	return err
 }
@@ -228,7 +229,7 @@ func stateProcessing(c tele.Context) error {
 			return cmdQuit(c)
 		}
 	}
-	return c.Send("processing, please wait... 作業中, 請稍後... /quit")
+	return c.Send("Processing, please wait... 作業中, 請稍後... /quit")
 }
 
 func statePrepareSManage(c tele.Context) error {
@@ -273,18 +274,22 @@ func waitCbEditChoice(c tele.Context) error {
 	}
 
 	switch c.Callback().Data {
-	case "add":
+	case CB_ADD_STICKER:
 		setState(c, "waitSFile")
 		return sendAskStickerFile(c)
-	case "del":
+	case CB_DELETE_STICKER:
 		setState(c, "waitSDel")
 		return sendAskSDel(c)
-	case "delset":
+	case CB_DELETE_STICKER_SET:
 		setState(c, "waitCbDelset")
 		return sendConfirmDelset(c)
-	case "bye":
+	case CB_CHANGE_TITLE:
+		return sendHowToChangeSSTitle(c)
+	case CB_BYE:
 		endManageSession(c)
 		terminateSession(c)
+	default:
+		return sendInStateWarning(c)
 	}
 	return nil
 }

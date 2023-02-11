@@ -24,3 +24,12 @@ func cmdSitRep(c tele.Context) error {
 
 	return nil
 }
+
+func cmdGetFID(c tele.Context) error {
+	initUserData(c, "getfid", "waitMFile")
+	if c.Message().Media() != nil {
+		return c.Reply(c.Message().Media().MediaFile().FileID)
+	} else {
+		return nil
+	}
+}
