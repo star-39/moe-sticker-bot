@@ -78,16 +78,15 @@ A: Please send /quit to interrupt.
 A: It's forced by Telegram, bot created sticker set must have its name in ID suffix.
 因為這個是Telegram的強制要求, 由bot創造的貼圖ID末尾必須有bot名字.
 
-<b>Q:  Can I add video sticker to static sticker set or vice versa?
+<b>Q: Can I add video sticker to static sticker set or vice versa?
     我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
-A:  Yes, however, video will be static in static set
+A: Yes, however, video will be static in static set
     可以. 惟動態貼圖在靜態貼圖包裡會變成靜態.
 
-<b>Q:  Who owns the sticker sets the bot created?
+<b>Q: Who owns the sticker sets the bot created?
     BOT創造的貼圖包由誰所有?</b>
-A:  It's you of course. You can manage them through /manage or Telegram's official @Stickers bot.
+A: It's you of course. You can manage them through /manage or Telegram's official @Stickers bot.
     當然是您. 您可以通過 /manage 指令或者Telegram官方的 @Stickers 管理您的貼圖包.
-
 `, botName, botName, botName), tele.ModeHTML)
 }
 
@@ -564,13 +563,14 @@ func sendUserOwnedS(c tele.Context) error {
 func sendAskEditChoice(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	selector := &tele.ReplyMarkup{}
-	btnAdd := selector.Data("Add sticker/增添貼圖", "add")
-	btnDel := selector.Data("Delete sticker/刪除貼圖", "del")
-	btnDelset := selector.Data("Delete sticker set/刪除貼圖包", "delset")
+	btnAdd := selector.Data("Add sticker/增添貼圖", CB_ADD_STICKER)
+	btnDel := selector.Data("Delete sticker/刪除貼圖", CB_DELETE_STICKER)
+	btnDelset := selector.Data("Delete sticker set/刪除貼圖包", CB_DELETE_STICKER_SET)
+	btnChangeTitle := selector.Data("Change title/修改標題", CB_CHANGE_TITLE)
 	btnExit := selector.Data("Exit/退出", "bye")
-	baseUrl, _ := url.JoinPath(Config.WebappUrl, "webapp", "edit")
 
 	if Config.WebApp {
+		baseUrl, _ := url.JoinPath(Config.WebappUrl, "webapp", "edit")
 		url := fmt.Sprintf("%s?ss=%s&dt=%d",
 			baseUrl,
 			ud.stickerData.id,
@@ -580,13 +580,15 @@ func sendAskEditChoice(c tele.Context) error {
 			URL: url,
 		}
 		btnEdit := selector.WebApp("Change order or emoji/修改順序或Emoji", webApp)
-		selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnEdit), selector.Row(btnExit))
+		selector.Inline(
+			selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnEdit), selector.Row(btnChangeTitle), selector.Row(btnExit))
 	} else {
-		selector.Inline(selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnExit))
+		selector.Inline(
+			selector.Row(btnAdd), selector.Row(btnDel), selector.Row(btnDelset), selector.Row(btnChangeTitle), selector.Row(btnExit))
 	}
 
-	return c.Send(fmt.Sprintf(
-		`<code>ID: %s</code>
+	return c.Send(fmt.Sprintf(`
+ID: <code>%s</code>
 Title: <a href="https://t.me/addstickers/%s">%s</a>
 
 What do you want to edit? Please select below:
@@ -772,4 +774,26 @@ Error: %s
 
 func sendBadSNWarn(c tele.Context) error {
 	return c.Reply("Wrong sticker or link!\n貼圖或連結錯誤!")
+}
+
+func sendHowToChangeSSTitle(c tele.Context) error {
+	sid := users.data[c.Sender().ID].stickerData.id
+	msg := fmt.Sprintf(`
+Currently, changing title can only be done through Telegram's official @Stickers bot.
+Please chat with @Stickers bot, then 
+1. Send <code>/renamepack</code>
+2. Send <code>%s</code>
+3. Send your new title.
+
+修改貼圖包的標題目前只能通過Telegram官方的 @Stickers 進行，
+請您與 @Stickers 對話，然後：
+1. 傳送 <code>/renamepack</code>
+2. 傳送 <code>%s</code>
+3. 傳送您想設定的新標題。`, sid, sid)
+
+	// err := c.Send(&tele.Photo{
+	// 	File:    tele.File{FileID: FID_CHANGE_TITLE_TUTORIAL},
+	// 	Caption: msg,
+	// }, tele.ModeHTML)
+	return c.Reply(msg, tele.ModeHTML)
 }

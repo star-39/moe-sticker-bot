@@ -26,22 +26,27 @@ var autocommitWorkersList = make(map[int64][]chan bool)
 var users Users
 
 const (
-	CB_DN_WHOLE      = "dall"
-	CB_DN_SINGLE     = "dsingle"
-	CB_OK_IMPORT     = "yesimport"
-	CB_OK_DN         = "yesd"
-	CB_BYE           = "bye"
-	CB_MANAGE        = "manage"
-	CB_DONE_ADDING   = "done"
-	CB_YES           = "yes"
-	CB_NO            = "no"
-	CB_DEFAULT_TITLE = "titledefault"
-	CB_EXPORT_WA     = "exportwa"
+	CB_DN_WHOLE           = "dall"
+	CB_DN_SINGLE          = "dsingle"
+	CB_OK_IMPORT          = "yesimport"
+	CB_OK_DN              = "yesd"
+	CB_BYE                = "bye"
+	CB_MANAGE             = "manage"
+	CB_DONE_ADDING        = "done"
+	CB_YES                = "yes"
+	CB_NO                 = "no"
+	CB_DEFAULT_TITLE      = "titledefault"
+	CB_EXPORT_WA          = "exportwa"
+	CB_ADD_STICKER        = "adds"
+	CB_DELETE_STICKER     = "dels"
+	CB_DELETE_STICKER_SET = "delss"
+	CB_CHANGE_TITLE       = "changetitle"
 
 	ST_WAIT_WEBAPP = "waitWebApp"
 	ST_PROCESSING  = "process"
 
 	FID_KAKAO_SHARE_LINK = "AgACAgEAAxkBAAEjezVj3_YXwaQ8DM-107IzlLSaXyG6yAACfKsxG3z7wEadGGF_gJrcnAEAAwIAA3kAAy4E"
+	// FID_CHANGE_TITLE_TUTORIAL = "AgACAgEAAxkBAAI8-WPnVwRECpgb7LOquUgStvnt8OoHAAKqqjEbC4VAR56cf44Ek9F0AQADAgADeQADLgQ"
 
 	LINK_TG     = "t.me"
 	LINK_LINE   = "line.me"
