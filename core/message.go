@@ -26,14 +26,14 @@ func sendStartMessage(c tele.Context) error {
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please:
 • Send <b>LINE/Kakao sticker share link</b> to import or download.
 • Send <b>Telegram sticker/link/GIF</b> to download or export to WhatsApp.
-• Send <b>keywords</b> or <b>/search</b> to search titles.
-• Send /create or /manage to create or manage Telegram sticker set.
+• Send <b>keywords</b> to search titles.
+• Send <b>/create</b> or <b>/manage</b> to create or manage Telegram sticker set.
 or use a command above.
 
 你好, 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
 • 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
 • 傳送<b>Telegram貼圖/連結/GIF</b>來下載或匯出到WhatsApp.
-• 傳送<b>關鍵字</b>或<b>/search</b> 來搜尋貼圖包.
+• 傳送<b>關鍵字</b>來搜尋貼圖包.
 • 傳送 <b>/create</b> 或 <b>/manage</b> 來創建或管理Telegram貼圖包。
 或 從上方點選指令.
 `
@@ -134,7 +134,7 @@ Press "Assign separately" to assign emoji one by one.
 You can also do batch assign, send an emoji or press button below.
 Telegram要求為貼圖設定emoji來表示它.
 按下"分別設定"來為每個貼圖都分別設定相應的emoji.
-您也一口氣為全部貼圖設定一樣的emoji, 請傳送一個emoji, 抑或是點選下方按鈕.
+您也可以一口氣為全部貼圖設定一樣的emoji, 請傳送一個emoji, 抑或是點選下方按鈕.
 `, selector)
 }
 
