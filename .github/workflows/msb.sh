@@ -13,7 +13,7 @@ buildah run $c1 -- pacman -Sy
 buildah run $c1 -- pacman --noconfirm -S libheif ffmpeg imagemagick curl libarchive python python-pip
 buildah run $c1 -- sh -c 'yes | pacman -Scc'
 
-buildah run $c1 -- pip3 install lottie[GIF] cairosvg
+buildah run $c1 -- pip3 install lottie[GIF] cairosvg emoji
  
 buildah config --cmd '/moe-sticker-bot' $c1
 
@@ -51,7 +51,7 @@ buildah run $c1 -- pacman -Sy
 buildah run $c1 -- pacman --noconfirm -S libheif ffmpeg imagemagick curl libarchive python python-pip
 buildah run $c1 -- sh -c 'yes | pacman -Scc'
 
-buildah run $c1 -- pip3 install lottie[GIF] cairosvg
+buildah run $c1 -- pip3 install lottie[GIF] cairosvg emoji
 
 buildah config --cmd '/moe-sticker-bot' $c1
 
