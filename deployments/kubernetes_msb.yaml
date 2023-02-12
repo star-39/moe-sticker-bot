@@ -19,13 +19,15 @@ spec:
     - name: NGINX_PORT
       value: "443"
     - name: NGINX_CERT
-      value: /certs/live/example.com/fullchain.pem
+      value: /certs/live/YOUR_WEBSITE/fullchain.pem
     - name: WEBAPP_ROOT
       value: /webapp
     - name: WEBAPP_ADDR
       value: 127.0.0.1:3921
+    - name: WEBHOOK_ADDR
+      value: 127.0.0.1:3922
     - name: NGINX_KEY
-      value: /certs/live/example.com/privkey.pem
+      value: /certs/live/YOUR_WEBSITE/privkey.pem
     image: ghcr.io/star-39/moe-sticker-bot:msb_nginx_aarch64
     name: msbnginx
     ports:
@@ -43,15 +45,6 @@ spec:
       name: etc-letsencrypt-host-0
     - mountPath: /webapp/data
       name: moe-sticker-bot-webapp-data-ed
-
-  - image: ghcr.io/star-39/moe-sticker-bot:msb_emoji_aarch64
-    name: msbemoji
-    resources: {}
-    securityContext:
-      capabilities:
-        drop:
-        - CAP_MKNOD
-        - CAP_AUDIT_WRITE
 
   - command:
     - /moe-sticker-bot
@@ -85,20 +78,6 @@ spec:
       name: telegram-api-data-ed
 
   - args:
-    - telegram-bot-api
-    - --api-id
-    - "YOUR API ID HERE"
-    - --api-hash
-    - "YOUR HASH HERE"
-    - --local
-    image: docker://aofei/telegram-bot-api:latest
-    name: telegram-bot-api
-    resources: {}
-    volumeMounts:
-    - mountPath: /apidata
-      name: telegram-api-data-ed
-
-  - args:
     - mariadbd
     env:
     - name: MARIADB_ROOT_PASSWORD
@@ -123,8 +102,6 @@ spec:
       type: Directory
     name: etc-letsencrypt-host-0
   - name: moe-sticker-bot-webapp-data-ed
-    emptyDir: {}
-  - name: telegram-api-data-ed
     emptyDir: {}
   - name: moe-sticker-bot-db-pvc
     persistentVolumeClaim:
