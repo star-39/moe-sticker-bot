@@ -472,7 +472,7 @@ func waitEmojiChoice(c tele.Context) error {
 		users.data[c.Sender().ID].stickerData.emojis = []string{emojis}
 	}
 
-	setState(c, "process")
+	setState(c, ST_PROCESSING)
 
 	err := execAutoCommit(!(ud.command == "manage"), c)
 	endSession(c)
@@ -485,8 +485,11 @@ func waitEmojiChoice(c tele.Context) error {
 func waitSEmojiAssign(c tele.Context) error {
 	emojis := findEmojis(c.Message().Text)
 	if emojis == "" {
-		return c.Send("send emoji! try again or /quit")
+		return c.Reply("Please send emoji.請傳送emoji。\ntry again or /quit")
 	}
+	setState(c, ST_PROCESSING)
+	defer setState(c, "waitSEmojiAssign")
+
 	return execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), emojis, c)
 }
 

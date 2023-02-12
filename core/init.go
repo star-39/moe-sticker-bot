@@ -15,6 +15,7 @@ import (
 )
 
 func Init(conf ConfigTemplate) {
+	msbconf = conf
 	initLogrus()
 	convert.InitConvert()
 	b = initBot(conf)
@@ -132,7 +133,6 @@ func onError(err error, c tele.Context) {
 }
 
 func initBot(conf ConfigTemplate) *tele.Bot {
-	msbconf = conf
 	var poller tele.Poller
 	var url string
 	// if msbconf.LocalBotApiAddr != "" {
@@ -218,8 +218,8 @@ func initLogrus() {
 
 	level, err := log.ParseLevel(msbconf.LogLevel)
 	if err != nil {
-		println("Error parsing log_level! Defaulting to TRACE level.\n")
-		log.SetLevel(log.TraceLevel)
+		println("Error parsing log_level! Defaulting to DEBUG level.\n")
+		log.SetLevel(log.DebugLevel)
 	}
 	log.SetLevel(level)
 

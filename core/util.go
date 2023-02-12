@@ -200,7 +200,7 @@ func httpPost(link string, data string) (string, error) {
 }
 
 func findEmojis(s string) string {
-	out, err := exec.Command("msb_emoji.py", s).Output()
+	out, err := exec.Command("msb_emoji.py", "string", s).Output()
 	if err != nil {
 		return ""
 	}

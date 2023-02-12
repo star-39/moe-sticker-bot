@@ -104,8 +104,14 @@ func checkState(next tele.HandlerFunc) tele.HandlerFunc {
 }
 
 func setState(c tele.Context, state string) {
-	uid := c.Sender().ID
-	users.data[uid].state = state
+	if c == nil {
+		return
+	}
+	ud, ok := users.data[c.Sender().ID]
+	if !ok {
+		return
+	}
+	ud.state = state
 }
 
 func setCommand(c tele.Context, command string) {
