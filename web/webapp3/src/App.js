@@ -25,7 +25,13 @@ function App() {
     return;
   } else if (!isInitDataValid) {
     // Bad initData
-    return (<div className="App"><h1>Invalid WebApp initData!!!</h1></div>);
+    return (<div className="App">
+      <h2>Invalid WebApp initData.</h2>
+      <br/>
+      <h2>Please launch WebApp using /manage command.</h2>
+      <br/>
+      <h2>請通過 /manage 指令打開WebApp.</h2>
+      </div>);
   } else {
     // initData OK
     window.Telegram.WebApp.ready();

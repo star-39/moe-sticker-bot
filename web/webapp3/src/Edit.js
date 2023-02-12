@@ -53,7 +53,7 @@ function Edit() {
       })
       .catch(() => { })
 
-    window.Telegram.WebApp.MainButton.setText('Done').show()
+    window.Telegram.WebApp.MainButton.setText('Done/完成').show()
       .onClick(() => {
         const uid = window.Telegram.WebApp.initDataUnsafe.user.id
         const queryId = window.Telegram.WebApp.initDataUnsafe.query_id
