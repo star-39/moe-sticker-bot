@@ -33,15 +33,15 @@ func purgeOutdatedStorageData() {
 		}
 	}
 
-	if Config.WebappDataDir != "" {
-		webappDataDirEntries, _ := os.ReadDir(Config.WebappDataDir)
+	if msbconf.WebappDataDir != "" {
+		webappDataDirEntries, _ := os.ReadDir(msbconf.WebappDataDir)
 		for _, f := range webappDataDirEntries {
 			if !f.IsDir() {
 				continue
 			}
 			fInfo, _ := f.Info()
 			fMTime := fInfo.ModTime().Unix()
-			fPath := filepath.Join(Config.WebappDataDir, f.Name())
+			fPath := filepath.Join(msbconf.WebappDataDir, f.Name())
 			// 2 Days
 			if fMTime < (time.Now().Unix() - 172800) {
 				os.RemoveAll(fPath)
@@ -50,19 +50,19 @@ func purgeOutdatedStorageData() {
 		}
 	}
 
-	if Config.LocalBotApiDir != "" {
-		filepath.Walk(Config.LocalBotApiDir, func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() {
-				return nil
-			}
-			// fInfo, _ := f.Info()
-			fMTime := info.ModTime().Unix()
-			// 2 Days
-			if fMTime < (time.Now().Unix() - 172800) {
-				os.RemoveAll(path)
-				log.Infoln("Purged outdated LocalBotApiDir:", path)
-			}
-			return nil
-		})
-	}
+	// if msbconf.LocalBotApiDir != "" {
+	// 	filepath.Walk(msbconf.LocalBotApiDir, func(path string, info os.FileInfo, err error) error {
+	// 		if info.IsDir() {
+	// 			return nil
+	// 		}
+	// 		// fInfo, _ := f.Info()
+	// 		fMTime := info.ModTime().Unix()
+	// 		// 2 Days
+	// 		if fMTime < (time.Now().Unix() - 172800) {
+	// 			os.RemoveAll(path)
+	// 			log.Infoln("Purged outdated LocalBotApiDir:", path)
+	// 		}
+	// 		return nil
+	// 	})
+	// }
 }

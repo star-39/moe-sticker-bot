@@ -14,14 +14,14 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-func Init() {
+func Init(conf ConfigTemplate) {
 	initLogrus()
 	convert.InitConvert()
-	b = initBot()
+	b = initBot(conf)
 	initWorkspace(b)
 	initWorkersPool()
 	go initGoCron()
-	if Config.WebApp {
+	if msbconf.WebApp {
 		InitWebAppServer()
 	} else {
 		log.Info("WebApp not enabled.")
@@ -110,7 +110,7 @@ func endManageSession(c tele.Context) {
 	if ud.stickerData.id == "" {
 		return
 	}
-	path := filepath.Join(Config.WebappDataDir, ud.stickerData.id)
+	path := filepath.Join(msbconf.WebappDataDir, ud.stickerData.id)
 	os.RemoveAll(path)
 }
 
@@ -131,31 +131,42 @@ func onError(err error, c tele.Context) {
 	cleanUserDataAndDir(c.Sender().ID)
 }
 
-func initBot() *tele.Bot {
+func initBot(conf ConfigTemplate) *tele.Bot {
+	msbconf = conf
 	var poller tele.Poller
 	var url string
-	if Config.LocalBotApiAddr != "" {
+	// if msbconf.LocalBotApiAddr != "" {
+	// 	poller = &tele.Webhook{
+	// 		Endpoint: &tele.WebhookEndpoint{
+	// 			PublicURL: msbconf.WebhookPublicAddr,
+	// 		},
+	// 		Listen: msbconf.WebhookListenAddr,
+	// 	}
+	// 	url = msbconf.LocalBotApiAddr
+	// } else
+	if msbconf.WebhookListenAddr != "" {
 		poller = &tele.Webhook{
 			Endpoint: &tele.WebhookEndpoint{
-				PublicURL: Config.WebhookPublicAddr,
+				PublicURL: msbconf.WebhookPublicAddr,
 			},
-			Listen: Config.WebhookListenAddr,
+			SecretToken: msbconf.WebhookSecretToken,
+			Listen:      msbconf.WebhookListenAddr,
 		}
-		url = Config.LocalBotApiAddr
+		// url = msbconf.LocalBotApiAddr
 	} else {
 		poller = &tele.LongPoller{Timeout: 10 * time.Second}
 		url = tele.DefaultApiURL
 	}
 	pref := tele.Settings{
 		URL:         url,
-		Token:       Config.BotToken,
+		Token:       msbconf.BotToken,
 		Poller:      poller,
 		Synchronous: false,
 		// Genrally, issues are tackled inside each state, only fatal error should be returned to framework.
 		// onError will terminate current session and log to terminal.
 		OnError: onError,
 	}
-	log.WithField("token", Config.BotToken).Info("Attempting to initialize...")
+	log.WithField("token", msbconf.BotToken).Info("Attempting to initialize...")
 	b, err := tele.NewBot(pref)
 	if err != nil {
 		log.Fatal(err)
@@ -165,8 +176,8 @@ func initBot() *tele.Bot {
 
 func initWorkspace(b *tele.Bot) {
 	botName = b.Me.Username
-	if Config.DataDir != "" {
-		dataDir = Config.DataDir
+	if msbconf.DataDir != "" {
+		dataDir = msbconf.DataDir
 	} else {
 		dataDir = botName + "_data"
 	}
@@ -178,7 +189,7 @@ func initWorkspace(b *tele.Bot) {
 		log.Fatal(err)
 	}
 
-	if Config.UseDB {
+	if msbconf.UseDB {
 		dbName := botName + "_db"
 		err = initDB(dbName)
 		if err != nil {
@@ -193,7 +204,7 @@ func initGoCron() {
 	time.Sleep(15 * time.Second)
 	cronScheduler = gocron.NewScheduler(time.UTC)
 	cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
-	if Config.UseDB {
+	if msbconf.UseDB {
 		cronScheduler.Every(1).Weeks().Do(curateDatabase)
 	}
 	cronScheduler.StartAsync()
@@ -205,7 +216,7 @@ func initLogrus() {
 		DisableLevelTruncation: true,
 	})
 
-	level, err := log.ParseLevel(Config.LogLevel)
+	level, err := log.ParseLevel(msbconf.LogLevel)
 	if err != nil {
 		println("Error parsing log_level! Defaulting to TRACE level.\n")
 		log.SetLevel(log.TraceLevel)

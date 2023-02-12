@@ -4,15 +4,17 @@
 
 server {
     listen ${NGINX_PORT} ssl http2;
-    #    listen       [::]:443 ssl http2;
     server_name _;
-    # root ${WEBAPP_ROOT};
 
     ssl_certificate ${NGINX_CERT};
     ssl_certificate_key ${NGINX_KEY};
     ssl_session_cache shared:SSL:1m;
     ssl_session_timeout 10m;
     ssl_prefer_server_ciphers on;
+
+    location /webhook {
+        proxy_pass http://${WEBHOOK_ADDR};
+    }
 
     location /webapp/data {
         alias ${WEBAPP_ROOT}/data;

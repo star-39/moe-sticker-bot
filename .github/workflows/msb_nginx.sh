@@ -21,6 +21,8 @@ buildah commit $c1 moe-sticker-bot:msb_nginx
 
 buildah push moe-sticker-bot:msb_nginx ghcr.io/star-39/moe-sticker-bot:msb_nginx
 
+
+
 #AArch64
 c1=$(buildah from docker://arm64v8/nginx:latest)
 

@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -247,8 +246,6 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 			*flCount += 1
 			log.Warnf("commitSticker: Flood limit encountered for user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, ss.Name, *flCount, pos)
 			log.Warnln("commitSticker: commit sticker retry after: ", floodErr.RetryAfter)
-			//Do not expose set name.
-			flRecords = append(flRecords, fmt.Sprintf("FL: time:%s, Set:%s, RA:%d count:%d\n", time.Now().Format(time.Stamp), hashCRC64(ss.Name), floodErr.RetryAfter, *flCount))
 			// If flood limit encountered when creating set, return immediately.
 			if createSet {
 				sendTooManyFloodLimits(c)

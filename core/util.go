@@ -200,8 +200,11 @@ func httpPost(link string, data string) (string, error) {
 }
 
 func findEmojis(s string) string {
-	r, _ := httpPost("http://127.0.0.1:5000", s)
-	return r
+	out, err := exec.Command("msb_emoji.py", s).Output()
+	if err != nil {
+		return ""
+	}
+	return string(out)
 }
 
 // func findEmojis(s string) string {
@@ -380,17 +383,17 @@ func checkGnerateSIDFromLID(ld *msbimport.LineData) string {
 // We move the file from api server to target location.
 // Be careful, this does not work when crossing mount points.
 func teleDownload(tf *tele.File, f string) error {
-	if Config.LocalBotApiAddr != "" {
-		tf2, err := b.FileByID(tf.FileID)
-		if err != nil {
-			return err
-		}
-		err = os.Rename(tf2.FilePath, f)
-		if err != nil {
-			exec.Command("cp", tf2.FilePath, f).CombinedOutput()
-		}
-		return os.Chmod(f, 0644)
-	} else {
-		return b.Download(tf, f)
-	}
+	// if msbconf.LocalBotApiAddr != "" {
+	// 	tf2, err := b.FileByID(tf.FileID)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	err = os.Rename(tf2.FilePath, f)
+	// 	if err != nil {
+	// 		exec.Command("cp", tf2.FilePath, f).CombinedOutput()
+	// 	}
+	// 	return os.Chmod(f, 0644)
+	// } else {
+	return b.Download(tf, f)
+	// }
 }

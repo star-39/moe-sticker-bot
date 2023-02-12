@@ -4,12 +4,13 @@ import emoji
 import sys
 import json
 
-# This python script is intended to extract emoji(s) from a user input string
-# which might contain emoji(s) and sparse characters.
+# This simple python tool utilizes
+# 'emoji' package in PyPI which has great funcionality in
+# parsing and extracting complicated emojis from string.
 
 # Usage:
 # 1st cmdline arg: 'string', 'json'.
-# 2nd cmdline arg: string of emojis.
+# 2nd cmdline arg: text containing emoji(s).
 
 # Example:
 # ./msb_emoji.py string 🌸

@@ -244,7 +244,7 @@ func statePrepareSManage(c tele.Context) error {
 
 	ud.lastContext = c
 	// Allow admin to manage all sticker sets.
-	if c.Sender().ID == Config.AdminUid {
+	if c.Sender().ID == msbconf.AdminUid {
 		goto NEXT
 	}
 	if !matchUserS(c.Sender().ID, ud.stickerData.id) {

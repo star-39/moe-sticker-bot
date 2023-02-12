@@ -65,9 +65,9 @@ var db *sql.DB
 const DB_VER = "2"
 
 func initDB(dbname string) error {
-	addr := Config.DbAddr
-	user := Config.DbUser
-	pass := Config.DbPass
+	addr := msbconf.DbAddr
+	user := msbconf.DbUser
+	pass := msbconf.DbPass
 	params := make(map[string]string)
 	params["autocommit"] = "1"
 	dsn := &mysql.Config{

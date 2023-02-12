@@ -34,6 +34,7 @@ buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
 # Copy tools.
 buildah copy $c1 tools/msb_kakao_decrypt.py /usr/local/bin/msb_kakao_decrypt.py
+buildah copy $c1 tools/msb_emoji.py /usr/local/bin/msb_emoji.py
 
 buildah commit $c1 moe-sticker-bot:latest
 
@@ -70,6 +71,7 @@ buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 
 # Copy tools.
 buildah copy $c1 tools/msb_kakao_decrypt.py /usr/local/bin/msb_kakao_decrypt.py
+buildah copy $c1 tools/msb_emoji.py /usr/local/bin/msb_emoji.py
 
 buildah commit $c1 moe-sticker-bot:aarch64
 

@@ -38,11 +38,11 @@ func InitWebAppServer() {
 	}
 
 	go func() {
-		err := r.Run(Config.WebappListenAddr)
+		err := r.Run(msbconf.WebappListenAddr)
 		if err != nil {
 			log.Fatalln("WebApp: Gin Run failed! Check your addr or disable webapp.\n", err)
 		}
-		log.Infoln("WebApp: Listening on ", Config.WebappListenAddr)
+		log.Infoln("WebApp: Listening on ", msbconf.WebappListenAddr)
 	}()
 }
 
@@ -138,11 +138,11 @@ func apiSS(c *gin.Context) {
 		var surl string
 		var fpath string
 		if s.Video {
-			fpath = filepath.Join(Config.WebappDataDir, hex, s.SetName, s.UniqueID+".webm")
+			fpath = filepath.Join(msbconf.WebappDataDir, hex, s.SetName, s.UniqueID+".webm")
 		} else {
-			fpath = filepath.Join(Config.WebappDataDir, hex, s.SetName, s.UniqueID+".webp")
+			fpath = filepath.Join(msbconf.WebappDataDir, hex, s.SetName, s.UniqueID+".webp")
 		}
-		surl, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".webp")
+		surl, _ = url.JoinPath(msbconf.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".webp")
 		sl = append(sl, webappStickerObject{
 			Id:       i + 1,
 			Emoji:    s.Emoji,
@@ -152,7 +152,7 @@ func apiSS(c *gin.Context) {
 			FilePath: fpath,
 		})
 		if i == 0 {
-			wss.SSThumb, _ = url.JoinPath(Config.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".png")
+			wss.SSThumb, _ = url.JoinPath(msbconf.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".png")
 		}
 		if st, _ := os.Stat(fpath); st == nil {
 			ready = false
@@ -370,7 +370,7 @@ func initWebAppRequest(c *gin.Context) {
 func validateHMAC(dataCheckString string, hash string) bool {
 	// This calculated secret will be used to "decrypt" DCS
 	h := hmac.New(sha256.New, []byte("WebAppData"))
-	h.Write([]byte(Config.BotToken))
+	h.Write([]byte(msbconf.BotToken))
 	secretByte := h.Sum(nil)
 
 	h = hmac.New(sha256.New, secretByte)
@@ -398,7 +398,7 @@ func checkGetUd(uid string, qid string) (*UserData, error) {
 }
 
 func prepareWebAppEditStickers(ud *UserData, wantHQ bool) error {
-	dest := filepath.Join(Config.WebappDataDir, ud.stickerData.id)
+	dest := filepath.Join(msbconf.WebappDataDir, ud.stickerData.id)
 	os.RemoveAll(dest)
 	os.MkdirAll(dest, 0755)
 
@@ -424,7 +424,7 @@ func prepareWebAppEditStickers(ud *UserData, wantHQ bool) error {
 }
 
 func prepareWebAppExportStickers(ss *tele.StickerSet, hex string) error {
-	dest := filepath.Join(Config.WebappDataDir, hex, ss.Name)
+	dest := filepath.Join(msbconf.WebappDataDir, hex, ss.Name)
 	// If the user is reusing the generated link to export.
 	// Do not re-download for every initData.
 	stat, _ := os.Stat(dest)
