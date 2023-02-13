@@ -1,4 +1,4 @@
-name: Build OCI container for moe-sticker-bot
+name: Build binaries for moe-sticker-bot and msbimport
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: '>=1.20'
-      - name: Build Msbimport CLI
+      - name: Build MSB CLI
         run: |
           go version
           GOOS=linux GOARCH=amd64 go build -o moe-sticker-bot_linux_amd64 cmd/moe-sticker-bot/main.go
@@ -30,7 +30,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: msbi_bins
+          name: msb_bins
           path: moe-sticker-bot*
 
   build_msbimport:
