@@ -68,6 +68,9 @@ func CheckDeps() []string {
 	if _, err := exec.LookPath("exiv2"); err != nil {
 		unfoundBins = append(unfoundBins, "exiv2")
 	}
+	if _, err := exec.LookPath("gifsicle"); err != nil {
+		unfoundBins = append(unfoundBins, "gifsicle")
+	}
 	return unfoundBins
 }
 
@@ -123,19 +126,24 @@ func IMToPng(f string) (string, error) {
 	return pathOut, err
 }
 
-func IMToGIF(f string) (string, error) {
-	pathOut := f + ".gif"
-	bin := CONVERT_BIN
-	args := CONVERT_ARGS
-	args = append(args, f, pathOut)
+// func IMToGIF(f string) (string, error) {
+// 	if strings.HasSuffix(f, ".webm") {
+// 		f2, _ := FFToAPNG(f)
+// 		f = "apng:" + f2
+// 	}
 
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	if err != nil {
-		log.Warnln("imToGIF ERROR:", string(out))
-		return "", err
-	}
-	return pathOut, err
-}
+// 	pathOut := f + ".gif"
+// 	bin := CONVERT_BIN
+// 	args := CONVERT_ARGS
+// 	args = append(args, "-layers", "optimize", f, pathOut)
+
+// 	out, err := exec.Command(bin, args...).CombinedOutput()
+// 	if err != nil {
+// 		log.Warnln("imToGIF ERROR:", string(out))
+// 		return "", err
+// 	}
+// 	return pathOut, err
+// }
 
 func IMToApng(f string) (string, error) {
 	pathOut := f + ".apng"
@@ -246,6 +254,29 @@ func FFToGif(f string) (string, error) {
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
 		log.Warnf("ffToGif ERROR:\n%s", string(out))
+		return "", err
+	}
+	//Optimize GIF produced by ffmpeg
+	exec.Command("gifsicle", "--batch", "-O2", pathOut).CombinedOutput()
+
+	return pathOut, err
+}
+
+func FFToAPNG(f string) (string, error) {
+	var decoder []string
+	var args []string
+	if strings.HasSuffix(f, ".webm") {
+		decoder = []string{"-c:v", "libvpx-vp9"}
+	}
+	pathOut := f + ".apng"
+	bin := FFMPEG_BIN
+	args = append(args, decoder...)
+	args = append(args, "-i", f, "-hide_banner",
+		"-loglevel", "error", "-y", pathOut)
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnf("ffToAPNG ERROR:\n%s", string(out))
 		return "", err
 	}
 	return pathOut, err
