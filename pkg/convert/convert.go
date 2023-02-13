@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -63,6 +64,9 @@ func CheckDeps() []string {
 	}
 	if _, err := exec.LookPath(CONVERT_BIN); err != nil {
 		unfoundBins = append(unfoundBins, CONVERT_BIN)
+	}
+	if _, err := exec.LookPath("exiv2"); err != nil {
+		unfoundBins = append(unfoundBins, "exiv2")
 	}
 	return unfoundBins
 }
@@ -387,4 +391,14 @@ func IMToPNGThumb(f string) error {
 		return err
 	}
 	return err
+}
+
+func SetImageTime(f string, t time.Time) error {
+	os.Chtimes(f, t, t)
+	asciiTime := t.Format("2006:01:02 15:04:05")
+	_, err := exec.Command("exiv2", "-M", "set Exif.Image.DateTime "+asciiTime, f).CombinedOutput()
+	if err != nil {
+		return err
+	}
+	return nil
 }

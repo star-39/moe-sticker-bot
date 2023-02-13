@@ -80,6 +80,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
 	}
 	defer wpDownloadSticker.Release()
+	startTime := time.Now()
 	var objs []*StickerDownloadObject
 	for index, s := range ss.Stickers {
 		obj := &StickerDownloadObject{
@@ -93,11 +94,14 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		}
 		obj.wg.Add(1)
 		objs = append(objs, obj)
-		wpDownloadSticker.Invoke(obj)
-		go editProgressMsg(index, len(ss.Stickers), "", pText, pMsg, c)
+		go wpDownloadSticker.Invoke(obj)
 	}
-	for _, obj := range objs {
+	for i, obj := range objs {
+		go editProgressMsg(i, len(ss.Stickers), "", pText, pMsg, c)
 		obj.wg.Wait()
+		newTime := startTime.Add(time.Duration(i+1) * time.Second)
+		convert.SetImageTime(obj.of, newTime)
+		convert.SetImageTime(obj.cf, newTime)
 		flist = append(flist, obj.of)
 		cflist = append(cflist, obj.cf)
 	}
