@@ -2,9 +2,6 @@ name: Build binaries for moe-sticker-bot and msbimport
 
 on: push
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 jobs:
   build_msb:
     runs-on: ubuntu-latest
