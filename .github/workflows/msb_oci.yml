@@ -1,0 +1,36 @@
+name: Build OCI container for moe-sticker-bot
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build_amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.20'
+      - name: Build MSB OCI container amd64
+        run: |
+          go version
+          bash .github/workflows/msb_oci_amd64.sh ${{ secrets.GITHUB_TOKEN }}
+
+
+  build_aarch64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.20'
+      - name: Build MSB OCI container aarch64
+        run: |
+          go version
+          bash .github/workflows/msb_oci_aarch64.sh ${{ secrets.GITHUB_TOKEN }}
