@@ -24,8 +24,6 @@ spec:
       value: /webapp
     - name: WEBAPP_ADDR
       value: 127.0.0.1:3921
-    - name: WEBHOOK_ADDR
-      value: 127.0.0.1:3922
     - name: NGINX_KEY
       value: /certs/live/YOUR_WEBSITE/privkey.pem
     image: ghcr.io/star-39/moe-sticker-bot:msb_nginx_aarch64
@@ -74,8 +72,6 @@ spec:
     volumeMounts:
     - mountPath: /webapp/data
       name: moe-sticker-bot-webapp-data-ed
-    - mountPath: /apidata
-      name: telegram-api-data-ed
 
   - args:
     - mariadbd
