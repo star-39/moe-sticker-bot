@@ -62,13 +62,11 @@ A pre-built OCI container is available at https://github.com/users/star-39/packa
 
 Simply run:
 ```
-docker run -dt ghcr.io/star-39/moe-sticker-bot --bot_token="..."
+docker run -dt ghcr.io/star-39/moe-sticker-bot /moe-sticker-bot --bot_token="..."
 ```
-If you are on ARM64(AArch64) arch, append `aarch64` to all tags.
+If you are on ARM64(AArch64) arch, use `aarch64` tag.
 
-To deploy all features - including database/webapp/emoji,
-
-please use kubernetes or podman with a yaml deployment file.
+To deploy all features - including database/webapp/emoji, please use kubernetes or podman with a yaml deployment file.
 
 See a real world deployment example on [deployments/kubernetes_msb.yaml](https://github.com/star-39/moe-sticker-bot/blob/master/deployments/kubernetes_msb.yaml).
 
@@ -79,20 +77,21 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
 * ffmpeg
 * curl
 * mariadb-server (optional)
-* nginx (optional)
-* [msb_emoji](https://github.com/star-39/moe-sticker-bot/tree/master/microservices/msb_emoji) (optional)
+* nginx (optional, for WebApp and WebHook)
+* [msb_emoji](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_emoji.py) (optional, for emoji assign)
+* [msb_kakao_decrypt](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_kakao_decrypt.py) (optional, for decrypting animated kakao)
 
 
 ## Build
 ### Build Dependencies
  * golang v18+
- * nodejs v18+
- * react-js v18+
+ * nodejs v18+ (optional, for WebApp)
+ * react-js v18+ (optional, for WebApp)
  
 <details>
 <summary>Brief build instructions</summary>
 
-```
+```bash
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
 dnf install git ImageMagick libwebp bsdtar curl ffmpeg go
 # For Debian / Ubuntu etc.
@@ -102,11 +101,16 @@ pacman -S install git ffmpeg imagemagick curl libarchive go
 # For macOS
 brew install git imagemagick ffmpeg curl go
 # For Windows, please install scoop and use Windows Powershell:
-scoop install ffmpeg imagemagick go
+scoop install git ffmpeg imagemagick go bsdtar
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 
-go build -o moe-sticker-bot cmd/main.go 
+go build -o moe-sticker-bot cmd/moe-sticker-bot/main.go 
+
+# Install MSB dependencies(optional).
+# install tools/msb_emoji.py /usr/local/bin/
+# install tools/msb_kakao_decrypt.py /usr/local/bin/
+
 ```
 </details>
 
@@ -116,9 +120,16 @@ new WebApp technology.
 
 See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/master/web/webapp3)
 
-Check `--help` for detailed webapp configs.
 
 ## CHANGELOG
+v2.3.6-2.3.7 (20230213)
+  * Support webhook.
+  * Support animated webp for user sticker.
+  * Add change sticker set title "feature"
+  * Fix "sticker order mismatch" when using WebApp to sort.
+  * Fix error on emoji assign.
+  * Fix too large animated kakao sticker.
+  
 v2.3.1-2.3.5 (20230209)
   * Fix i18n titles.
   * Fix flood limit by implementing channel to limit autocommit cocurrency.
