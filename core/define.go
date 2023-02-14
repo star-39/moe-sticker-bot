@@ -18,9 +18,6 @@ var cronScheduler *gocron.Scheduler
 var dataDir string
 var botName string
 
-var downloadQueue DownloadQueue
-var webAppSSAuthList WebAppQIDAuthList
-
 // ['uid'] -> bool channels
 var autocommitWorkersList = make(map[int64][]chan bool)
 var users Users
@@ -97,21 +94,6 @@ type UserData struct {
 	webAppQID        string
 	webAppWorkerPool *ants.PoolWithFunc
 	lastContext      tele.Context
-}
-
-type DownloadQueue struct {
-	mu sync.Mutex
-	ss map[string]bool
-}
-
-type WebAppQIDAuthList struct {
-	mu sync.Mutex
-	sa map[string]*WebAppQIDAuthObject
-}
-
-type WebAppQIDAuthObject struct {
-	sn string
-	dt int64
 }
 
 type Users struct {
