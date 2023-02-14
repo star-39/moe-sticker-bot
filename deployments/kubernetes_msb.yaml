@@ -23,7 +23,7 @@ spec:
     - name: WEBAPP_ROOT
       value: /webapp
     - name: WEBAPP_ADDR
-      value: 127.0.0.1:3921
+      value: 127.0.0.1:3921/webapp
     - name: NGINX_KEY
       value: /certs/live/YOUR_WEBSITE/privkey.pem
     image: ghcr.io/star-39/moe-sticker-bot:msb_nginx_aarch64
