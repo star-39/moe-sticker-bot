@@ -67,5 +67,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           generate_release_notes: true
+          # append_body: true
+          body_path: ".github/workflows/release_note.md"
           files: |
             releases/*/*
