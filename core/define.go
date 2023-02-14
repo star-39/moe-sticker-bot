@@ -137,6 +137,8 @@ type StickerData struct {
 	lAmount int
 	// amount on cloud
 	cAmount int
+	// amout of flood error encounterd
+	flCount int
 }
 
 type StickerDownloadObject struct {

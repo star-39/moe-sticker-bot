@@ -62,7 +62,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	log.Debugln(ud.stickerData)
 	committedStickers := 0
 	errorCount := 0
-	flCount := 0
+	flCount := &ud.stickerData.flCount
 
 	for index, sf := range ud.stickerData.stickers {
 		// select {
@@ -80,7 +80,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 		}
 		go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
 		if index == 0 && createSet {
-			err = commitSticker(true, index, &flCount, false, sf, c, ss)
+			err = commitSticker(true, index, flCount, false, sf, c, ss)
 			if err != nil {
 				log.Errorln("create failed!. ", err)
 				return err
@@ -88,7 +88,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				committedStickers += 1
 			}
 		} else {
-			err = commitSticker(false, index, &flCount, false, sf, c, ss)
+			err = commitSticker(false, index, flCount, false, sf, c, ss)
 			if err != nil {
 				log.Warnln("execAutoCommit: a sticker failed to add. ", err)
 				sendOneStickerFailedToAdd(c, index, err)
@@ -98,10 +98,10 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 				committedStickers += 1
 			}
 			// If encountered flood limit more than once, set a interval.
-			if flCount == 1 {
+			if *flCount == 1 {
 				sleepTime := 10 + rand.Intn(10)
 				time.Sleep(time.Duration(sleepTime) * time.Second)
-			} else if flCount > 1 {
+			} else if *flCount > 1 {
 				sleepTime := 60 + rand.Intn(10)
 				time.Sleep(time.Duration(sleepTime) * time.Second)
 			}
@@ -114,8 +114,10 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	if createSet {
 		if ud.command == "import" {
 			insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, true)
-			if flCount > 1 {
-				verifyFloodedStickerSet(c, flCount, errorCount, ud.lineData.Amount, ud.stickerData.id)
+			// Only verify for import.
+			// User generated sticker set might intentionally contain same stickers.
+			if *flCount > 1 {
+				verifyFloodedStickerSet(c, *flCount, errorCount, ud.lineData.Amount, ud.stickerData.id)
 			}
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
@@ -146,7 +148,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 	log.Debugln(ss)
 
 	if createSet && ud.stickerData.pos == 0 {
-		err = commitSticker(true, ud.stickerData.pos, new(int), false, sf, c, ss)
+		err = commitSticker(true, ud.stickerData.pos, &ud.stickerData.flCount, false, sf, c, ss)
 		if err != nil {
 			log.Errorln("create failed. ", err)
 			return err
@@ -154,7 +156,7 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 			ud.stickerData.cAmount += 1
 		}
 	} else {
-		err = commitSticker(false, ud.stickerData.pos, new(int), false, sf, c, ss)
+		err = commitSticker(false, ud.stickerData.pos, &ud.stickerData.flCount, false, sf, c, ss)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid sticker emojis") {
 				return c.Reply("Sorry, this emoji is invalid. Try another one.\n抱歉, 這個emoji無效, 請另試一次.")
@@ -438,10 +440,10 @@ func guessIsArchive(f string) bool {
 	return false
 }
 
-func moveSticker(oldIndex int, newIndex int, ud *UserData) error {
-	sid := ud.stickerData.stickerSet.Stickers[oldIndex].FileID
-	return b.SetStickerPosition(sid, newIndex)
-}
+// func moveSticker(oldIndex int, newIndex int, ud *UserData) error {
+// 	sid := ud.stickerData.stickerSet.Stickers[oldIndex].FileID
+// 	return b.SetStickerPosition(sid, newIndex)
+// }
 
 func verifyFloodedStickerSet(c tele.Context, fc int, ec int, desiredAmount int, ssn string) {
 	time.Sleep(31 * time.Second)
