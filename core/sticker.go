@@ -154,20 +154,17 @@ func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) err
 			return err
 		} else {
 			ud.stickerData.cAmount += 1
-			// ud.stickerData.pos += 1
 		}
 		if ud.stickerData.lAmount == 1 {
 			return finishExecEmojiAssign(c, createSet, ud)
 		}
 	} else {
-		// pos := ud.stickerData.pos
-		// ud.stickerData.pos += 1
 		go func() {
+			defer close(ud.commitChans[pos])
 			//wait for the previous commit to be done.
 			if pos > 0 {
 				<-ud.commitChans[pos-1]
 			}
-			defer close(ud.commitChans[pos])
 
 			err = commitSticker(false, pos, &ud.stickerData.flCount, false, sf, c, ss)
 			if err != nil {
