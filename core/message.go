@@ -405,6 +405,7 @@ func sendAskSTypeToCreate(c tele.Context) error {
 
 func sendAskEmojiAssign(c tele.Context) error {
 	sd := users.data[c.Sender().ID].stickerData
+	sd.stickers[sd.pos].wg.Wait()
 	caption := fmt.Sprintf(`
 Send emoji(s) representing this sticker.
 請傳送代表這個貼圖的emoji(可以多個).
@@ -796,4 +797,18 @@ Please chat with @Stickers bot, then
 	// 	Caption: msg,
 	// }, tele.ModeHTML)
 	return c.Reply(msg, tele.ModeHTML)
+}
+
+func sendInvalidEmojiWarn(c tele.Context) error {
+	return c.Reply(`
+Sorry, this emoji is invalid, it has been defaulted to ⭐️, you can edit it after done by using /manage command.
+抱歉，這個emoji無效，並且已默認設定為⭐️，你可以在完成製作後使用 /manage 來修改。
+	`)
+}
+
+func sendProcessingStickers(c tele.Context) error {
+	return c.Send(`
+Processing stickers, please wait a while...
+正在製作貼圖，請稍等...
+`)
 }

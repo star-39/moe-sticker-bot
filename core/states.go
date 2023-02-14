@@ -459,6 +459,11 @@ func waitEmojiChoice(c tele.Context) error {
 			users.data[c.Sender().ID].stickerData.emojis = []string{"⭐"}
 		case "manual":
 			sendProcessStarted(ud, c, "preparing...")
+			setState(c, ST_PROCESSING)
+			ud.wg.Wait()
+			for range ud.stickerData.stickers {
+				ud.commitChans = append(ud.commitChans, make(chan bool))
+			}
 			setState(c, "waitSEmojiAssign")
 			return sendAskEmojiAssign(c)
 		default:
@@ -467,7 +472,7 @@ func waitEmojiChoice(c tele.Context) error {
 	} else {
 		emojis := findEmojis(c.Message().Text)
 		if emojis == "" {
-			return c.Send("Send emoji or press button a button. /quit")
+			return c.Reply("Send emoji or press button a button.\n請傳送emoji或點選按鈕。 /quit")
 		}
 		users.data[c.Sender().ID].stickerData.emojis = []string{emojis}
 	}
@@ -487,10 +492,22 @@ func waitSEmojiAssign(c tele.Context) error {
 	if emojis == "" {
 		return c.Reply("Please send emoji.請傳送emoji。\ntry again or /quit")
 	}
-	setState(c, ST_PROCESSING)
-	defer setState(c, "waitSEmojiAssign")
+	ud := users.data[c.Sender().ID]
 
-	return execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), emojis, c)
+	setState(c, ST_PROCESSING)
+
+	err := execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), ud.stickerData.pos, emojis, c)
+	if err != nil {
+		return err
+	}
+	ud.stickerData.pos += 1
+	if ud.stickerData.pos == ud.stickerData.lAmount {
+		return sendProcessingStickers(c)
+	} else {
+		sendAskEmojiAssign(c)
+		setState(c, "waitSEmojiAssign")
+		return nil
+	}
 }
 
 func waitSearchKeyword(c tele.Context) error {

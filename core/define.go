@@ -78,9 +78,11 @@ type WebAppUser struct {
 
 type UserData struct {
 	//waitgroup for sticker set, wait before commit.
-	wg     sync.WaitGroup
-	ctx    context.Context
-	cancel context.CancelFunc
+	wg sync.WaitGroup
+	//commit channel for emoji assign
+	commitChans []chan bool
+	ctx         context.Context
+	cancel      context.CancelFunc
 
 	state            string
 	sessionID        string

@@ -40,10 +40,8 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	// append a new channel to original list
 	done := make(chan bool)
 	autocommitWorkersList[uid] = append(autocommitWorkersList[uid], done)
-	defer func() {
-		// done <- true
-		close(done)
-	}()
+	defer close(done)
+
 	for _, c := range list {
 		select {
 		case _, ok := <-c:
@@ -127,9 +125,9 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	return nil
 }
 
-func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
+// Only fatal error should be returned.
+func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
-	ud.wg.Wait()
 
 	if len(ud.stickerData.stickers) == 0 {
 		log.Error("No sticker to commit!!")
@@ -143,49 +141,65 @@ func execEmojiAssign(createSet bool, emojis string, c tele.Context) error {
 		Video:  ud.stickerData.isVideo,
 	}
 
-	sf := ud.stickerData.stickers[ud.stickerData.pos]
-	log.Debugln("ss summary:")
-	log.Debugln(ss)
+	log.Debugln("execEmojiAssign: sticker summary: ", ss)
+	log.Debugf("execEmojiAssign: attempting to commit: pos:%d, lAmount:%d, cAmount:%d", pos, ud.stickerData.lAmount, ud.stickerData.cAmount)
 
-	if createSet && ud.stickerData.pos == 0 {
-		err = commitSticker(true, ud.stickerData.pos, &ud.stickerData.flCount, false, sf, c, ss)
+	sf := ud.stickerData.stickers[pos]
+	//Do not submit to goroutine when creating sticker set.
+	if createSet && pos == 0 {
+		defer close(ud.commitChans[pos])
+		err = commitSticker(true, pos, &ud.stickerData.flCount, false, sf, c, ss)
 		if err != nil {
 			log.Errorln("create failed. ", err)
 			return err
 		} else {
 			ud.stickerData.cAmount += 1
+			// ud.stickerData.pos += 1
+		}
+		if ud.stickerData.lAmount == 1 {
+			return finishExecEmojiAssign(c, createSet, ud)
 		}
 	} else {
-		err = commitSticker(false, ud.stickerData.pos, &ud.stickerData.flCount, false, sf, c, ss)
-		if err != nil {
-			if strings.Contains(err.Error(), "invalid sticker emojis") {
-				return c.Reply("Sorry, this emoji is invalid. Try another one.\n抱歉, 這個emoji無效, 請另試一次.")
+		// pos := ud.stickerData.pos
+		// ud.stickerData.pos += 1
+		go func() {
+			//wait for the previous commit to be done.
+			if pos > 0 {
+				<-ud.commitChans[pos-1]
 			}
-			sendOneStickerFailedToAdd(c, ud.stickerData.pos, err)
-			log.Warnln("execEmojiAssign: a sticker failed to add. ", err)
-		} else {
-			ud.stickerData.cAmount += 1
-		}
-	}
+			defer close(ud.commitChans[pos])
 
-	log.Debugf("execEmojiAssign: one sticker commit attempted. pos:%d, lAmount:%d, cAmount:%d", ud.stickerData.pos, ud.stickerData.lAmount, ud.stickerData.cAmount)
-
-	ud.stickerData.pos += 1
-
-	if ud.stickerData.pos == ud.stickerData.lAmount {
-		if createSet {
-			if ud.command == "import" {
-				insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, false)
+			err = commitSticker(false, pos, &ud.stickerData.flCount, false, sf, c, ss)
+			if err != nil {
+				if strings.Contains(err.Error(), "invalid sticker emojis") {
+					sendInvalidEmojiWarn(c)
+					execEmojiAssign(createSet, pos, "⭐️", c)
+				} else {
+					sendOneStickerFailedToAdd(c, pos, err)
+					log.Warnln("execEmojiAssign: a sticker failed to add: ", err)
+				}
+			} else {
+				ud.stickerData.cAmount += 1
 			}
-			insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
-		}
-		c.Send("Success! /start")
-		sendSFromSS(c, ud.stickerData.id, nil)
-		endSession(c)
-	} else {
-		sendAskEmojiAssign(c)
-	}
 
+			if pos+1 == ud.stickerData.lAmount {
+				finishExecEmojiAssign(c, createSet, ud)
+			}
+		}()
+	}
+	return nil
+}
+
+func finishExecEmojiAssign(c tele.Context, createSet bool, ud *UserData) error {
+	if createSet {
+		if ud.command == "import" {
+			insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, false)
+		}
+		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
+	}
+	c.Send("Success! /start")
+	sendSFromSS(c, ud.stickerData.id, nil)
+	endSession(c)
 	return nil
 }
 
