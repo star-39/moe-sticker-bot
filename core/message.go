@@ -140,7 +140,7 @@ Telegram要求為貼圖設定emoji來表示它.
 
 func sendConfirmExportToWA(c tele.Context, sn string, hex string) error {
 	selector := &tele.ReplyMarkup{}
-	baseUrl, _ := url.JoinPath(msbconf.WebappUrl, "webapp", "export")
+	baseUrl, _ := url.JoinPath(msbconf.WebappUrl, "export")
 	webAppUrl := fmt.Sprintf("%s?sn=%s&hex=%s", baseUrl, sn, hex)
 	log.Debugln("webapp export link is:", webAppUrl)
 	webapp := tele.WebApp{URL: webAppUrl}
@@ -570,7 +570,7 @@ func sendAskEditChoice(c tele.Context) error {
 	btnExit := selector.Data("Exit/退出", "bye")
 
 	if msbconf.WebApp {
-		baseUrl, _ := url.JoinPath(msbconf.WebappUrl, "webapp", "edit")
+		baseUrl, _ := url.JoinPath(msbconf.WebappUrl, "edit")
 		url := fmt.Sprintf("%s?ss=%s&dt=%d",
 			baseUrl,
 			ud.stickerData.id,

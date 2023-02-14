@@ -20,7 +20,7 @@ server {
         alias ${WEBAPP_ROOT}/data;
     }
     location /webapp/api {
-        proxy_pass http://${WEBAPP_ADDR}/webapp/api;
+        proxy_pass http://${WEBAPP_ADDR}/api;
     }
     location /webapp/edit {
         alias ${WEBAPP_ROOT};

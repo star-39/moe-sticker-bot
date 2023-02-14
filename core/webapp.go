@@ -27,7 +27,14 @@ func InitWebAppServer() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
-	webappApi := r.Group("/webapp/api")
+	u, err := url.Parse(msbconf.WebappUrl)
+	if err != nil {
+		log.Error("Failed parsing WebApp URL! Consider disable --webapp ?")
+		log.Fatalln(err.Error())
+	}
+	p := u.Path
+
+	webappApi := r.Group(path.Join(p, "api"))
 	{
 		//Group: /webapp/api
 		webappApi.POST("/initData", apiInitData)
@@ -142,7 +149,7 @@ func apiSS(c *gin.Context) {
 		} else {
 			fpath = filepath.Join(msbconf.WebappDataDir, hex, s.SetName, s.UniqueID+".webp")
 		}
-		surl, _ = url.JoinPath(msbconf.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".webp")
+		surl, _ = url.JoinPath(msbconf.WebappUrl, "data", hex, s.SetName, s.UniqueID+".webp")
 		sl = append(sl, webappStickerObject{
 			Id:       i + 1,
 			Emoji:    s.Emoji,
@@ -152,7 +159,7 @@ func apiSS(c *gin.Context) {
 			FilePath: fpath,
 		})
 		if i == 0 {
-			wss.SSThumb, _ = url.JoinPath(msbconf.WebappUrl, "webapp", "data", hex, s.SetName, s.UniqueID+".png")
+			wss.SSThumb, _ = url.JoinPath(msbconf.WebappUrl, "data", hex, s.SetName, s.UniqueID+".png")
 		}
 		if st, _ := os.Stat(fpath); st == nil {
 			ready = false
