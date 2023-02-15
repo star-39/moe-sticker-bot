@@ -85,6 +85,12 @@ func IMToWebp(f string) (string, error) {
 		log.Warnln("imToWebp ERROR:", string(out))
 		return "", err
 	}
+
+	if st, _ := os.Stat(pathOut); st.Size() > 255*KiB {
+		args := CONVERT_ARGS
+		args = append(args, "-resize", "512x512", "-filter", "Lanczos", f+"[0]", pathOut)
+		exec.Command(bin, args...).CombinedOutput()
+	}
 	return pathOut, err
 }
 
