@@ -164,6 +164,9 @@ func downloadLineSToZip(c tele.Context, ud *UserData) error {
 	if err != nil {
 		return err
 	}
+	for _, f := range ud.lineData.Files {
+		f.Wg.Wait()
+	}
 	// workDir := filepath.Dir(ud.lineData.files[0])
 	zipName := ud.lineData.Id + ".zip"
 	zipPath := filepath.Join(workDir, zipName)
