@@ -48,8 +48,8 @@ func InitConvert() {
 	unfoundBins := CheckDeps()
 	if len(unfoundBins) != 0 {
 		log.Warning("Following required executables not found!:")
-		log.Warnln(strings.Join(unfoundBins, "\n"))
-		log.Warning("Please install missing executables to your PATH, or converting will not work!")
+		log.Warnln(strings.Join(unfoundBins, "  "))
+		log.Warning("Please install missing executables to your PATH, or some features will not work!")
 	}
 }
 

@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 
@@ -13,9 +15,22 @@ import (
 func main() {
 	var link = flag.String("link", "", "Import link(LINE/kakao)")
 	var convertTG = flag.Bool("convert", false, "Convert to Telegram format(WEBP/WEBM)")
+	var outputJson = flag.Bool("json", false, "Output JSON serialized LineData, useful when integrating with other apps.")
+	var workDir = flag.String("dir", "", "Where to put sticker files.")
+	var logLevel = flag.String("log_level", "debug", "Log level")
 	flag.Parse()
 
-	log.SetLevel(log.DebugLevel)
+	if *outputJson {
+		log.SetLevel(log.FatalLevel)
+	} else {
+		ll, err := log.ParseLevel(*logLevel)
+		if err != nil {
+			log.SetLevel(log.DebugLevel)
+		} else {
+			log.SetLevel(ll)
+		}
+	}
+
 	convert.InitConvert()
 
 	ctx, _ := context.WithCancel(context.Background())
@@ -31,7 +46,7 @@ func main() {
 		log.Warnln(warn)
 	}
 
-	err = msbimport.PrepareImportStickers(ctx, ld, "./", *convertTG)
+	err = msbimport.PrepareImportStickers(ctx, ld, *workDir, *convertTG)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -41,7 +56,18 @@ func main() {
 		if lf.CError != nil {
 			log.Error(lf.CError)
 		}
-		println(lf.OriginalFile)
-		println(lf.ConvertedFile)
+		log.Infoln("Original File:", lf.OriginalFile)
+		if *convertTG {
+			log.Infoln("Converted File:", lf.ConvertedFile)
+		}
+	}
+
+	if *outputJson {
+		ld.TitleWg.Wait()
+		jbytes, err := json.Marshal(ld)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Print(string(jbytes))
 	}
 }

@@ -37,7 +37,12 @@ if err != nil {
     //handle error here.
 }
 
+//If I18n title is needed(LINE only), TitleWg must be waited.
+ld.TitleWg.Wait()
+println(ld.I18nTitles)
+
 for _, lf := range ld.Files {
+    //Each file has its own waitgroup and musted be waited.
     lf.Wg.Wait()
     if lf.CError != nil {
         //hanlde sticker error here.
@@ -61,7 +66,8 @@ go build -o msbimport cmd/msbimport/main.go
 
 Example:
 ```bash
-./msbimport --link "https://store.line.me/stickershop/product/1288222/ja" --convert false
+#Outputs JSON serialized LineData
+./msbimport --json --link "https://store.line.me/stickershop/product/1288222/ja"
 ```
 
 ## License
