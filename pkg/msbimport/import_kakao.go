@@ -51,21 +51,13 @@ func parseKakaoLink(link string, ld *LineData) (string, error) {
 	log.Debugln("Parsed kakao link:", link)
 	log.Debugln(kakaoJson.Result)
 
-	// Only share link can be used to query kakao ss code(id).
-	isAnimated := checkKakaoAnimated(kakaoJson.Result.TitleDetailUrl)
-	log.Debugf("Kakao:%s is animated? %t", kakaoID, isAnimated)
-	if isAnimated {
-		if url.Host != "emoticon.kakao.com" {
-			ld.DLinks = kakaoJson.Result.ThumbnailUrls
-			ld.IsAnimated = false
-			warn = WARN_KAKAO_ANIM_NEED_SHARE_LINK
-		} else {
-			ld.DLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
-			ld.IsAnimated = true
-		}
+	if url.Host == "emoticon.kakao.com" {
+		ld.DLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
 	} else {
 		ld.DLinks = kakaoJson.Result.ThumbnailUrls
-		ld.IsAnimated = false
+		if checkKakaoAnimated(kakaoJson.Result.TitleDetailUrl) {
+			warn = WARN_KAKAO_ANIM_NEED_SHARE_LINK
+		}
 	}
 
 	ld.Title = kakaoJson.Result.Title
@@ -95,11 +87,8 @@ func fetchKakaoMetadata(kakaoJson *KakaoJson, kakaoID string) error {
 // *ld will be modified and loaded with local sticker information.
 func prepareKakaoStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
 	// If no dLink, continue importing static ones.
-	if ld.IsAnimated && ld.DLink != "" {
-		return prepareKakaoAnimatedStickers(ctx, ld, workDir, needConvert)
-	} else {
-		//Set is aniamted to false if importing static ones of animated pack.
-		ld.IsAnimated = false
+	if ld.DLink != "" {
+		return prepareKakaoZipStickers(ctx, ld, workDir, needConvert)
 	}
 
 	os.MkdirAll(workDir, 0755)
@@ -141,7 +130,7 @@ func prepareKakaoStickers(ctx context.Context, ld *LineData, workDir string, nee
 	return nil
 }
 
-func prepareKakaoAnimatedStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
+func prepareKakaoZipStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
 	zipPath := filepath.Join(workDir, "kakao.zip")
 	os.MkdirAll(workDir, 0755)
 
@@ -150,12 +139,16 @@ func prepareKakaoAnimatedStickers(ctx context.Context, ld *LineData, workDir str
 		return err
 	}
 
-	webpFiles := kakaoZipExtract(zipPath, ld)
-	if len(webpFiles) == 0 {
-		return errors.New("no kakao image")
+	kakaoFiles := kakaoZipExtract(zipPath, ld)
+	if len(kakaoFiles) == 0 {
+		return errors.New("no kakao image in zip")
 	}
 
-	for _, wf := range webpFiles {
+	if filepath.Ext(kakaoFiles[0]) == "webp" {
+		ld.IsAnimated = true
+	}
+
+	for _, wf := range kakaoFiles {
 		lf := &LineFile{
 			OriginalFile: wf,
 		}
@@ -164,7 +157,7 @@ func prepareKakaoAnimatedStickers(ctx context.Context, ld *LineData, workDir str
 		}
 		ld.Files = append(ld.Files, lf)
 	}
-	ld.Amount = len(webpFiles)
+	ld.Amount = len(kakaoFiles)
 
 	if needConvert {
 		go convertSToTGFormat(ctx, ld)
@@ -174,7 +167,6 @@ func prepareKakaoAnimatedStickers(ctx context.Context, ld *LineData, workDir str
 	log.Debugln(ld)
 
 	return nil
-
 }
 
 // Extract and decrypt kakao zip.
@@ -185,13 +177,15 @@ func kakaoZipExtract(f string, ld *LineData) []string {
 		return nil
 	}
 	log.Debugln("scanning workdir:", workDir)
-	files = util.LsFiles(workDir, []string{".webp"}, []string{})
+	files = util.LsFiles(workDir, []string{}, []string{})
 
 	for _, f := range files {
-		//This script decrypts the file in-place.
-		exec.Command("msb_kakao_decrypt.py", f).Run()
+		//Only decrypt webp. PNG is not encrypted.
+		if filepath.Ext(f) == "webp" {
+			//This script decrypts the file in-place.
+			exec.Command("msb_kakao_decrypt.py", f).Run()
+		}
 	}
-
 	return files
 }
 
