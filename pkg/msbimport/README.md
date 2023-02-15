@@ -1,29 +1,31 @@
-# Moe-Sticker-Bot Import Component
+# Moe-Sticker-Bot Import Component (msbimport)
 
 ## Description
 This package is intended to fetch, parse, download and convert LINE and KakaoTalk Stickers from share link.
 
 It is designed to be able to operate independentaly from moe-sticker-bot core so third party apps can also utilize this package.
 
-此套件用於解析LINE/Kakaotalk貼圖的分享連結並下載和轉換。
+此套件或CLI用於解析LINE/Kakaotalk貼圖的分享連結並下載和轉換。
 
 此套件可獨立於moe-sticker-bot使用， 第三方App可以輕鬆利用此套件或CLI處理複雜貼圖。
 
 
 ## CLI Usage/終端機程式使用
+Source code of CLI is on: [/moe-sticker-bot/cmd/msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/cmd/msbimport)
+
 Download `msbimport`： 下載`msbimport`： https://github.com/star-39/moe-sticker-bot/releases
 
 ```bash
 msbimport --help
 Usage of ./msbimport:
   -convert
-    	Convert to Telegram format(WEBP/WEBM)
+    	Convert to Telegram format(WEBP/WEBM) 轉換為Telegram格式。
   -dir string
-    	Where to put sticker files.
+    	Where to put sticker files. 指定存放貼圖檔的資料夾。
   -json
-    	Output JSON serialized LineData, useful when integrating with other apps.
+    	Output JSON serialized LineData, useful when integrating with other apps. 列印LineData為JSON。
   -link string
-    	Import link(LINE/kakao)
+    	Import link(LINE/kakao) 分享連結。
   -log_level string
     	Log level (default "debug")
         
@@ -85,20 +87,6 @@ for _, lf := range ld.Files {
 //Your stickers files will appear in the work dir you specified.
 ```
 
-## CLI Usage
-A CLI utilizing this package is on [/moe-sticker-bot/cmd/msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/cmd/msbimport)
-
-Build CLI:
-```bash
-git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
-go build -o msbimport cmd/msbimport/main.go
-```
-
-Example:
-```bash
-#Outputs JSON serialized LineData
-./msbimport --json --link "https://store.line.me/stickershop/product/1288222/ja"
-```
 
 ## License
 GPL v3 License.
