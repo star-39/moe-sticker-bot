@@ -5,7 +5,37 @@ This package is intended to fetch, parse, download and convert LINE and KakaoTal
 
 It is designed to be able to operate independentaly from moe-sticker-bot core so third party apps can also utilize this package.
 
-## Usage
+此套件用於解析LINE/Kakaotalk貼圖的分享連結並下載和轉換。
+
+此套件可獨立於moe-sticker-bot使用， 第三方App可以輕鬆利用此套件或CLI處理複雜貼圖。
+
+
+## CLI Usage/終端機程式使用
+Download `msbimport`： 下載`msbimport`： https://github.com/star-39/moe-sticker-bot/releases
+
+```bash
+msbimport --help
+Usage of ./msbimport:
+  -convert
+    	Convert to Telegram format(WEBP/WEBM)
+  -dir string
+    	Where to put sticker files.
+  -json
+    	Output JSON serialized LineData, useful when integrating with other apps.
+  -link string
+    	Import link(LINE/kakao)
+  -log_level string
+    	Log level (default "debug")
+        
+msbimport --link https://store.line.me/stickershop/product/27286
+
+msbimport --link https://store.line.me/stickershop/product/27286 --convert --json
+
+```
+
+
+
+## API Usage
 
 A typical workflow is to call `parseImportLink` then `prepareImportStickers`.
 
