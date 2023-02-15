@@ -1,7 +1,11 @@
 # [@moe_sticker_bot](https://t.me/moe_sticker_bot)
-A Telegram bot doing sticker stuffs, it imports LINE and kakaotalk sticker set to Telegram, downloads stickers, creates and manages Telegram sticker set. 
+A Telegram bot doing sticker stuffs, can import/download LINE/Kakaotalk stickers to Telegram, can download, create and manage Telegram sticker set. 
 
-Telegram用萌萌貼圖BOT, 可以匯入LINE和kakaotalk貼圖包到Telegram, 可以下載貼圖包, 可以創建和管理Telegram貼圖包.
+Telegram用萌萌貼圖BOT, 可以匯入或下載LINE和kakaotalk貼圖包到Telegram, 可以下載, 創建和管理Telegram貼圖包.
+
+A CLI app called [msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/pkg/msbimport) is also available for downloading LINE/Kakaotalk stickers.
+
+也提供名為[msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/pkg/msbimport)的終端機程式， 用於下載LINE/kakao貼圖。
 
 ## Features/功能
   * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
