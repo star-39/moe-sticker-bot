@@ -417,7 +417,7 @@ func curateDatabase() error {
 		}
 	}
 
-	log.Infoln("Database curation done. dup:%d, invalid:%d", dupSSCount, invalidSSCount)
+	log.Infof("Database curation done. dup:%d, invalid:%d", dupSSCount, invalidSSCount)
 	return nil
 }
 
