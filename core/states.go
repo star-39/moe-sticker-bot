@@ -155,8 +155,8 @@ func handleNoSession(c tele.Context) error {
 		}
 		if warn != "" {
 			switch warn {
-			case msbimport.WARN_KAKAO_ANIM_NEED_SHARE_LINK:
-				sendNeedKakaoAnimatedShareLinkWarning(c)
+			case msbimport.WARN_KAKAO_PREFER_SHARE_LINK:
+				sendPreferKakaoShareLinkWarning(c)
 			}
 		}
 

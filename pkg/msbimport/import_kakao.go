@@ -55,9 +55,7 @@ func parseKakaoLink(link string, ld *LineData) (string, error) {
 		ld.DLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
 	} else {
 		ld.DLinks = kakaoJson.Result.ThumbnailUrls
-		if checkKakaoAnimated(kakaoJson.Result.TitleDetailUrl) {
-			warn = WARN_KAKAO_ANIM_NEED_SHARE_LINK
-		}
+		warn = WARN_KAKAO_PREFER_SHARE_LINK
 	}
 
 	ld.Title = kakaoJson.Result.Title

@@ -757,17 +757,17 @@ Example: 例如:
 `, botName, botName))
 }
 
-func sendNeedKakaoAnimatedShareLinkWarning(c tele.Context) error {
+func sendPreferKakaoShareLinkWarning(c tele.Context) error {
 	msg := `
-Importing animated kakao stickers requires a share link from KakaoTalk app.
-You can still continue import, in that case, static ones will be imported.
-You can obtain share link from sticker store in KakaoTalk app by tapping share->copy link.
+You sent a Kakao store link, which does not support animated stickers and has lower image quality.
+Use a share link for improved quality and animated sticker support,
+you can obtain it from KakaoTalk app by tapping share->copy link in sticker store.
 
-此貼圖包含有動態貼圖，您需要傳送KakaoTalk app分享連結來匯入動態貼圖。
-您也可以繼續匯入，但是匯入的貼圖將會是靜態。
-您可以在KakaoTalk App內的貼圖商店點選 分享->複製連結 來取得連結。
+您傳送的是Kakao商店的連結, 不支援動態貼圖且畫質偏低.
+使用分享連結來匯入高畫質版本, 且支援動態貼圖。
+您可以在KakaoTalk App內的貼圖商店點選 分享->複製連結 來取得分享連結。
 
-eg: <code>https://emoticon.kakao.com/items/lV6K2fWmU7CpXlHcP9-ysQJx9rg=?referer=share_link</code>
+eg:例如: <code>https://emoticon.kakao.com/items/lV6K2fWmU7CpXlHcP9-ysQJx9rg=?referer=share_link</code>
 `
 	err := c.Reply(&tele.Photo{
 		File:    tele.File{FileID: FID_KAKAO_SHARE_LINK},
