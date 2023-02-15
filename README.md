@@ -126,6 +126,13 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 
 
 ## CHANGELOG
+v2.3.8-2.3.10 (20230215)
+  * Fix static webp might oversize(256KB)
+  * Fix panic during assign: invalid sticker emojis
+  * Fix some kakao animated treated as static
+  * Improved kakao static sticker quality
+  * Improved user experience
+
 v2.3.6-2.3.7 (20230213)
   * Support webhook.
   * Support animated webp for user sticker.
