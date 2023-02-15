@@ -33,11 +33,11 @@ type LineFile struct {
 }
 
 // This is called linedata due to historical reason,
-// instead, it handles "import" data, which includes kakao and line so far.
+// instead, it handles "import" data, which includes kakao and line by far.
 type LineData struct {
 	//Waitgroup for when linedata become available.
 	Wg sync.WaitGroup
-	//Store type
+	//Store type, defined in const.
 	Store string
 	//Store link
 	Link string
@@ -49,11 +49,15 @@ type LineData struct {
 	DLinks []string
 	//Sticker file paths.
 	Files []*LineFile
-	//Sticker category.
-	Category   string
-	Id         string
-	Title      string
+	//Sticker category, defined in const.
+	Category string
+	//Sticker pack ID.
+	Id string
+	//Sticker title appeared in store.
+	Title string
+	//I18n titles for LINE sticker packs, TitleWg must be waited before using this field.
 	I18nTitles []string
+	//WaitGroup for I18nTitles
 	TitleWg    sync.WaitGroup
 	IsAnimated bool
 	Amount     int
