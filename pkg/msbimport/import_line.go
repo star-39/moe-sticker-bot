@@ -286,7 +286,9 @@ func lineZipExtract(f string, ld *LineData) []string {
 	default:
 		files = util.LsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	}
-	sanitizeLinePNGs(files)
+	if ld.IsAnimated {
+		sanitizeLinePNGs(files)
+	}
 	return files
 }
 
