@@ -160,7 +160,8 @@ func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) err
 		}
 	} else {
 		go func() {
-			defer close(ud.commitChans[pos])
+			// defer close(ud.commitChans[pos])
+
 			//wait for the previous commit to be done.
 			if pos > 0 {
 				<-ud.commitChans[pos-1]
@@ -171,6 +172,7 @@ func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) err
 				if strings.Contains(err.Error(), "invalid sticker emojis") {
 					sendInvalidEmojiWarn(c)
 					execEmojiAssign(createSet, pos, "⭐️", c)
+					return
 				} else {
 					sendOneStickerFailedToAdd(c, pos, err)
 					log.Warnln("execEmojiAssign: a sticker failed to add: ", err)
@@ -182,6 +184,7 @@ func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) err
 			if pos+1 == ud.stickerData.lAmount {
 				finishExecEmojiAssign(c, createSet, ud)
 			}
+			close(ud.commitChans[pos])
 		}()
 	}
 	return nil
