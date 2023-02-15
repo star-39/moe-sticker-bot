@@ -23,19 +23,17 @@ func sendStartMessage(c tele.Context) error {
 <b>/faq  /about  /changelog</b><code>
 常見問題 / 關於 / 更新紀錄.</code>
 
-Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please:
+Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please use a command above or:
 • Send <b>LINE/Kakao sticker share link</b> to import or download.
 • Send <b>Telegram sticker/link/GIF</b> to download or export to WhatsApp.
 • Send <b>keywords</b> to search titles.
-• Send <b>/create</b> or <b>/manage</b> to create or manage Telegram sticker set.
-or use a command above.
+• Send <b>/create</b> or <b>/manage</b> to create or manage sticker set.
 
-你好, 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
+你好! 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請從上方點選指令或者：
 • 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
 • 傳送<b>Telegram貼圖/連結/GIF</b>來下載或匯出到WhatsApp.
 • 傳送<b>關鍵字</b>來搜尋貼圖包.
-• 傳送 <b>/create</b> 或 <b>/manage</b> 來創建或管理Telegram貼圖包。
-或 從上方點選指令.
+• 傳送 <b>/create</b> 或 <b>/manage</b> 來創建或管理貼圖包。
 `
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }
@@ -130,11 +128,12 @@ func sendAskEmoji(c tele.Context) error {
 
 	return c.Send(`
 Telegram sticker requires emoji to represent it.
-Press "Assign separately" to assign emoji one by one.
-You can also do batch assign, send an emoji or press button below.
+• Press "Assign separately" to assign emoji one by one.
+• Send an emoji to do batch assign.
+
 Telegram要求為貼圖設定emoji來表示它.
-按下"分別設定"來為每個貼圖都分別設定相應的emoji.
-您也可以一口氣為全部貼圖設定一樣的emoji, 請傳送一個emoji, 抑或是點選下方按鈕.
+• 按下"分別設定"來為每個貼圖分別設定相應的emoji.
+• 傳送一個emoji來為全部貼圖設定成一樣的.
 `, selector)
 }
 
@@ -253,14 +252,14 @@ func sendAskTitle_Import(c tele.Context) error {
 	}
 	selector.Inline(titleButtons...)
 
-	return c.Send("Please send a title for this sticker set. You can also select a appropriate original title below:\n"+
+	return c.Send("Please send a title for this sticker set. You can also select an original title below:\n"+
 		"請傳送貼圖包的標題.您也可以按下面的按鈕自動填上合適的原版標題:\n"+
 		titleText, selector, tele.ModeHTML)
 }
 
 func sendAskTitle(c tele.Context) {
-	c.Send("Please set a title for this sticker set.\n" +
-		"請設定貼圖包的標題.")
+	c.Send("Please send a title for this sticker set.\n" +
+		"請傳送貼圖包的標題.")
 }
 
 func sendAskID(c tele.Context) error {
@@ -268,16 +267,15 @@ func sendAskID(c tele.Context) error {
 	btnAuto := selector.Data("Auto Generate/自動生成", "auto")
 	selector.Inline(selector.Row(btnAuto))
 	return c.Send(`
-Please set an ID for sticker set, used in share link.
-Can contain only english letters, digits and underscores.
-Must begin with a letter, can't contain consecutive underscores.
+Please send an ID for sticker set, used in share link.
+Can contain alphanum only and must begin with an alphabet.
 請設定貼圖包的ID, 用於分享連結.
-ID只可以由英文字母, 數字, 下劃線記號組成, 由英文字母開頭, 不可以有連續下劃線記號.",
+只可以由英文字母, 數字, 下劃線組成, 由英文字母開頭.
 For example: 例如:
 <code>My_favSticker21</code>
 
-This is usually not important, it's recommended to press "Auto Generate" button.
-ID通常不重要, 建議您按下下方的"自動生成"按鈕.`, selector, tele.ModeHTML)
+ID is usually not important, it's recommended to Auto Generate.
+ID通常不重要, 建議您按下"自動生成".`, selector, tele.ModeHTML)
 }
 
 func sendAskImportLink(c tele.Context) error {
@@ -355,15 +353,15 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 func sendAskStickerFile(c tele.Context) error {
 
 	if users.data[c.Sender().ID].stickerData.isVideo {
-		c.Send("Please send images/photos/stickers/videos(less than 50 in total),\n" +
+		c.Send("Please send images/stickers/videos(less than 50 in total),\n" +
 			"or send an archive containing image files,\n" +
 			"wait until upload complete, then tap 'Done adding'.\n\n" +
-			"請傳送任意格式的圖片/照片/貼圖/影片(少於50張)\n" +
+			"請傳送任意格式的圖片/貼圖/影片(少於50張)\n" +
 			"或者傳送內有貼圖檔案的歸檔,\n" +
-			"請等候所有檔案上載完成, 然後按下「停止增添」\n")
-		c.Send("Special note: Sending GIF with transparent background will lose transparency due to client issue.\n" +
+			"等候所有檔案上載完成, 然後按下「停止增添」\n")
+		c.Send("Special note: Sending GIF with transparent background will lose transparency.\n" +
 			"You can compress your GIF into a ZIP file then send it to bot to bypass.\n" +
-			"特別提示: 傳送帶有透明背景的GIF會被Telegram客戶端強制轉換並且丟失透明層.\n" +
+			"特別提示: 傳送帶有透明背景的GIF會丟失透明層.\n" +
 			"您可以將貼圖放入ZIP歸檔中再傳送給bot來繞過這個限制.")
 	} else {
 		c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
@@ -371,7 +369,7 @@ func sendAskStickerFile(c tele.Context) error {
 			"wait until upload complete, then tap 'Done adding'.\n\n" +
 			"請傳送任意格式的圖片/照片/貼圖(少於120張)\n" +
 			"或者傳送內有貼圖檔案的歸檔,\n" +
-			"請等候所有檔案上載完成, 然後按下「停止增添」\n")
+			"等候所有檔案上載完成, 然後按下「停止增添」\n")
 	}
 	return nil
 }
@@ -455,6 +453,24 @@ func sendFatalError(err error, c tele.Context) {
 		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
 
+func sendExecEmojiAssignFinished(c tele.Context) error {
+	ud := users.data[c.Sender().ID]
+	msg := fmt.Sprintf(`
+LINE Cat: <code>%s</code>
+LINE ID: <code>%s</code>
+TG ID: <code>%s</code>
+TG Title: <a href="%s">%s</a>
+
+Success. 成功完成. /start
+	`, ud.lineData.Category,
+		ud.lineData.Id,
+		ud.stickerData.id,
+		"https://t.me/addstickers/"+ud.stickerData.id,
+		escapeTagMark(ud.stickerData.title),
+	)
+	return c.Send(msg, tele.ModeHTML)
+}
+
 // Return:
 // string: Text of the message.
 // *tele.Message: The pointer of the message.
@@ -463,11 +479,11 @@ func sendProcessStarted(ud *UserData, c tele.Context, optMsg string) (string, *t
 	message := fmt.Sprintf(`
 Preparing stickers, please wait...
 正在準備貼圖, 請稍後...
-<code>
-LINE Cat:%s
-LINE ID:%s
-TG ID:%s
-TG Title:</code><a href="%s">%s</a>
+
+LINE Cat: <code>%s</code>
+LINE ID: <code>%s</code>
+TG ID: <code>%s</code>
+TG Title: <a href="%s">%s</a>
 
 <b>Progress / 進展</b>
 <code>%s</code>

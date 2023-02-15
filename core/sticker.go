@@ -194,7 +194,8 @@ func finishExecEmojiAssign(c tele.Context, createSet bool, ud *UserData) error {
 		}
 		insertUserS(c.Sender().ID, ud.stickerData.id, ud.stickerData.title, time.Now().Unix())
 	}
-	c.Send("Success! /start")
+	sendExecEmojiAssignFinished(c)
+	// c.Send("Success! /start")
 	sendSFromSS(c, ud.stickerData.id, nil)
 	endSession(c)
 	return nil
