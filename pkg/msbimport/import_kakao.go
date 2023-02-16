@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -142,7 +141,7 @@ func prepareKakaoZipStickers(ctx context.Context, ld *LineData, workDir string, 
 		return errors.New("no kakao image in zip")
 	}
 
-	if filepath.Ext(kakaoFiles[0]) == "webp" {
+	if filepath.Ext(kakaoFiles[0]) != ".png" {
 		ld.IsAnimated = true
 	}
 
@@ -178,8 +177,8 @@ func kakaoZipExtract(f string, ld *LineData) []string {
 	files = util.LsFiles(workDir, []string{}, []string{})
 
 	for _, f := range files {
-		//Only decrypt webp. PNG is not encrypted.
-		if filepath.Ext(f) == "webp" {
+		//PNG is not encrypted.
+		if filepath.Ext(f) != ".png" {
 			//This script decrypts the file in-place.
 			exec.Command("msb_kakao_decrypt.py", f).Run()
 		}
@@ -205,17 +204,4 @@ func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
 	}
 	kakaoID := path.Base(redirLink)
 	return eid, kakaoID, nil
-}
-
-// Receive kakaoJson.Result.TitleDetailUrl
-func checkKakaoAnimated(ilink string) bool {
-	res, err := http.Get(ilink)
-	if err != nil {
-		return false
-	}
-	if res.Header.Get("Content-Type") == "image/gif" {
-		return true
-	} else {
-		return false
-	}
 }
