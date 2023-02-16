@@ -759,12 +759,12 @@ Example: 例如:
 
 func sendPreferKakaoShareLinkWarning(c tele.Context) error {
 	msg := `
-You sent a Kakao store link, which does not support animated stickers and has lower image quality.
-Use a share link for improved quality and animated sticker support,
+The link you sent is a Kakao store link.
+Use a share link for improved image quality and animated sticker support,
 you can obtain it from KakaoTalk app by tapping share->copy link in sticker store.
 
-您傳送的是Kakao商店的連結, 不支援動態貼圖且畫質偏低.
-使用分享連結來匯入高畫質版本, 且支援動態貼圖。
+您傳送的是Kakao商店的連結.
+使用分享連結才能支援動態貼圖, 靜態貼圖的畫質也更高。
 您可以在KakaoTalk App內的貼圖商店點選 分享->複製連結 來取得分享連結。
 
 eg:例如: <code>https://emoticon.kakao.com/items/lV6K2fWmU7CpXlHcP9-ysQJx9rg=?referer=share_link</code>
