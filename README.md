@@ -68,9 +68,9 @@ Simply run:
 ```
 docker run -dt ghcr.io/star-39/moe-sticker-bot /moe-sticker-bot --bot_token="..."
 ```
-If you are on ARM64(AArch64) arch, use `aarch64` tag.
+If you are on ARM64 machine, use `aarch64` tag.
 
-To deploy all features - including database/webapp/emoji, please use kubernetes or podman with a yaml deployment file.
+To deploy all features - including database/webapp/emoji, you can use kubernetes or podman.
 
 See a real world deployment example on [deployments/kubernetes_msb.yaml](https://github.com/star-39/moe-sticker-bot/blob/master/deployments/kubernetes_msb.yaml).
 
@@ -80,6 +80,8 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
 * bsdtar (libarchive-tools)
 * ffmpeg
 * curl
+* exiv2
+* gifsicle
 * mariadb-server (optional)
 * nginx (optional, for WebApp and WebHook)
 * [msb_emoji](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_emoji.py) (optional, for emoji assign)
@@ -91,21 +93,17 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
  * golang v18+
  * nodejs v18+ (optional, for WebApp)
  * react-js v18+ (optional, for WebApp)
- 
-<details>
-<summary>Brief build instructions</summary>
 
 ```bash
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl ffmpeg go
+dnf install git ImageMagick libwebp bsdtar curl ffmpeg go exiv2 gifsicle
 # For Debian / Ubuntu etc.
-apt install git imagemagick libarchive-tools curl ffmpeg go
+apt install git imagemagick libarchive-tools curl ffmpeg go exiv2 gifsicle
 # For Arch
-pacman -S install git ffmpeg imagemagick curl libarchive go
+pacman -S install git ffmpeg imagemagick curl libarchive go exiv2 gifsicle
 # For macOS
-brew install git imagemagick ffmpeg curl go
-# For Windows, please install scoop and use Windows Powershell:
-scoop install git ffmpeg imagemagick go bsdtar
+brew install git imagemagick ffmpeg curl go bsdtar exiv2 gifsicle
+# For Windows, please install System Dependencies manually.
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 
@@ -116,7 +114,6 @@ go build -o moe-sticker-bot cmd/moe-sticker-bot/main.go
 # install tools/msb_kakao_decrypt.py /usr/local/bin/
 
 ```
-</details>
 
 #### WebApp
 Since 2.0 version of moe-sticker-bot, managing sticker set's order and emoji is now through Telegram's
