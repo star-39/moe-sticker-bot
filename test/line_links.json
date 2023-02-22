@@ -18,5 +18,9 @@
     [
         "LINE_STICKER_STATIC, special officialaccount, no <script>",
         "https://store.line.me/officialaccount/event/sticker/27239/ja"
+    ],
+    [
+        "Line message, has region lock",
+        "https://store.line.me/stickershop/product/12188389/ja"
     ]
 ]
