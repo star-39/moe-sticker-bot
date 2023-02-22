@@ -80,7 +80,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
 	}
 	defer wpDownloadSticker.Release()
-	startTime := time.Now()
+	imageTime := time.Now()
 	var objs []*StickerDownloadObject
 	for index, s := range ss.Stickers {
 		obj := &StickerDownloadObject{
@@ -99,9 +99,8 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	for i, obj := range objs {
 		go editProgressMsg(i, len(ss.Stickers), "", pText, pMsg, c)
 		obj.wg.Wait()
-		newTime := startTime.Add(time.Duration(i+1) * time.Second)
-		convert.SetImageTime(obj.of, newTime)
-		convert.SetImageTime(obj.cf, newTime)
+		imageTime = imageTime.Add(time.Duration(i+1) * time.Second)
+		convert.SetImageTime(obj.of, imageTime)
 		flist = append(flist, obj.of)
 		cflist = append(cflist, obj.cf)
 	}
@@ -152,7 +151,7 @@ func downloadGifToZip(c tele.Context) error {
 	cf2 := strings.ReplaceAll(cf, "animation_MP4.mp4", "animation_GIF.gif")
 	os.Rename(cf, cf2)
 	zip := filepath.Join(workDir, secHex(4)+".zip")
-	util.FCompress(zip, []string{f, cf2})
+	util.FCompress(zip, []string{cf2})
 
 	_, err = c.Bot().Reply(c.Message(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
 	return err
