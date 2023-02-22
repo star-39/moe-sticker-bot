@@ -446,17 +446,18 @@ func sendFatalError(err error, c tele.Context) {
 	if c == nil {
 		return
 	}
-	errMsg := ""
+	var errMsg string
 	if err != nil {
 		errMsg = err.Error()
+		errMsg = strings.ReplaceAll(errMsg, msbconf.BotToken, "***")
 		if strings.Contains(errMsg, "500") {
 			errMsg += "\nThis is an internal error of Telegram server, we could do nothing but wait for its recover. Please try again later.\n" +
 				"此錯誤為Telegram伺服器之內部錯誤, 無法由bot解決, 只能等候官方修復. 建議您稍後再嘗試一次.\n"
 		}
 	}
 
-	c.Send("<b>Fatal error! Please try again. /start\n"+
-		"發生嚴重錯誤! 請您從頭再試一次. /start </b>\n\n"+
+	c.Send("<b>Fatal error encounterd. Please try again. /start\n"+
+		"發生嚴重錯誤. 請您從頭再試一次. /start </b>\n\n"+
 		"You can report this error to @plow283 or https://github.com/star-39/moe-sticker-bot/issues\n\n"+
 		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
