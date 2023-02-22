@@ -33,8 +33,8 @@ func parseCmdLine() core.ConfigTemplate {
 	var dbUser = flag.String("db_user", "", "mariadb usernmae")
 	var dbPass = flag.String("db_pass", "", "mariadb password")
 	var logLevel = flag.String("log_level", "debug", "Log level")
-	// var localBotApiAddr = flag.String("local_botapi_addr", "", "Local Bot API Server Address")
-	// var localBotApiDir = flag.String("local_botapi_dir", "", "Local Bot API Working directory(Absolute)")
+	var botApiAddr = flag.String("botapi_addr", "", "Local Bot API Server Address")
+	var botApiDir = flag.String("botapi_dir", "", "Local Bot API Working directory")
 	var webhookPublicAddr = flag.String("webhook_public_addr", "", "Webhook public address(WebhookEndpoint).")
 	var webhookListenAddr = flag.String("webhook_listen_addr", "", "Webhook listen address(IP:PORT)")
 	// var webhookCert = flag.String("webhook_cert", "", "Certificate for WebHook")
@@ -77,8 +77,8 @@ func parseCmdLine() core.ConfigTemplate {
 	conf.WebappDataDir = *webappDataDir
 	conf.WebappListenAddr = *WebappListenAddr
 
-	// conf.LocalBotApiAddr = *localBotApiAddr
-	// conf.LocalBotApiDir = *localBotApiDir
+	conf.BotApiAddr = *botApiAddr
+	conf.BotApiDir = *botApiDir
 	conf.WebhookPublicAddr = *webhookPublicAddr
 	conf.WebhookListenAddr = *webhookListenAddr
 	// conf.WebhookCert = *webhookCert

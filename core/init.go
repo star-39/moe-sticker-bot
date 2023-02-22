@@ -134,29 +134,22 @@ func onError(err error, c tele.Context) {
 
 func initBot(conf ConfigTemplate) *tele.Bot {
 	var poller tele.Poller
-	var url string
-	// if msbconf.LocalBotApiAddr != "" {
-	// 	poller = &tele.Webhook{
-	// 		Endpoint: &tele.WebhookEndpoint{
-	// 			PublicURL: msbconf.WebhookPublicAddr,
-	// 		},
-	// 		Listen: msbconf.WebhookListenAddr,
-	// 	}
-	// 	url = msbconf.LocalBotApiAddr
-	// } else
+	url := tele.DefaultApiURL
+
 	if msbconf.WebhookListenAddr != "" {
 		poller = &tele.Webhook{
 			Endpoint: &tele.WebhookEndpoint{
 				PublicURL: msbconf.WebhookPublicAddr,
 			},
-			SecretToken: msbconf.WebhookSecretToken,
-			Listen:      msbconf.WebhookListenAddr,
+			Listen: msbconf.WebhookListenAddr,
 		}
-		// url = msbconf.LocalBotApiAddr
+		if msbconf.BotApiAddr != "" {
+			url = msbconf.BotApiAddr
+		}
 	} else {
 		poller = &tele.LongPoller{Timeout: 10 * time.Second}
-		url = tele.DefaultApiURL
 	}
+
 	pref := tele.Settings{
 		URL:         url,
 		Token:       msbconf.BotToken,
