@@ -2,6 +2,8 @@
 #   * Official English Documentation: http://nginx.org/en/docs/
 #   * Official Russian Documentation: http://nginx.org/ru/docs/
 
+limit_req_zone $binary_remote_addr zone=one:10m rate=100r/s;
+
 server {
     listen ${NGINX_PORT} ssl http2;
     server_name _;
@@ -12,9 +14,7 @@ server {
     ssl_session_timeout 10m;
     ssl_prefer_server_ciphers on;
 
-    location /webhook {
-        proxy_pass http://${WEBHOOK_ADDR};
-    }
+    limit_req zone=one burst=200;
 
     location /webapp/data {
         alias ${WEBAPP_ROOT}/data;
