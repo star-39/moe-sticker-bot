@@ -57,7 +57,7 @@ func apiExport(c *gin.Context) {
 	sn := c.Query("sn")
 	qid := c.Query("qid")
 	hex := c.Query("hex")
-	url := fmt.Sprintf("msb://app/export/do?sn=%s&qid=%s&hex=%s", sn, qid, hex)
+	url := fmt.Sprintf("msb://app/export/%s/?qid=%s&hex=%s", sn, qid, hex)
 	c.Redirect(http.StatusFound, url)
 }
 
