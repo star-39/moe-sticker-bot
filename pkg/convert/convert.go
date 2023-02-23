@@ -351,7 +351,7 @@ func IMToAnimatedWebpLQ(f string) error {
 }
 
 // // animated webp has a pretty bad compression ratio comparing to VP9,
-// // shrink down quality as more as possible.
+// // shrink down quality as much as possible.
 func FFToAnimatedWebpWA(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
 	bin := FFMPEG_BIN
@@ -366,7 +366,7 @@ func FFToAnimatedWebpWA(f string) error {
 
 		if q == "_DS384" {
 			args = []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
-				"-vf", "scale=256:256:force_original_aspect_ratio=decrease,pad=512:512:-1:-1:color=black@0",
+				"-vf", "scale=384:384:force_original_aspect_ratio=decrease,pad=512:512:-1:-1:color=black@0",
 				"-quality", "20", "-loop", "0", "-pix_fmt", "yuva420p",
 				"-an", "-y", pathOut}
 		}
