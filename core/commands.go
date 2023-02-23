@@ -45,6 +45,10 @@ func cmdFAQ(c tele.Context) error {
 	return nil
 }
 
+func cmdPrivacy(c tele.Context) error {
+	return sendPrivacy(c)
+}
+
 func cmdChangelog(c tele.Context) error {
 	return sendChangelog(c)
 }

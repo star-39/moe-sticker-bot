@@ -20,8 +20,8 @@ func sendStartMessage(c tele.Context) error {
 匯入或搜尋LINE/Kaka貼圖包.</code>
 <b>/download</b>  <b>/create</b>  <b>/manage</b> Telegram stickers.<code>
 下載、創建、管理Telegram貼圖包.</code>
-<b>/faq  /about  /changelog</b><code>
-常見問題 / 關於 / 更新紀錄.</code>
+<b>/faq  /about  /changelog  /privacy</b><code>
+常見問題/關於/更新紀錄/私隱</code>
 
 Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please use a command above or:
 • Send <b>LINE/Kakao sticker share link</b> to import or download.
@@ -29,7 +29,7 @@ Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot<
 • Send <b>keywords</b> to search titles.
 • Send <b>/create</b> or <b>/manage</b> to create or manage sticker set.
 
-你好! 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請從上方點選指令或者：
+你好! 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請從上方點選指令或：
 • 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
 • 傳送<b>Telegram貼圖/連結/GIF</b>來下載或匯出到WhatsApp.
 • 傳送<b>關鍵字</b>來搜尋貼圖包.
@@ -126,6 +126,40 @@ v2.0.0 (20230105)
   * 下載整個貼圖包的速度現在會快許多.
   * 修復了許多LINE貼圖匯入的問題.
 	`, tele.NoPreview)
+}
+
+func sendPrivacy(c tele.Context) error {
+	return c.Send(`
+<b>Privacy Notice:</b>
+None of your usage or behaviour will be stored or analyzed.
+None of your user identifier or information will be collected or stored if you did not use /import or /create command and succeded.
+
+If you used /create or /import feature and upon success,
+your user identifier will be associated to the sticker set you create and stored to database on the bot server,
+which will only be used to tell which sticker set is owned by you only when you use /manage command.
+No one else could see or use the stored user identifier.
+
+All the data being stored is encrypted.
+This bot will never share any of the stored data to anyone or to anywhere else.
+The bot server is physically located at Osaka,Japan. Local laws might apply.
+This bot is free and open source software, you can see https://github.com/star-39/moe-sticker-bot/blob/master/core/database.go
+to investigate how the bot store and process the stored data.
+
+<b>私隱聲明:</b>
+本bot不會存儲或分析您的使用情況或行為。
+本bot不會採集或儲存任何用戶資訊，除非您使用了 /import 或 /create 指令且成功完成。
+
+如果您使用了 /import 或 /create 指令並且成功完成，
+您的用戶識別子(user_id)會與您創建的貼圖包關聯並存檔入bot伺服器的資料庫中。
+此識別子只會用來讓您本人通過 /manage 指令查詢您所擁有的貼圖包，不作其他任何用途。
+任何其他用戶無法看見或使用此識別子。
+
+本bot儲存的所有資訊均經過加密。
+本bot不會分享任何儲存的資訊給任何人或實體或到任何地方。
+本bot伺服器的物理位置位於日本大阪。 當地法律可能適用。
+本bot為自由開放原始碼軟體，請參閱 https://github.com/star-39/moe-sticker-bot/blob/master/core/database.go
+來了解bot如何儲存和處理儲存的資訊。
+`, tele.ModeHTML, tele.NoPreview)
 }
 
 func sendAskEmoji(c tele.Context) error {
