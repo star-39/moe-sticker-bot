@@ -37,11 +37,14 @@ function Export() {
     }
   }, [])
   return (
+
     <div>
-      <button onClick={() => window.open(exportLinkHttps)}>
-        Export/匯出
-      </button>
-      <br />
+      {window.Telegram.WebApp.platform !== "ios" ? (
+        <button onClick={() => window.location.replace(exportLinkHttps)}>
+          Export/匯出
+        </button>) : null
+      }
+      <br/>
       <h3>
         Preview 預覽:
       </h3>
@@ -57,9 +60,11 @@ function Export() {
         }
       </StickerGrid>
       <br />
-      <button onClick={() => window.open(exportLinkHttps)}>
-        Export/匯出
-      </button>
+      {window.Telegram.WebApp.platform !== "ios" ? (
+        <button onClick={() => window.location.replace(exportLinkHttps)}>
+          Export/匯出
+        </button>) : null
+      }
     </div>
   )
 }
