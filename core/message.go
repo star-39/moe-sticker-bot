@@ -310,14 +310,14 @@ func sendAskID(c tele.Context) error {
 	selector.Inline(selector.Row(btnAuto))
 	return c.Send(`
 Please send an ID for sticker set, used in share link.
-Can contain alphanum only and must begin with an alphabet.
+Can contain alphanum and underscore only.
 請設定貼圖包的ID, 用於分享連結.
-只可以由英文字母, 數字, 下劃線組成, 由英文字母開頭.
+只可以含有英文,數字,下劃線.
 For example: 例如:
 <code>My_favSticker21</code>
 
-ID is usually not important, it's recommended to Auto Generate.
-ID通常不重要, 建議您按下"自動生成".`, selector, tele.ModeHTML)
+ID is usually not important, you can press Auto Generate.
+ID通常不重要, 您可以按下"自動生成".`, selector, tele.ModeHTML)
 }
 
 func sendAskImportLink(c tele.Context) error {
@@ -705,7 +705,11 @@ func sendNoCbWarn(c tele.Context) error {
 }
 
 func sendBadIDWarn(c tele.Context) error {
-	return c.Send("Bad ID! try again or press Auto Generate. ID錯誤, 請試多一次或按下'自動生成'按鈕.")
+	return c.Send(`
+Bad ID. try again or press Auto Generate. /quit
+Can contain alphanum and underscore only, must begin with alphabet, must not contain consecutive underscores.
+只可以含有英文,數字,下劃線, 必須由英文字母開頭，不可以有連續下劃線.
+ID錯誤, 請試多一次或按下'自動生成'按鈕. /quit`)
 }
 
 func sendIDOccupiedWarn(c tele.Context) error {
