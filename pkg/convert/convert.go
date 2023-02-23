@@ -340,7 +340,7 @@ func IMToAnimatedWebpLQ(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
-	args = append(args, "-resize", "64x64", f, pathOut)
+	args = append(args, "-resize", "128x128", f, pathOut)
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
