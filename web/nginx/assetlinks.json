@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "moe.star39.msb_app",
+            "sha256_cert_fingerprints": [
+                "93:BE:BA:D8:31:52:EB:1B:C0:E9:A7:E7:C9:9D:13:52:80:CD:05:41:9B:68:34:90:5A:D7:D3:23:2D:6D:23:C3"
+            ]
+        }
+    }
+]

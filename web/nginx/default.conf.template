@@ -14,6 +14,8 @@ server {
     ssl_session_timeout 10m;
     ssl_prefer_server_ciphers on;
 
+    root /www;
+
     limit_req zone=one burst=200;
 
     location /webapp/data {
