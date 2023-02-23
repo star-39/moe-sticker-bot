@@ -273,7 +273,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 				log.Error("RA too long! Telegram's bug? Attempt to sleep for 120 seconds.")
 				time.Sleep(120 * time.Second)
 			} else {
-				extraRA := *flCount * 30
+				extraRA := *flCount * 15
 				log.Warnf("Sleeping for %d seconds due to FL.", floodErr.RetryAfter+extraRA)
 				time.Sleep(time.Duration(floodErr.RetryAfter+extraRA) * time.Second)
 			}
