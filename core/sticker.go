@@ -242,14 +242,10 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 			err = c.Bot().AddSticker(c.Recipient(), ss)
 		}
 		if err == nil {
-			break
+			return nil
 		}
 		//Deal with error below
 		log.Errorf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
-		if i == 2 {
-			log.Warn("too many retries, end retry loop")
-			return err
-		}
 		// Is flood limit error.
 		// Telegram's flood limit is strange.
 		// It only happens to a specific user at a specific time.
@@ -284,7 +280,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 
 			log.Warnf("Woken up from RA sleep. ignoring this error. user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, ss.Name, *flCount, pos)
 
-			//According to collected logs, exceeding 2 flood counts will cause api server to stop auto retrying.
+			//According to collected logs, exceeding 2 flood counts will sometimes cause api server to stop auto retrying.
 			//Hence, we do retry here, else, break retry loop.
 			if *flCount > 2 {
 				continue
@@ -313,10 +309,13 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 			time.Sleep(5 * time.Second)
 		}
 	}
-	if safeMode {
-		log.Warn("safe mode resolved video_long problem.")
+
+	log.Warn("commitSticker: too many retries")
+	if errors.As(err, &floodErr) {
+		log.Warn("commitSticker: reached max retry for flood limit, assume success.")
+		return nil
 	}
-	return nil
+	return err
 }
 
 func editStickerEmoji(newEmoji string, index int, fid string, f string, ssLen int, ud *UserData) error {
