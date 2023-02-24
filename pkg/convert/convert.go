@@ -350,6 +350,24 @@ func IMToAnimatedWebpLQ(f string) error {
 	return err
 }
 
+// Replaces .webm ext to .webp
+func FFToAnimatedWebpLQ(f string) error {
+	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
+	bin := FFMPEG_BIN
+
+	args := []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
+		"-vf", "scale=128:128:force_original_aspect_ratio=decrease",
+		"-loop", "0", "-pix_fmt", "yuva420p",
+		"-an", "-y", pathOut}
+
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Warnln("ffToAnimatedWebpWA ERROR:", string(out))
+		return err
+	}
+	return nil
+}
+
 // // animated webp has a pretty bad compression ratio comparing to VP9,
 // // shrink down quality as much as possible.
 func FFToAnimatedWebpWA(f string) error {

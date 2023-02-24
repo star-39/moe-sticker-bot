@@ -145,19 +145,18 @@ type StickerData struct {
 
 type StickerDownloadObject struct {
 	wg      sync.WaitGroup
-	bot     *tele.Bot
 	sticker tele.Sticker
 	dest    string
 	//Convert to conventional format?
 	needConvert bool
 	//Shrink oversized GIF?
 	shrinkGif bool
-	//Sticker is for WebApp?
+	//need to convert to WebApp use case
 	forWebApp bool
-	//need HQ animated sticker for WhatsApp
-	webAppHQ bool
+	//need to convert to WhatsApp format
+	forWhatsApp bool
 	//need 96px PNG thumb for WhatsApp
-	webAppThumb bool
+	forWhatsAppThumb bool
 	/*
 		Following fields are yielded by worker after wg is done.
 	*/

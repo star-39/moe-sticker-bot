@@ -21,25 +21,26 @@ func wDownloadStickerObject(i interface{}) {
 	defer obj.wg.Done()
 	log.Debugf("Downloading in pool: %s -> %s", obj.sticker.FileID, obj.dest)
 
-	//WebApp does not need special conversion.
-	if obj.forWebApp {
+	if obj.forWebApp || obj.forWhatsApp {
 		err := teleDownload(&obj.sticker.File, obj.dest)
 		if err != nil {
 			log.Warnln("download: error downloading sticker:", err)
 			obj.err = err
 			return
 		}
-		if obj.sticker.Video {
-			if obj.webAppHQ {
+		if obj.forWhatsApp {
+			if obj.sticker.Video {
 				obj.err = convert.FFToAnimatedWebpWA(obj.dest)
 			} else {
-				obj.err = convert.IMToAnimatedWebpLQ(obj.dest)
+				convert.IMToWebpWA(obj.dest)
+			}
+			if obj.forWhatsAppThumb {
+				obj.err = convert.IMToPNGThumb(obj.dest)
 			}
 		} else {
-			convert.IMToWebpWA(obj.dest)
-		}
-		if obj.webAppThumb {
-			obj.err = convert.IMToPNGThumb(obj.dest)
+			if obj.sticker.Video {
+				obj.err = convert.FFToAnimatedWebpLQ(obj.dest)
+			}
 		}
 		return
 	}

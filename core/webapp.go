@@ -404,7 +404,7 @@ func checkGetUd(uid string, qid string) (*UserData, error) {
 	return ud, nil
 }
 
-func prepareWebAppEditStickers(ud *UserData, wantHQ bool) error {
+func prepareWebAppEditStickers(ud *UserData) error {
 	dest := filepath.Join(msbconf.WebappDataDir, ud.stickerData.id)
 	os.RemoveAll(dest)
 	os.MkdirAll(dest, 0755)
@@ -417,11 +417,9 @@ func prepareWebAppEditStickers(ud *UserData, wantHQ bool) error {
 			f = filepath.Join(dest, s.UniqueID+".webp")
 		}
 		obj := &StickerDownloadObject{
-			bot:       b,
 			dest:      f,
 			sticker:   s,
 			forWebApp: true,
-			webAppHQ:  wantHQ,
 		}
 		obj.wg.Add(1)
 		ud.stickerData.sDnObjects = append(ud.stickerData.sDnObjects, obj)
@@ -454,16 +452,15 @@ func prepareWebAppExportStickers(ss *tele.StickerSet, hex string) error {
 			f = filepath.Join(dest, s.UniqueID+".webp")
 		}
 		obj := &StickerDownloadObject{
-			bot:       b,
-			dest:      f,
-			sticker:   s,
-			forWebApp: true,
-			webAppHQ:  true,
+			dest:    f,
+			sticker: s,
+			// forWebApp:   true,
+			forWhatsApp: true,
 		}
 		//Use first image to create a thumbnail image
 		//for WhatsApp.
 		if i == 0 {
-			obj.webAppThumb = true
+			obj.forWhatsAppThumb = true
 		}
 		obj.wg.Add(1)
 		go wpDownloadStickerSet.Invoke(obj)

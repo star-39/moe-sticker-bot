@@ -41,7 +41,6 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	if s != nil {
 		obj := &StickerDownloadObject{
 			wg:          sync.WaitGroup{},
-			bot:         b,
 			sticker:     *s,
 			dest:        filepath.Join(workDir, s.SetName+"_"+s.Emoji),
 			needConvert: true,
@@ -85,7 +84,6 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	for index, s := range ss.Stickers {
 		obj := &StickerDownloadObject{
 			wg:          sync.WaitGroup{},
-			bot:         b,
 			sticker:     s,
 			dest:        filepath.Join(workDir, fmt.Sprintf("%s_%d_%s", setID, index+1, s.Emoji)),
 			needConvert: true,
