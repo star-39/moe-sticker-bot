@@ -374,7 +374,7 @@ func FFToAnimatedWebpWA(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
 	bin := FFMPEG_BIN
 	//Try qualities from best to worst.
-	qualities := []string{"75", "50", "20", "_DS384"}
+	qualities := []string{"75", "50", "20", "_DS256"}
 
 	for _, q := range qualities {
 		args := []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
@@ -382,9 +382,9 @@ func FFToAnimatedWebpWA(f string) error {
 			"-quality", q, "-loop", "0", "-pix_fmt", "yuva420p",
 			"-an", "-y", pathOut}
 
-		if q == "_DS384" {
+		if q == "_DS256" {
 			args = []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
-				"-vf", "scale=384:384:force_original_aspect_ratio=decrease,pad=512:512:-1:-1:color=black@0",
+				"-vf", "scale=256:256:force_original_aspect_ratio=decrease,pad=512:512:-1:-1:color=black@0",
 				"-quality", "20", "-loop", "0", "-pix_fmt", "yuva420p",
 				"-an", "-y", pathOut}
 		}
