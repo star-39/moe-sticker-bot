@@ -6,12 +6,12 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 # AMD64
 #################################
-if false ; then
+if true ; then
 
 c1=$(buildah from docker://archlinux:latest)
 
 buildah run $c1 -- pacman -Sy
-buildah run $c1 -- pacman --noconfirm -S libheif ffmpeg imagemagick curl gifsicle exiv2 libarchive python python-pip
+buildah run $c1 -- pacman --noconfirm -S libheif imagemagick curl gifsicle exiv2 libarchive python python-pip
 buildah run $c1 -- sh -c 'yes | pacman -Scc'
 
 buildah run $c1 -- pip3 install lottie[GIF] cairosvg emoji
@@ -27,6 +27,12 @@ fi
 
 # Build container image.
 c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base)
+
+# Install static build of ffmpeg.
+curl -JOL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
+bsdtar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz
+podman copy $c1 ffmpeg-master-latest-linux64-gpl/bin/ffmpeg /usr/local/bin/ffmpeg
+
 
 # Build MSB go bin
 go build -o moe-sticker-bot cmd/moe-sticker-bot/main.go 
