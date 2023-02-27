@@ -30,7 +30,7 @@ c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base)
 
 # Install static build of ffmpeg.
 curl -JOL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
-bsdtar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz
+unzip ffmpeg-master-latest-linux64-gpl.tar.xz
 buildah copy $c1 ffmpeg-master-latest-linux64-gpl/bin/ffmpeg /usr/local/bin/ffmpeg
 
 
