@@ -31,7 +31,10 @@ A CLI app called [msbimport](https://github.com/star-39/moe-sticker-bot/tree/mas
 
 <img width="500" alt="スクリーンショット 2023-02-27 午後7 24 14" src="https://user-images.githubusercontent.com/75669297/221538927-526a878a-5d86-4b45-ab9a-d324743e3b91.png">
 
-<img width="500" alt="スクリーンショット 2023-02-27 午後7 21 22" src="https://user-images.githubusercontent.com/75669297/221538953-6c69dc08-5cb1-4f07-a9ce-43bacb9f1566.png">
+<img width="500" alt="スクリーンショット 2023-02-27 午後7 37 17" src="https://user-images.githubusercontent.com/75669297/221541547-4618c9ef-9be3-4d50-b7da-fdc5b25e64b8.png">
+
+
+<!-- <img width="500" alt="スクリーンショット 2023-02-27 午後7 21 22" src="https://user-images.githubusercontent.com/75669297/221538953-6c69dc08-5cb1-4f07-a9ce-43bacb9f1566.png"> -->
 
 <!-- ![スクリーンショット 2022-02-12 003746](https://user-images.githubusercontent.com/75669297/153621406-16a619a8-e897-4857-947b-7d41e88fddcb.png) 
 
