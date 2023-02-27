@@ -11,18 +11,16 @@ A CLI app called [msbimport](https://github.com/star-39/moe-sticker-bot/tree/mas
   * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
   * Create your own sticker set with your own images or videos in any format.
   * Batch download and convert Telegram stickers or GIFs to original or common formats.
-  * Export Telegram stickers to WhatsApp (requires [Msb App](https://github.com/star-39/msb_app)).
+  * Export Telegram stickers to WhatsApp (requires [Msb App](https://github.com/star-39/msb_app), supports iPhone and Android).
   * Manage your sticker set interactively through WebApp: add/move/remove/edit sticker and emoji.
 
   * 輕鬆匯入LINE/kakao貼圖包到Telegram, 可以統一或分開指定emoji.
   * 輕鬆使用自己任意格式的圖片和影片來創建自己的貼圖包.
   * 下載Telegram/LINE/kakao貼圖包和GIF, 自動變換為常用格式, 並且保留原檔.
-  * 匯出Telegram的貼圖包至WhatsApp（需要安裝[Msb App](https://github.com/star-39/msb_app))。
+  * 匯出Telegram的貼圖包至WhatsApp（需要安裝[Msb App](https://github.com/star-39/msb_app), 支援iPhone和Android）。
   * 互動式WebApp可以輕鬆管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
   
-  * Msb App, which is an iOS/Android app that handles WhatsApp sticker export is located at: https://github.com/star-39/msb_app.
-  * Msb App, 用於匯出WhatsApp貼圖包的iOS/Android手機程式位於：https://github.com/star-39/msb_app
-
+  
 ## Screenshots
 [@moe_sticker_bot](https://t.me/moe_sticker_bot)
 
