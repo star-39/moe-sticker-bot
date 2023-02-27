@@ -22,5 +22,13 @@
     [
         "Line message, has region lock",
         "https://store.line.me/stickershop/product/12188389/ja"
+    ],
+    [
+        "Line popup, no effect, use only popup APNG",
+        "https://store.line.me/stickershop/product/22229788/ja"
+    ],
+    [
+        "popup effect(both popup APNG and static PNG must be kept)",
+        "https://store.line.me/stickershop/product/14011294/ja"
     ]
 ]

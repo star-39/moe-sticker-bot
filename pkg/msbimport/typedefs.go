@@ -16,6 +16,17 @@ const (
 	LINE_STICKER_NAME         = "line_n"  //隨你填
 	KAKAO_EMOTICON            = "kakao_e" //KAKAOTALK普通貼圖
 
+	LINE_SRC_PER_STICKER_TEXT = "PER_STICKER_TEXT"
+	LINE_SRC_ANIMATION        = "ANIMATION"
+	LINE_SRC_STATIC           = "STATIC"
+	LINE_SRC_POPUP            = "POPUP"
+	LINE_SRC_NAME_TEXT        = "NAME_TEXT"
+
+	//Indicates popup effect, bot popup APNG and static PNG should be kept.
+	LINE_POPUP_LAYER_BACKGROUND = "BACKGROUND"
+	//Indicates popup, only popup APNG needed.
+	LINE_POPUP_LAYER_FOREGROUND = "FOREGROUND"
+
 	StoreLine  = "line"
 	StoreKakao = "kakao"
 
@@ -84,4 +95,52 @@ type KakaoJsonResult struct {
 
 type KakaoJson struct {
 	Result KakaoJsonResult
+}
+
+type LineProductInfo struct {
+	PackageID           int64     `json:"packageId"`
+	OnSale              bool      `json:"onSale"`
+	ValidDays           int64     `json:"validDays"`
+	Title               Title     `json:"title"`
+	Author              Author    `json:"author"`
+	Price               []Price   `json:"price"`
+	Stickers            []Sticker `json:"stickers"`
+	HasAnimation        bool      `json:"hasAnimation"`
+	HasSound            bool      `json:"hasSound"`
+	StickerResourceType string    `json:"stickerResourceType"`
+}
+
+type Author struct {
+	En     string `json:"en"`
+	Es     string `json:"es"`
+	In     string `json:"in"`
+	Ja     string `json:"ja"`
+	Ko     string `json:"ko"`
+	Th     string `json:"th"`
+	ZhHans string `json:"zh-Hans"`
+	ZhHant string `json:"zh-Hant"`
+}
+
+type Price struct {
+	Country  string  `json:"country"`
+	Currency string  `json:"currency"`
+	Symbol   string  `json:"symbol"`
+	Price    float64 `json:"price"`
+}
+
+type Sticker struct {
+	ID     int64 `json:"id"`
+	Width  int64 `json:"width"`
+	Height int64 `json:"height"`
+}
+
+type Title struct {
+	En     string `json:"en"`
+	Es     string `json:"es"`
+	In     string `json:"in"`
+	Ja     string `json:"ja"`
+	Ko     string `json:"ko"`
+	Th     string `json:"th"`
+	ZhHans string `json:"zh-Hans"`
+	ZhHant string `json:"zh-Hant"`
 }

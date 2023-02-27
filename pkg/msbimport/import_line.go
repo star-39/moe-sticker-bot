@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -360,36 +361,21 @@ func removeAPNGtEXtChunk(f string) bool {
 // We need to composite them together.
 func prepareLineMessageS(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
 	os.MkdirAll(workDir, 0755)
-
-	//Only curl UA will work.
-	page, err := httpGetCurlUA(ld.Link)
-	if err != nil {
-		return err
-	}
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(page))
-	if err != nil {
-		log.Errorln("Failed gq parsing line link!", err)
-		return err
-	}
-
 	var baseImages []string
 	var overlayImages []string
-	var jsonData map[string]interface{}
-	doc.Find("li").Each(func(i int, s *goquery.Selection) {
-		jsonDP, exist := s.Attr("data-preview")
-		if !exist {
-			return
-		}
-		log.Debugln("Got one json data-preview:", jsonDP)
 
-		err := json.Unmarshal([]byte(jsonDP), &jsonData)
-		if err != nil {
-			log.Warnln("Json parse failed!", jsonDP)
-			return
-		}
-		baseImages = append(baseImages, jsonData["staticUrl"].(string))
-		overlayImages = append(overlayImages, jsonData["customOverlayUrl"].(string))
-	})
+	err := parseLineProductInfo(ld.Id, ld)
+	if err != nil {
+		return err
+	}
+
+	for _, l := range ld.DLinks {
+		baseImages = append(baseImages,
+			"https://stickershop.line-scdn.net/stickershop/v1/sticker/"+l+"/iPhone/base/plus/sticker@2x.png")
+		overlayImages = append(overlayImages,
+			"https://stickershop.line-scdn.net/stickershop/v1/product/"+ld.Id+"/sticker/"+l+"/iPhone/overlay/plus/default/sticker@2x.png")
+	}
+
 	log.Debugln("base images:", baseImages)
 	log.Debugln("overlay images:", overlayImages)
 
@@ -424,5 +410,28 @@ func prepareLineMessageS(ctx context.Context, ld *LineData, workDir string, need
 		}
 	}()
 
+	return nil
+}
+
+// Experimental
+// Currently only process LINE Message stickers, aka LINE_SRC_PER_STICKER_TEXT
+func parseLineProductInfo(id string, ld *LineData) error {
+	page, err := httpGet(fmt.Sprintf("https://stickershop.line-scdn.net/stickershop/v1/product/%s/iphone/productInfo.meta", id))
+	if err != nil {
+		return err
+	}
+	lpi := LineProductInfo{}
+	err = json.Unmarshal([]byte(page), &lpi)
+	if err != nil {
+		return err
+	}
+	switch lpi.StickerResourceType {
+	case LINE_SRC_PER_STICKER_TEXT:
+		for _, s := range lpi.Stickers {
+			ld.DLinks = append(ld.DLinks, strconv.FormatInt(s.ID, 10))
+		}
+		// case LINE_SRC_ANIMATION:
+		// 	ld.DLink = "https://stickershop.line-scdn.net/stickershop/v1/product/" + id + "/iphone/stickerpack@2x.zip"
+	}
 	return nil
 }
