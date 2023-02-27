@@ -68,7 +68,7 @@ docker run -dt ghcr.io/star-39/moe-sticker-bot /moe-sticker-bot --bot_token="...
 ```
 If you are on ARM64 machine, use `aarch64` tag.
 
-To deploy all features - including database/webapp/emoji, you can use kubernetes or podman.
+To deploy all features - including database and webapp, you can use kubernetes or podman.
 
 See a real world deployment example on [deployments/kubernetes_msb.yaml](https://github.com/star-39/moe-sticker-bot/blob/master/deployments/kubernetes_msb.yaml).
 
@@ -78,7 +78,6 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
 * bsdtar (libarchive-tools)
 * ffmpeg
 * curl
-* exiv2
 * gifsicle
 * mariadb-server (optional)
 * nginx (optional, for WebApp and WebHook)
@@ -94,13 +93,13 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
 
 ```bash
 # For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl ffmpeg go exiv2 gifsicle
+dnf install git ImageMagick libwebp bsdtar curl ffmpeg go gifsicle
 # For Debian / Ubuntu etc.
-apt install git imagemagick libarchive-tools curl ffmpeg go exiv2 gifsicle
+apt install git imagemagick libarchive-tools curl ffmpeg go gifsicle
 # For Arch
-pacman -S install git ffmpeg imagemagick curl libarchive go exiv2 gifsicle
+pacman -S install git ffmpeg imagemagick curl libarchive go gifsicle
 # For macOS
-brew install git imagemagick ffmpeg curl go bsdtar exiv2 gifsicle
+brew install git imagemagick ffmpeg curl go bsdtar gifsicle
 # For Windows, please install System Dependencies manually.
 
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
@@ -121,6 +120,16 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 
 
 ## CHANGELOG
+v2.3.11-v2.3.13 (20230227)
+  * Fix flood limit by ignoring it.
+  * Fix managing video stickers.
+  * Improved WhatsApp export.
+  * Support region locked LINE Message sticker.
+  * 修復flood limit匯入錯誤
+  * 修復動態貼圖管理。
+  * 改善WhatsApp匯出。
+  * 支援有區域鎖的line訊息貼圖。
+
 v2.3.8-2.3.10 (20230217)
   * Fix kakao import fatal, support more animated kakao.
   * 修復KAKAO匯入錯誤, 支援更多KAKAO動態貼圖.
