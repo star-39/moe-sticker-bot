@@ -6,7 +6,7 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 # AMD64
 #################################
-if true ; then
+if false ; then
 
 c1=$(buildah from docker://archlinux:latest)
 
@@ -30,7 +30,7 @@ c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base)
 
 # Install static build of ffmpeg.
 curl -JOL "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
-unzip ffmpeg-master-latest-linux64-gpl.tar.xz
+tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz
 buildah copy $c1 ffmpeg-master-latest-linux64-gpl/bin/ffmpeg /usr/local/bin/ffmpeg
 
 
