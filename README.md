@@ -20,11 +20,8 @@ A CLI app called [msbimport](https://github.com/star-39/moe-sticker-bot/tree/mas
   * 匯出Telegram的貼圖包至WhatsApp（需要安裝[Msb App](https://github.com/star-39/msb_app))。
   * 互動式WebApp可以輕鬆管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
   
-## For Developers/開發者資訊
-  * A standalone package and CLI for downloading LINE/kakao stickers is provided. Please go to [pkg/msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/pkg/msbimport) for details.
-  * An iOS/Android app handling WhatsApp sticker export is available: [Msb App](https://github.com/star-39/msb_app).
-  * 現已提供單獨用於下載LINE/kakao貼圖包的套件和獨立的終端機程式，請前往[pkg/msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/pkg/msbimport)詳閱。
-  * 用於匯出WhatsApp貼圖包的iOS/Android App位於：[Msb App](https://github.com/star-39/msb_app)
+  * Msb App, which is an iOS/Android app that handles WhatsApp sticker export is located at: https://github.com/star-39/msb_app.
+  * Msb App, 用於匯出WhatsApp貼圖包的iOS/Android手機程式位於：https://github.com/star-39/msb_app
 
 ## Screenshots
 [@moe_sticker_bot](https://t.me/moe_sticker_bot)
@@ -54,7 +51,8 @@ A CLI app called [msbimport](https://github.com/star-39/moe-sticker-bot/tree/mas
 <img width="514" alt="スクリーンショット 2023-02-11 午前2 24 37" src="https://user-images.githubusercontent.com/75669297/218156358-0145264f-ab11-4010-bfcd-2e38621d7381.png">
 
 
-<img width="500" alt="IMG_3560" src="https://user-images.githubusercontent.com/75669297/218153727-5fb1d3e0-3770-4dc8-a2b5-3e0ecd89a003.png">
+<img width="300" src="https://user-images.githubusercontent.com/75669297/218153727-5fb1d3e0-3770-4dc8-a2b5-3e0ecd89a003.png"/> <img width="300" src="https://user-images.githubusercontent.com/75669297/221529085-2581bcca-fe49-46b0-8123-5614e90a838c.png"/>
+
 
 
 ## Deployment
