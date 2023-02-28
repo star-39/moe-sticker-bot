@@ -375,7 +375,7 @@ func FFToAnimatedWebpWA(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
 	bin := FFMPEG_BIN
 	//Try qualities from best to worst.
-	qualities := []string{"75", "50", "20", "0", "_DS256"}
+	qualities := []string{"75", "50", "20", "0", "_DS256", "_DS256Q0"}
 
 	for _, q := range qualities {
 		args := []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
@@ -390,14 +390,21 @@ func FFToAnimatedWebpWA(f string) error {
 				"-an", "-y", pathOut}
 		}
 
+		if q == "_DS256Q0" {
+			args = []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
+				"-vf", "scale=256:256:force_original_aspect_ratio=decrease,pad=512:512:-1:-1:color=black@0",
+				"-quality", "0", "-loop", "0", "-pix_fmt", "yuva420p",
+				"-an", "-y", pathOut}
+		}
+
 		out, err := exec.Command(bin, args...).CombinedOutput()
 		if err != nil {
 			log.Warnln("ffToAnimatedWebpWA ERROR:", string(out))
 			return err
 		}
 		//WhatsApp uses KiB.
-		if st, _ := os.Stat(pathOut); st.Size() > 511*KiB {
-			log.Warnf("convert: awebp exceeded 511KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
+		if st, _ := os.Stat(pathOut); st.Size() > 500*KiB {
+			log.Warnf("convert: awebp exceeded 500KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
 			continue
 		} else {
 			return nil
