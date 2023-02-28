@@ -300,17 +300,29 @@ func RlottieToGIF(f string) (string, error) {
 }
 
 // Replaces tgs to webp.
+// The only purpose for this func is for WhatsApp export.
 func RlottieToWebp(f string) (string, error) {
 	bin := "msb_rlottie.py"
-	fOut := strings.ReplaceAll(f, ".tgs", ".webp")
-	args := []string{f, fOut}
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	// fOut, err := ffToGif(fOut)
-	if err != nil {
-		log.Errorln("lottieToGIF ERROR!", string(out))
-		return "", err
+	pathOut := strings.ReplaceAll(f, ".tgs", ".webp")
+
+	qualities := []string{"50", "20", "0"}
+	for _, q := range qualities {
+		args := []string{f, pathOut, q}
+		out, err := exec.Command(bin, args...).CombinedOutput()
+		if err != nil {
+			log.Errorln("RlottieToWebp ERROR!", string(out))
+			return "", err
+		}
+		//WhatsApp uses KiB.
+		if st, _ := os.Stat(pathOut); st.Size() > 511*KiB {
+			log.Warnf("convert: awebp exceeded 511KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
+			continue
+		} else {
+			return pathOut, nil
+		}
 	}
-	return fOut, nil
+	log.Warnln("all quality failed! s:", pathOut)
+	return pathOut, errors.New("bad animated webp?")
 }
 
 // Replaces .webm ext to .webp
@@ -373,8 +385,8 @@ func FFToAnimatedWebpWA(f string) error {
 			return err
 		}
 		//WhatsApp uses KiB.
-		if st, _ := os.Stat(pathOut); st.Size() > 500*KiB {
-			log.Warnf("convert: awebp exceeded 500k, q:%s z:%d s:%s", q, st.Size(), pathOut)
+		if st, _ := os.Stat(pathOut); st.Size() > 511*KiB {
+			log.Warnf("convert: awebp exceeded 511KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
 			continue
 		} else {
 			return nil
