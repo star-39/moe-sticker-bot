@@ -387,7 +387,7 @@ func FFToAnimatedWebpWA(f string) error {
 	pathOut := strings.ReplaceAll(f, ".webm", ".webp")
 	bin := FFMPEG_BIN
 	//Try qualities from best to worst.
-	qualities := []string{"75", "50", "20", "_DS256"}
+	qualities := []string{"75", "50", "20", "0", "_DS256"}
 
 	for _, q := range qualities {
 		args := []string{"-hide_banner", "-c:v", "libvpx-vp9", "-i", f,
