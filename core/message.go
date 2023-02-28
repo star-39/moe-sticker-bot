@@ -173,11 +173,10 @@ func sendAskEmoji(c tele.Context) error {
 	selector.Inline(selector.Row(btnManu), selector.Row(btnRand))
 
 	return c.Send(`
-Telegram sticker requires emoji to represent it.
+Telegram sticker requires emoji to represent it:
 • Press "Assign separately" to assign emoji one by one.
 • Send an emoji to do batch assign.
-
-Telegram要求為貼圖設定emoji來表示它.
+Telegram要求為貼圖設定emoji來表示它:
 • 按下"分別設定"來為每個貼圖分別設定相應的emoji.
 • 傳送一個emoji來為全部貼圖設定成一樣的.
 `, selector)
@@ -193,11 +192,9 @@ func sendConfirmExportToWA(c tele.Context, sn string, hex string) error {
 	selector.Inline(selector.Row(btnExport))
 
 	return c.Reply(`
-Exporting to WhatsApp requires <a href="https://github.com/star-39/msb_app">Msb App</a> being installed due to WhatsApp's restrictions.
-<a href="https://github.com/star-39/msb_app">Msb App</a> is part of this <a href="https://github.com/star-39/msb_app">moe-sticker-bot</a> project, and it's also a free and open source software.
+Exporting to WhatsApp requires <a href="https://github.com/star-39/msb_app">Msb App</a> due to WhatsApp's restrictions. The app is a part of this <a href="https://github.com/star-39/msb_app">moe-sticker-bot</a> project.
 
-匯出到WhatsApp需要手機上安裝<a href="https://github.com/star-39/msb_app">Msb App</a>, 因為WhatsApp要求貼圖必須由App製作。
-<a href="https://github.com/star-39/msb_app">Msb App</a>是本<a href="https://github.com/star-39/msb_app">moe-sticker-bot</a>專案的一部分，同為自由開放軟體。
+由於WhatsApp限制，匯出到WhatsApp需要手機上安裝<a href="https://github.com/star-39/msb_app">Msb App</a>, 這個app是本<a href="https://github.com/star-39/msb_app">moe-sticker-bot</a>專案的一部分。
 
 Download:下載:
 <b>iPhone:</b> AppStore(N/A.暫無), <a href="https://github.com/star-39/msb_app/releases/latest/download/msb_app.ipa">IPA</a>
