@@ -5,23 +5,20 @@
 
 
 # Example:
-# msb_rlottie in.tgs out.webp
+# msb_rlottie in.tgs out.webp 70
 
 from rlottie_python import LottieAnimation
 import sys
 
 
 def main():
-    if len(sys.argv) < 3:
-        print("wrong cmd line argument.") 
-        return -1
-
     f = sys.argv[1]
     fout = sys.argv[2]
+    q = sys.argv[3]
 
     anim = LottieAnimation.from_tgs(f)
 
-    anim.save_animation(fout)
+    anim.save_animation(fout, quality=int(q), minimize_size=True, method=4)
     return 0
 
 main()
