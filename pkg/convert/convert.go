@@ -325,8 +325,8 @@ func RlottieToWebp(f string) (string, error) {
 			return "", err
 		}
 		//WhatsApp uses KiB.
-		if st, _ := os.Stat(pathOut); st.Size() > 511*KiB {
-			log.Warnf("convert: awebp exceeded 511KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
+		if st, _ := os.Stat(pathOut); st.Size() > 500*KiB {
+			log.Warnf("convert: awebp exceeded 500KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
 			continue
 		} else {
 			return pathOut, nil
