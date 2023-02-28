@@ -285,7 +285,7 @@ func IMStackToWebp(base string, overlay string) (string, error) {
 
 func RlottieToWebm(f string) (string, error) {
 	bin := "msb_rlottie.py"
-	fOut := strings.ReplaceAll(f, ".tgs", ".apng")
+	fOut := f + ".apng"
 	args := []string{f, fOut, "75"}
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
