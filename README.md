@@ -132,6 +132,10 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 
 
 ## CHANGELOG
+v2.3.14(20230228)
+  * Fix missing libwebp in OCI.
+  * Support TGS export.
+
 v2.3.11-v2.3.13 (20230227)
   * Fix flood limit by ignoring it.
   * Fix managing video stickers.

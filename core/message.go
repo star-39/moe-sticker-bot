@@ -92,9 +92,11 @@ func sendChangelog(c tele.Context) error {
 	return c.Send(`
 Details: 詳細:
 https://github.com/star-39/moe-sticker-bot#changelog
-v2.3.13(20230227)
+v2.3.13-v2.3.14(20230228)
 * Support region locked LINE Message sticker.
+* Support TGS(Animated) sticker export.
 * 支援有區域鎖的line訊息貼圖。
+* 支援TGS貼圖匯出。
 
 v2.3.10(20230217)
   * Fix kakao import fatal, support more animated kakao.
