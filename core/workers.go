@@ -64,11 +64,7 @@ func wDownloadStickerObject(i interface{}) {
 		f = obj.dest + ".webm"
 		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
-			if obj.shrinkGif {
-				cf, _ = convert.FFToGifShrink(f)
-			} else {
-				cf, _ = convert.FFToGif(f)
-			}
+			cf, _ = convert.FFToGif(f)
 		}
 	} else if obj.sticker.Animated {
 		f = obj.dest + ".tgs"

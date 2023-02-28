@@ -143,7 +143,7 @@ func downloadGifToZip(c tele.Context) error {
 	if err != nil {
 		return err
 	}
-	cf, _ := convert.FFToGifSafe(f)
+	cf, _ := convert.FFToGif(f)
 	cf2 := strings.ReplaceAll(cf, "animation_MP4.mp4", "animation_GIF.gif")
 	os.Rename(cf, cf2)
 	zip := filepath.Join(workDir, secHex(4)+".zip")
