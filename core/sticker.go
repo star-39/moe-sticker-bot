@@ -415,6 +415,8 @@ func appendMedia(c tele.Context) error {
 		if ud.stickerData.isVideo {
 			if c.Message().Sticker != nil && c.Message().Sticker.Video {
 				cf = f
+			} else if c.Message().Sticker != nil && c.Message().Sticker.Animated {
+				cf, err = convert.RlottieToWebm(f)
 			} else {
 				cf, err = convert.FFToWebm(f)
 			}

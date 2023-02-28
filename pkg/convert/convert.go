@@ -283,13 +283,24 @@ func IMStackToWebp(base string, overlay string) (string, error) {
 	}
 }
 
+func RlottieToWebm(f string) (string, error) {
+	bin := "msb_rlottie.py"
+	fOut := strings.ReplaceAll(f, ".tgs", ".apng")
+	args := []string{f, fOut}
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	if err != nil {
+		log.Errorln("lottieToGIF ERROR!", string(out))
+		return "", err
+	}
+	return FFToWebm(fOut)
+}
+
 // Replaces tgs to gif.
 func RlottieToGIF(f string) (string, error) {
 	bin := "msb_rlottie.py"
 	fOut := strings.ReplaceAll(f, ".tgs", ".gif")
 	args := []string{f, fOut}
 	out, err := exec.Command(bin, args...).CombinedOutput()
-	// fOut, err := ffToGif(fOut)
 	if err != nil {
 		log.Errorln("lottieToGIF ERROR!", string(out))
 		return "", err
