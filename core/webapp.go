@@ -137,7 +137,7 @@ func apiSS(c *gin.Context) {
 	wss := webappStickerSet{
 		SSTitle:  ss.Title,
 		SSName:   ss.Name,
-		Animated: ss.Video,
+		Animated: ss.Video || ss.Animated,
 	}
 	sl := []webappStickerObject{}
 	ready := true

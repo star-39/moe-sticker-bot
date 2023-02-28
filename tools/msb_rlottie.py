@@ -17,8 +17,12 @@ def main():
     q = sys.argv[3]
 
     anim = LottieAnimation.from_tgs(f)
+    fps = anim.lottie_animation_get_framerate()
+    if fps > 30 :
+        fps = 30
 
-    anim.save_animation(fout, quality=int(q), minimize_size=True, method=4)
+    anim.save_animation(fout, quality=int(q), minimize_size=True, method=4, fps=fps)
+
     return 0
 
 main()
