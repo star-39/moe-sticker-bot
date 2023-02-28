@@ -223,27 +223,6 @@ func FFToWebmSafe(f string) (string, error) {
 	return pathOut, err
 }
 
-func FFToGifShrink(f string) (string, error) {
-	var decoder []string
-	var args []string
-	if strings.HasSuffix(f, ".webm") {
-		decoder = []string{"-c:v", "libvpx-vp9"}
-	}
-	pathOut := f + ".gif"
-	bin := FFMPEG_BIN
-	args = append(args, decoder...)
-	args = append(args, "-i", f, "-hide_banner",
-		"-lavfi", "scale=256:256:force_original_aspect_ratio=decrease,split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
-		"-loglevel", "error", "-y", pathOut)
-
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	if err != nil {
-		log.Warnln("ffToGifShrink ERROR:", string(out))
-		return "", err
-	}
-	return pathOut, err
-}
-
 func FFToGif(f string) (string, error) {
 	var decoder []string
 	var args []string
@@ -254,7 +233,7 @@ func FFToGif(f string) (string, error) {
 	bin := FFMPEG_BIN
 	args = append(args, decoder...)
 	args = append(args, "-i", f, "-hide_banner",
-		"-lavfi", "split[a][b];[a]palettegen=reserve_transparent=on:transparency_color=ffffff[p];[b][p]paletteuse",
+		"-lavfi", "split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=sierra3", "-gifflags", "-transdiff",
 		"-loglevel", "error", "-y", pathOut)
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
@@ -263,7 +242,7 @@ func FFToGif(f string) (string, error) {
 		return "", err
 	}
 	//Optimize GIF produced by ffmpeg
-	exec.Command("gifsicle", "--batch", "-O2", pathOut).CombinedOutput()
+	exec.Command("gifsicle", "--batch", "-O2", "--lossy", pathOut).CombinedOutput()
 
 	return pathOut, err
 }
@@ -286,22 +265,6 @@ func FFToAPNG(f string) (string, error) {
 		return "", err
 	}
 	return pathOut, err
-}
-
-func FFToGifSafe(f string) (string, error) {
-	of, err := FFToGif(f)
-	if err != nil {
-		return "", err
-	}
-	// GIF should not larget than 20MB
-	if stat, _ := os.Stat(of); stat.Size() > 20000000 {
-		log.Warn("GIF too big! try shrink")
-		of, err = FFToGifShrink(f)
-		if err != nil {
-			return "", err
-		}
-	}
-	return of, err
 }
 
 func IMStackToWebp(base string, overlay string) (string, error) {
