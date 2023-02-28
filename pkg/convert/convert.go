@@ -294,6 +294,8 @@ func RlottieToGIF(f string) (string, error) {
 		log.Errorln("lottieToGIF ERROR!", string(out))
 		return "", err
 	}
+	//Optimize GIF
+	exec.Command("gifsicle", "--batch", "-O2", "--lossy", fOut).CombinedOutput()
 	return fOut, nil
 }
 
