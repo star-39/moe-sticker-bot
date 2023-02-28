@@ -11,10 +11,13 @@ if false ; then
 c1=$(buildah from docker://lopsided/archlinux-arm64v8:latest)
 
 buildah run $c1 -- pacman -Sy
-buildah run $c1 -- pacman --noconfirm -S libwebp libheif imagemagick curl gifsicle libarchive python python-pip
+buildah run $c1 -- pacman --noconfirm -S libwebp libheif imagemagick curl gifsicle libarchive python python-pip make gcc
+
+buildah run $c1 -- pip3 install emoji rlottie-python
+
+buildah run $c1 -- pacman --noconfirm -Rsc make gcc python-pip
 buildah run $c1 -- sh -c 'yes | pacman -Scc'
 
-buildah run $c1 -- pip3 install lottie[GIF] cairosvg emoji
 
 buildah config --cmd '/moe-sticker-bot' $c1
 
@@ -42,6 +45,7 @@ buildah copy $c1 moe-sticker-bot /moe-sticker-bot
 # Copy tools.
 buildah copy $c1 tools/msb_kakao_decrypt.py /usr/local/bin/msb_kakao_decrypt.py
 buildah copy $c1 tools/msb_emoji.py /usr/local/bin/msb_emoji.py
+buildah copy $c1 tools/msb_rlottie.py /usr/local/bin/msb_rlottie.py
 
 buildah commit $c1 moe-sticker-bot:aarch64
 

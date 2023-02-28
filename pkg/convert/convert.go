@@ -320,11 +320,24 @@ func IMStackToWebp(base string, overlay string) (string, error) {
 	}
 }
 
-// lottie has severe problem when converting directly to GIF.
-// Convert to WEBP first, then GIF.
-func LottieToGIF(f string) (string, error) {
-	bin := "lottie_convert.py"
-	fOut := f + ".webp"
+// Replaces tgs to gif.
+func RlottieToGIF(f string) (string, error) {
+	bin := "msb_rlottie.py"
+	fOut := strings.ReplaceAll(f, ".tgs", ".gif")
+	args := []string{f, fOut}
+	out, err := exec.Command(bin, args...).CombinedOutput()
+	// fOut, err := ffToGif(fOut)
+	if err != nil {
+		log.Errorln("lottieToGIF ERROR!", string(out))
+		return "", err
+	}
+	return fOut, nil
+}
+
+// Replaces tgs to webp.
+func RlottieToWebp(f string) (string, error) {
+	bin := "msb_rlottie.py"
+	fOut := strings.ReplaceAll(f, ".tgs", ".webp")
 	args := []string{f, fOut}
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	// fOut, err := ffToGif(fOut)

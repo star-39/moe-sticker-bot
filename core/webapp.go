@@ -436,7 +436,7 @@ func prepareWebAppExportStickers(ss *tele.StickerSet, hex string) error {
 	if stat != nil {
 		mtime := stat.ModTime().Unix()
 		// Less than 5 minutes, do not re-download
-		if time.Now().Unix()-mtime < 300 {
+		if time.Now().Unix()-mtime < 600 {
 			log.Debug("prepareWebAppExportStickers: dir still fresh, don't overwrite.")
 			return nil
 		}
@@ -448,6 +448,8 @@ func prepareWebAppExportStickers(ss *tele.StickerSet, hex string) error {
 		var f string
 		if ss.Video {
 			f = filepath.Join(dest, s.UniqueID+".webm")
+		} else if ss.Animated {
+			f = filepath.Join(dest, s.UniqueID+".tgs")
 		} else {
 			f = filepath.Join(dest, s.UniqueID+".webp")
 		}

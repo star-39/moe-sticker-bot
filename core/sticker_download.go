@@ -73,11 +73,9 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	cleanUserData(c.Sender().ID)
 	defer os.RemoveAll(workDir)
 	var wpDownloadSticker *ants.PoolWithFunc
-	if ss.Animated {
-		wpDownloadSticker, _ = ants.NewPoolWithFunc(1, wDownloadStickerObject)
-	} else {
-		wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
-	}
+
+	wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
+
 	defer wpDownloadSticker.Release()
 	imageTime := time.Now()
 	var objs []*StickerDownloadObject

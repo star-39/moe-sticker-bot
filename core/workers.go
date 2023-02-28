@@ -1,6 +1,8 @@
 package core
 
 import (
+	"strings"
+
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/star-39/moe-sticker-bot/pkg/convert"
@@ -31,13 +33,23 @@ func wDownloadStickerObject(i interface{}) {
 		if obj.forWhatsApp {
 			if obj.sticker.Video {
 				obj.err = convert.FFToAnimatedWebpWA(obj.dest)
+			} else if obj.sticker.Animated {
+				_, obj.err = convert.RlottieToWebp(obj.dest)
+
 			} else {
-				convert.IMToWebpWA(obj.dest)
+				obj.err = convert.IMToWebpWA(obj.dest)
 			}
+
 			if obj.forWhatsAppThumb {
-				obj.err = convert.IMToPNGThumb(obj.dest)
+				if obj.sticker.Animated {
+					f := strings.ReplaceAll(obj.dest, ".tgs", ".webp")
+					obj.err = convert.IMToPNGThumb(f)
+				} else {
+					obj.err = convert.IMToPNGThumb(obj.dest)
+				}
 			}
 		} else {
+			//TGS set is not managable, no need to convert.
 			if obj.sticker.Video {
 				obj.err = convert.FFToAnimatedWebpLQ(obj.dest)
 			}
@@ -62,7 +74,7 @@ func wDownloadStickerObject(i interface{}) {
 		f = obj.dest + ".tgs"
 		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
-			cf, _ = convert.LottieToGIF(f)
+			cf, _ = convert.RlottieToGIF(f)
 		}
 	} else {
 		f = obj.dest + ".webp"
