@@ -90,11 +90,13 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
 * bsdtar (libarchive-tools)
 * ffmpeg
 * curl
-* gifsicle
-* mariadb-server (optional)
+* gifsicle (optional, for converting GIF)
+* mariadb-server (optional, for database)
 * nginx (optional, for WebApp and WebHook)
-* [msb_emoji](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_emoji.py) (optional, for emoji assign)
-* [msb_kakao_decrypt](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_kakao_decrypt.py) (optional, for decrypting animated kakao)
+* python3 (optional, for following tools)
+* [msb_emoji.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_emoji.py) (optional, for emoji assign)
+* [msb_kakao_decrypt.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_kakao_decrypt.py) (optional, for decrypting animated kakao)
+* [msb_rlottie.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_rlottie.py) (optional, for converting TGS)
 
 
 ## Build
@@ -119,9 +121,9 @@ git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 go build -o moe-sticker-bot cmd/moe-sticker-bot/main.go 
 
 # Install MSB dependencies(optional).
-# install tools/msb_emoji.py /usr/local/bin/
-# install tools/msb_kakao_decrypt.py /usr/local/bin/
-
+install tools/msb_emoji.py /usr/local/bin/
+install tools/msb_kakao_decrypt.py /usr/local/bin/
+install tools/msb_rlottie.py /usr/local/bin/
 ```
 
 #### WebApp
