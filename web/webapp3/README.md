@@ -6,5 +6,5 @@ Supports dark mode.
 
 ## Build
 ```
-npm install
+REACT_APP_HOST=your_website npm run build
 ```
