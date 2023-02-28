@@ -1,4 +1,7 @@
 # [@moe_sticker_bot](https://t.me/moe_sticker_bot)
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/star-39/moe-sticker-bot.svg)](https://pkg.go.dev/github.com/star-39/moe-sticker-bot) 
+
 A Telegram bot doing sticker stuffs, can import/download LINE/Kakaotalk stickers to Telegram, can download, create and manage Telegram sticker set. 
 
 Telegram用萌萌貼圖BOT, 可以匯入或下載LINE和kakaotalk貼圖包到Telegram, 可以下載, 創建和管理Telegram貼圖包.
@@ -436,9 +439,10 @@ v2.1.0 (20230129)
   * Supports animated line sticker import.
 </details>
 
+ <!--
 ## Technical Details
 ![MSB_INFO](https://user-images.githubusercontent.com/75669297/210700704-4c9b366a-c72c-42fe-919c-336b7b8024c4.svg)
-
+-->
 
 
 ## Special Thanks:
@@ -447,6 +451,10 @@ v2.1.0 (20230129)
 <a href="http://t.me/StickerGroup">貼圖群 - Sticker Group Taiwan</a> for testing and reporting.
 
 [LINE Corp](https://linecorp.com/) / [Kakao Corp](http://www.kakaocorp.com/) for cute stickers.
+ 
+https://github.com/blluv/KakaoTalkEmoticonDownloader MIT License Copyright @blluv
+ 
+https://github.com/laggykiller/rlottie-python GPL-2.0 license  Copyright @laggykiller
 
 You and all the users! ☺
 
