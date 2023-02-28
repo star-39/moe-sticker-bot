@@ -1,5 +1,7 @@
 # Moe-Sticker-Bot Import Component (msbimport)
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/star-39/moe-sticker-bot/pkg/msbimport.svg)](https://pkg.go.dev/github.com/star-39/moe-sticker-bot/pkg/msbimport)
+
 ## Description
 This package is intended to fetch, parse, download and convert LINE and KakaoTalk Stickers from share link.
 
@@ -14,6 +16,21 @@ It is designed to be able to operate independentaly from moe-sticker-bot core so
 Source code of CLI is on: [/moe-sticker-bot/cmd/msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/cmd/msbimport)
 
 Download `msbimport`： 下載`msbimport`： https://github.com/star-39/moe-sticker-bot/releases
+
+Install dependencies:
+```bash
+# For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
+dnf install ImageMagick libwebp bsdtar curl ffmpeg gifsicle
+# For Debian / Ubuntu etc.
+apt install imagemagick libarchive-tools curl ffmpeg gifsicle
+# For Arch
+pacman -S install ffmpeg imagemagick curl libarchive gifsicle bsdtar
+# For macOS
+brew install imagemagick ffmpeg curl bsdtar gifsicle
+
+install tools/msb_kakao_decrypt.py /usr/local/bin/
+install tools/msb_rlottie.py /usr/local/bin/
+```
 
 ```bash
 msbimport --help
