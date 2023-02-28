@@ -11,7 +11,7 @@ if false ; then
 c1=$(buildah from docker://lopsided/archlinux-arm64v8:latest)
 
 buildah run $c1 -- pacman -Sy
-buildah run $c1 -- pacman --noconfirm -S libheif imagemagick curl gifsicle libarchive python python-pip
+buildah run $c1 -- pacman --noconfirm -S libwebp libheif imagemagick curl gifsicle libarchive python python-pip
 buildah run $c1 -- sh -c 'yes | pacman -Scc'
 
 buildah run $c1 -- pip3 install lottie[GIF] cairosvg emoji
