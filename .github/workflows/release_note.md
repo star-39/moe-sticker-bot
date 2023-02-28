@@ -4,8 +4,17 @@ __moe-sticker-bot*__ is the binary for the bot itself.
 
 __msbimport*__ is the msbimport CLI utility to download and convert LINE/Kakao stickers from share link.
 
-Remember to choose the right platform to download.
+Remember to install required dependencies!
 
-If you are on Windows, you probably need the one ends with `windows_amd64.exe`.
+* ImageMagick
+* bsdtar (libarchive-tools)
+* ffmpeg
+* curl
+* python3 (optional, for following tools)
+* [msb_kakao_decrypt.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_kakao_decrypt.py) (optional, for decrypting animated kakao)
 
-If you are on macOS, you probably need the one ends with `macos_amd64` for Intel and `macos_aarch64` for Apple Silicon(M series chip).
+moe-sticker-bot requires more dependencies:
+
+* gifsicle (optional, for converting GIF)
+* [msb_emoji.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_emoji.py) (optional, for emoji assign)
+* [msb_rlottie.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_rlottie.py) (optional, for converting TGS)
