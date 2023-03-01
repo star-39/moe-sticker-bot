@@ -243,7 +243,7 @@ func FFToGif(f string) (string, error) {
 		return "", err
 	}
 	//Optimize GIF produced by ffmpeg
-	exec.Command("gifsicle", "--batch", "-O2", "--lossy", pathOut).CombinedOutput()
+	exec.Command("gifsicle", "--batch", "-O2", "--lossy=60", pathOut).CombinedOutput()
 
 	return pathOut, err
 }
@@ -307,7 +307,7 @@ func RlottieToGIF(f string) (string, error) {
 		return "", err
 	}
 	//Optimize GIF
-	exec.Command("gifsicle", "--batch", "-O2", "--lossy", fOut).CombinedOutput()
+	exec.Command("gifsicle", "--batch", "-O2", "--lossy=60", fOut).CombinedOutput()
 	return fOut, nil
 }
 
