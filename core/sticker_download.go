@@ -74,7 +74,11 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	defer os.RemoveAll(workDir)
 	var wpDownloadSticker *ants.PoolWithFunc
 
-	wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
+	if ss.Animated {
+		wpDownloadSticker, _ = ants.NewPoolWithFunc(4, wDownloadStickerObject)
+	} else {
+		wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
+	}
 
 	defer wpDownloadSticker.Release()
 	imageTime := time.Now()
