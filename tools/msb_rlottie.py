@@ -62,7 +62,7 @@ def main():
                    '-hide_banner', '-loglevel', 'warning',
                    '-f', 'apng',
                    '-i', '-',
-                   "-lavfi", "split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=sierra3",
+                   "-lavfi", "split[a][b];[a]palettegen[p];[b][p]paletteuse=dither=atkinson",
                    "-gifflags", "-transdiff", "-gifflags", "-offsetting",
                    "-y", fout]
 

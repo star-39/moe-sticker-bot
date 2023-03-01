@@ -233,7 +233,7 @@ func FFToGif(f string) (string, error) {
 	bin := FFMPEG_BIN
 	args = append(args, decoder...)
 	args = append(args, "-i", f, "-hide_banner",
-		"-lavfi", "split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=sierra3",
+		"-lavfi", "split[a][b];[a]palettegen[p];[b][p]paletteuse=dither=atkinson",
 		"-gifflags", "-transdiff", "-gifflags", "-offsetting",
 		"-loglevel", "error", "-y", pathOut)
 
