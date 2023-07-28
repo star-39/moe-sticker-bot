@@ -9,7 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/panjf2000/ants/v2 v2.6.0
 	github.com/sirupsen/logrus v1.9.0
-	gopkg.in/telebot.v3 v3.1.2
+	gopkg.in/telebot.v3 v3.1.3
 	mvdan.cc/xurls/v2 v2.4.0
 )
 
