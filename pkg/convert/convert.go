@@ -94,6 +94,8 @@ func IMToWebp(f string) (string, error) {
 	return pathOut, err
 }
 
+//Bugfix20231009:
+//Fix static webp oversize.
 func IMToWebpWA(f string) error {
 	pathOut := f
 	bin := CONVERT_BIN
@@ -109,7 +111,7 @@ func IMToWebpWA(f string) error {
 			log.Warnln("imToWebp ERROR:", string(out))
 			return err
 		}
-		if st, _ := os.Stat(pathOut); st.Size() > 300*KiB {
+		if st, _ := os.Stat(pathOut); st.Size() > 100*KiB {
 			continue
 		} else {
 			return nil
