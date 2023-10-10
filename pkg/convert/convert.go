@@ -86,16 +86,22 @@ func IMToWebp(f string) (string, error) {
 		return "", err
 	}
 
-	if st, _ := os.Stat(pathOut); st.Size() > 255*KiB {
+	st, err := os.Stat(pathOut)
+	if err != nil {
+		return "", err
+	}
+
+	if st.Size() > 255*KiB {
 		args := CONVERT_ARGS
 		args = append(args, "-resize", "512x512", "-filter", "Lanczos", f+"[0]", pathOut)
 		exec.Command(bin, args...).CombinedOutput()
 	}
+
 	return pathOut, err
 }
 
-//Bugfix20231009:
-//Fix static webp oversize.
+// Bugfix20231009:
+// Fix static webp oversize.
 func IMToWebpWA(f string) error {
 	pathOut := f
 	bin := CONVERT_BIN
@@ -111,7 +117,11 @@ func IMToWebpWA(f string) error {
 			log.Warnln("imToWebp ERROR:", string(out))
 			return err
 		}
-		if st, _ := os.Stat(pathOut); st.Size() > 100*KiB {
+		st, err := os.Stat(pathOut)
+		if err != nil {
+			return err
+		}
+		if st.Size() > 100*KiB {
 			continue
 		} else {
 			return nil
@@ -133,25 +143,6 @@ func IMToPng(f string) (string, error) {
 	}
 	return pathOut, err
 }
-
-// func IMToGIF(f string) (string, error) {
-// 	if strings.HasSuffix(f, ".webm") {
-// 		f2, _ := FFToAPNG(f)
-// 		f = "apng:" + f2
-// 	}
-
-// 	pathOut := f + ".gif"
-// 	bin := CONVERT_BIN
-// 	args := CONVERT_ARGS
-// 	args = append(args, "-layers", "optimize", f, pathOut)
-
-// 	out, err := exec.Command(bin, args...).CombinedOutput()
-// 	if err != nil {
-// 		log.Warnln("imToGIF ERROR:", string(out))
-// 		return "", err
-// 	}
-// 	return pathOut, err
-// }
 
 func IMToApng(f string) (string, error) {
 	pathOut := f + ".apng"
@@ -201,7 +192,11 @@ func FFToWebm(f string) (string, error) {
 			}
 			return pathOut, err
 		}
-		if stat, _ := os.Stat(pathOut); stat.Size() > 255*KiB {
+		stat, err := os.Stat(pathOut)
+		if err != nil {
+			return pathOut, err
+		}
+		if stat.Size() > 255*KiB {
 			continue
 		} else {
 			return pathOut, err
@@ -328,7 +323,11 @@ func RlottieToWebp(f string) (string, error) {
 			return "", err
 		}
 		//WhatsApp uses KiB.
-		if st, _ := os.Stat(pathOut); st.Size() > 500*KiB {
+		st, err := os.Stat(pathOut)
+		if err != nil {
+			return pathOut, err
+		}
+		if st.Size() > 500*KiB {
 			log.Warnf("convert: awebp exceeded 500KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
 			continue
 		} else {
@@ -406,7 +405,11 @@ func FFToAnimatedWebpWA(f string) error {
 			return err
 		}
 		//WhatsApp uses KiB.
-		if st, _ := os.Stat(pathOut); st.Size() > 500*KiB {
+		st, err := os.Stat(pathOut)
+		if err != nil {
+			return err
+		}
+		if st.Size() > 500*KiB {
 			log.Warnf("convert: awebp exceeded 500KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
 			continue
 		} else {
