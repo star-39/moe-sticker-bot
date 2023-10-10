@@ -196,9 +196,8 @@ func sendConfirmExportToWA(c tele.Context, sn string, hex string) error {
 	selector.Inline(selector.Row(btnExport))
 
 	return c.Reply(`
-Exporting to WhatsApp requires <a href="https://github.com/star-39/msb_app">Msb App</a> due to WhatsApp's restrictions. The app is a part of this <a href="https://github.com/star-39/msb_app">moe-sticker-bot</a> project.
-
-由於WhatsApp限制，匯出到WhatsApp需要手機上安裝<a href="https://github.com/star-39/msb_app">Msb App</a>, 這個app是本<a href="https://github.com/star-39/msb_app">moe-sticker-bot</a>專案的一部分。
+Exporting to WhatsApp requires <a href="https://github.com/star-39/msb_app">Msb App</a> due to their restrictions, then press "Continue export".
+匯出到WhatsApp需要手機上安裝<a href="https://github.com/star-39/msb_app">Msb App</a>, 然後按下"繼續匯出".
 
 Download:下載:
 <b>iPhone:</b> AppStore(N/A.暫無), <a href="https://github.com/star-39/msb_app/releases/latest/download/msb_app.ipa">IPA</a>
