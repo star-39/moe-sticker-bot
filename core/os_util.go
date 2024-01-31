@@ -17,8 +17,8 @@ func purgeOutdatedStorageData() {
 		fInfo, _ := f.Info()
 		fMTime := fInfo.ModTime().Unix()
 		fPath := filepath.Join(dataDir, f.Name())
-		// 2 Days
-		if fMTime < (time.Now().Unix() - 172800) {
+		// 1 Day
+		if fMTime < (time.Now().Unix() - 86400) {
 			os.RemoveAll(fPath)
 			users.mu.Lock()
 			for uid, ud := range users.data {
