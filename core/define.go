@@ -127,14 +127,16 @@ type StickerFile struct {
 type StickerData struct {
 	id string
 	// link     string
-	title      string
-	emojis     []string
-	sticker    *tele.Sticker
-	stickers   []*StickerFile
-	stickerSet *tele.StickerSet
-	sDnObjects []*StickerDownloadObject
-	isVideo    bool
-	pos        int
+	title          string
+	emojis         []string
+	sticker        *tele.Sticker
+	stickers       []*StickerFile
+	stickerSet     *tele.StickerSet
+	sDnObjects     []*StickerDownloadObject
+	stickerSetType tele.StickerSetType
+	isVideo        bool
+	isAnimated     bool
+	pos            int
 	// amount of local files
 	lAmount int
 	// amount on cloud

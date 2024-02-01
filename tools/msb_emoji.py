@@ -9,8 +9,8 @@ import json
 # parsing and extracting complicated emojis from string.
 
 # Usage:
-# 1st cmdline arg: 'string', 'json'.
-# 2nd cmdline arg: text containing emoji(s).
+# 1st cmdline arg: 'string', 'json', 'text'.
+# 2nd cmdline arg: string containing emoji(s).
 
 # Example:
 # ./msb_emoji.py string 🌸
@@ -27,6 +27,8 @@ def main():
         sys.stdout.write(''.join(e))
     elif sys.argv[1] == 'json':
         sys.stdout.write(json.dumps(e, ensure_ascii=False))
+    elif sys.argv[1] == 'text':
+        sys.stdout.write(emoji.replace_emoji(s,''))
 
     return 0
 

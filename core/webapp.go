@@ -224,6 +224,7 @@ func apiEditResult(c *gin.Context) {
 }
 
 func commitEmojiChange(ud *UserData, so []webappStickerObject) error {
+	//Wait for previous jobs to be done.
 	waitTime := 0
 	for ud.webAppWorkerPool.Waiting() > 0 {
 		time.Sleep(500 * time.Millisecond)
@@ -233,48 +234,30 @@ func commitEmojiChange(ud *UserData, so []webappStickerObject) error {
 		}
 	}
 	ud.webAppWorkerPool.ReleaseTimeout(10 * time.Second)
-	// retrieveSSDetails(ud.lastContext, ud.stickerData.id, ud.stickerData)
+
 	//copy slice
 	ss := ud.stickerData.stickerSet.Stickers
-	notificationSent := false
-	emojiChanged := false
-	for _, s := range so {
+	for i, s := range so {
 		if s.EmojiChanged {
-			emojiChanged = true
-		}
-	}
-	if !emojiChanged {
-		goto NEXT
-	}
-	for i, s := range ss {
-		if s.UniqueID != so[i].UniqueID {
-			log.Error("sticker order mismatch! index:", i)
-			return errors.New("sticker order mismatch, no emoji change committed")
-		}
-		if !so[i].EmojiChanged {
-			continue
-		}
-		oldEmoji := findEmojis(s.Emoji)
-		newEmoji := findEmojis(so[i].Emoji)
-		if newEmoji == "" || newEmoji == oldEmoji {
-			log.Warn("webapp: ignored one invalid emoji.")
-			continue
-		}
-		log.Debugln("Old:", i, s.Emoji, s.FileID)
-		log.Debugln("New", i, newEmoji)
-		if !notificationSent {
-			sendEditingEmoji(ud.lastContext)
-			notificationSent = true
-		}
+			oldEmoji := findEmojis(ss[i].Emoji)
+			newEmoji := findEmojis(s.Emoji)
+			newEmojiList := findEmojiList(s.Emoji)
+			if newEmoji == "" || newEmoji == oldEmoji || len(newEmojiList) == 0 {
+				log.Info("webapp: ignored one invalid emoji.")
+				continue
+			}
+			log.Debugln("Old:", i, s.Emoji, s.FileID)
+			log.Debugln("New", i, newEmoji)
 
-		err := editStickerEmoji(newEmoji, i, s.FileID, so[i].FilePath, len(ss), ud)
-		if err != nil {
-			return err
+			err := editStickerEmoji(newEmojiList, s.FileID, ud)
+			if err != nil {
+				return err
+			}
+			// Have a rest.
+			time.Sleep(1 * time.Second)
 		}
-		// Have a rest.
-		time.Sleep(2 * time.Second)
 	}
-NEXT:
+
 	sendSEditOK(ud.lastContext)
 	sendSFromSS(ud.lastContext, ud.stickerData.id, nil)
 	endManageSession(ud.lastContext)

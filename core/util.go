@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/crc32"
@@ -207,20 +208,23 @@ func findEmojis(s string) string {
 	return string(out)
 }
 
-// func findEmojis(s string) string {
-// 	var eString string
-// 	gomojis := gomoji.FindAll(s)
-// 	for _, e := range gomojis {
-// 		eString += e.Character
-// 	}
-// 	return eString
-// 	// r := ""
-// 	// emoji.ReplaceAllEmojiFunc(s, func(emoji string) string {
-// 	// 	r += emoji
-// 	// 	return ""
-// 	// })
-// 	// return r
-// }
+func findEmojiList(s string) []string {
+	out, err := exec.Command("msb_emoji.py", "json", s).Output()
+	if err != nil {
+		return []string{}
+	}
+	list := []string{}
+	json.Unmarshal(out, &list)
+	return list
+}
+
+func stripEmoji(s string) string {
+	out, err := exec.Command("msb_emoji.py", "text", s).Output()
+	if err != nil {
+		return ""
+	}
+	return string(out)
+}
 
 func sanitizeCallback(next tele.HandlerFunc) tele.HandlerFunc {
 	return func(c tele.Context) error {
@@ -265,6 +269,7 @@ func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
 	sd.id = ss.Name
 	sd.cAmount = len(ss.Stickers)
 	sd.isVideo = ss.Video
+	sd.stickerSetType = ss.Type
 	return nil
 }
 

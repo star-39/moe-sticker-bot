@@ -2,6 +2,8 @@ module github.com/star-39/moe-sticker-bot
 
 go 1.19
 
+replace gopkg.in/telebot.v3 => github.com/star-39/telebot/v3 v3.99.2
+
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/gin-gonic/gin v1.9.1

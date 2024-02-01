@@ -16,7 +16,7 @@ import (
 )
 
 // Final stage of automated sticker submission.
-func execAutoCommit(createSet bool, c tele.Context) error {
+func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	uid := c.Sender().ID
 	ud := users.data[uid]
 	pText, teleMsg, _ := sendProcessStarted(ud, c, "Waiting...")
@@ -62,31 +62,30 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 	errorCount := 0
 	flCount := &ud.stickerData.flCount
 
+	ss := tele.StickerSet{
+		Name:  ud.stickerData.id,
+		Title: ud.stickerData.title,
+		Type:  ud.stickerData.stickerSetType,
+	}
+
 	for index, sf := range ud.stickerData.stickers {
-		// select {
-		// case <-ud.ctx.Done():
-		// 	log.Warn("execAutoCommit received ctxDone!")
-		// 	return nil
-		// default:
-		// }
 		var err error
-		ss := tele.StickerSet{
-			Name:   ud.stickerData.id,
-			Title:  ud.stickerData.title,
-			Emojis: ud.stickerData.emojis[0],
-			Video:  ud.stickerData.isVideo,
-		}
 		go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
+
+		inputSticker := tele.InputSticker{
+			Emojis:   ud.stickerData.emojis,
+			Keywords: []string{"sticker"},
+		}
 		if index == 0 && createSet {
-			err = commitSticker(true, index, flCount, false, sf, c, ss)
+			err = commitSticker(true, index, flCount, false, sf, c, inputSticker, ss)
 			if err != nil {
-				log.Errorln("create failed!. ", err)
+				log.Errorln("create sticker set failed!. ", err)
 				return err
 			} else {
 				committedStickers += 1
 			}
 		} else {
-			err = commitSticker(false, index, flCount, false, sf, c, ss)
+			err = commitSticker(false, index, flCount, false, sf, c, inputSticker, ss)
 			if err != nil {
 				log.Warnln("execAutoCommit: a sticker failed to add. ", err)
 				sendOneStickerFailedToAdd(c, index, err)
@@ -126,7 +125,7 @@ func execAutoCommit(createSet bool, c tele.Context) error {
 }
 
 // Only fatal error should be returned.
-func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) error {
+func submitStickerManual(createSet bool, pos int, emojis []string, keywords []string, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 
 	if len(ud.stickerData.stickers) == 0 {
@@ -135,20 +134,25 @@ func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) err
 	}
 	var err error
 	ss := tele.StickerSet{
-		Name:   ud.stickerData.id,
-		Title:  ud.stickerData.title,
-		Emojis: emojis,
-		Video:  ud.stickerData.isVideo,
+		Name:  ud.stickerData.id,
+		Title: ud.stickerData.title,
+		Video: ud.stickerData.isVideo,
+		Type:  ud.stickerData.stickerSetType,
 	}
 
 	log.Debugln("execEmojiAssign: sticker summary: ", ss)
 	log.Debugf("execEmojiAssign: attempting to commit: pos:%d, lAmount:%d, cAmount:%d", pos, ud.stickerData.lAmount, ud.stickerData.cAmount)
 
 	sf := ud.stickerData.stickers[pos]
+	input := tele.InputSticker{
+		Emojis:   emojis,
+		Keywords: keywords,
+	}
+
 	//Do not submit to goroutine when creating sticker set.
 	if createSet && pos == 0 {
 		defer close(ud.commitChans[pos])
-		err = commitSticker(true, pos, &ud.stickerData.flCount, false, sf, c, ss)
+		err = commitSticker(true, pos, &ud.stickerData.flCount, false, sf, c, input, ss)
 		if err != nil {
 			log.Errorln("create failed. ", err)
 			return err
@@ -156,33 +160,25 @@ func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) err
 			ud.stickerData.cAmount += 1
 		}
 		if ud.stickerData.lAmount == 1 {
-			return finishExecEmojiAssign(c, createSet, ud)
+			return finalizeSubmitStickerManual(c, createSet, ud)
 		}
 	} else {
 		go func() {
-			// defer close(ud.commitChans[pos])
-
 			//wait for the previous commit to be done.
 			if pos > 0 {
 				<-ud.commitChans[pos-1]
 			}
 
-			err = commitSticker(false, pos, &ud.stickerData.flCount, false, sf, c, ss)
+			err = commitSticker(false, pos, &ud.stickerData.flCount, false, sf, c, input, ss)
 			if err != nil {
-				if strings.Contains(err.Error(), "invalid sticker emojis") {
-					sendInvalidEmojiWarn(c)
-					execEmojiAssign(createSet, pos, "⭐️", c)
-					return
-				} else {
-					sendOneStickerFailedToAdd(c, pos, err)
-					log.Warnln("execEmojiAssign: a sticker failed to add: ", err)
-				}
+				sendOneStickerFailedToAdd(c, pos, err)
+				log.Warnln("execEmojiAssign: a sticker failed to add: ", err)
 			} else {
 				ud.stickerData.cAmount += 1
 			}
 
 			if pos+1 == ud.stickerData.lAmount {
-				finishExecEmojiAssign(c, createSet, ud)
+				finalizeSubmitStickerManual(c, createSet, ud)
 			}
 			close(ud.commitChans[pos])
 		}()
@@ -190,7 +186,7 @@ func execEmojiAssign(createSet bool, pos int, emojis string, c tele.Context) err
 	return nil
 }
 
-func finishExecEmojiAssign(c tele.Context, createSet bool, ud *UserData) error {
+func finalizeSubmitStickerManual(c tele.Context, createSet bool, ud *UserData) error {
 	if createSet {
 		if ud.command == "import" {
 			insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, false)
@@ -207,28 +203,27 @@ func finishExecEmojiAssign(c tele.Context, createSet bool, ud *UserData) error {
 // Commit single sticker, retry happens inside this function.
 // If all retries failed, return err.
 //
-// ss contains metadata for the single sticker.
-// it feels weird but it's the framework's way to do so.
-// therefore, Video? must be set.
-//
 // flCount counts the total flood limit for entire sticker set.
 // pos is for logging only.
-func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, ss tele.StickerSet) error {
+func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, input tele.InputSticker, ss tele.StickerSet) error {
 	var err error
 	var floodErr tele.FloodError
-	var f string
+	var sFormat string
+	var file tele.File
 
 	sf.wg.Wait()
+
 	if ss.Video {
-		if !safeMode {
-			f = sf.cPath
+		sFormat = "video"
+		if safeMode {
+			f, _ := convert.FFToWebmSafe(sf.oPath)
+			file = tele.File{FileLocal: f}
 		} else {
-			f, _ = convert.FFToWebmSafe(sf.oPath)
+			file = tele.File{FileLocal: sf.cPath}
 		}
-		ss.WebM = &tele.File{FileLocal: f}
 	} else {
-		f = sf.cPath
-		ss.PNG = &tele.File{FileLocal: f}
+		sFormat = "static"
+		file = tele.File{FileLocal: sf.cPath}
 	}
 
 	log.Debugln("sticker file path:", sf.cPath)
@@ -236,15 +231,23 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	// Retry loop.
 	// For each sticker, retry at most 2 times, means 3 commit attempts in total.
 	for i := 0; i < 3; i++ {
+		uploadedFile, err := c.Bot().UploadSticker(c.Recipient(), sFormat, &file)
+		if err != nil {
+			log.Errorln("commitSticker: error on UploadSticker")
+			//jump to error handling without furthur action.
+			goto HANDLE_ERROR
+		}
+		input.Sticker = uploadedFile.FileID
 		if createSet {
-			err = c.Bot().CreateStickerSet(c.Recipient(), ss)
+			err = c.Bot().CreateStickerSet(c.Recipient(), sFormat, []tele.InputSticker{input}, ss)
 		} else {
-			err = c.Bot().AddSticker(c.Recipient(), ss)
+			err = c.Bot().AddSticker(c.Recipient(), input, ss)
 		}
 		if err == nil {
 			return nil
 		}
-		//Deal with error below
+
+	HANDLE_ERROR:
 		log.Errorf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		// Is flood limit error.
 		// Telegram's flood limit is strange.
@@ -297,11 +300,14 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 				return err
 			} else {
 				log.Warnln("returned video_long, attempting safe mode.")
-				return commitSticker(createSet, pos, flCount, true, sf, c, ss)
+				return commitSticker(createSet, pos, flCount, true, sf, c, input, ss)
 			}
 		} else if strings.Contains(err.Error(), "400") {
 			// return remaining 400 BAD REQUEST immediately to parent without retry.
 			return err
+		} else if strings.Contains(err.Error(), "invalid sticker emojis") {
+			log.Warn("commitSticker: invalid emoji, resetting to a star emoji and retrying...")
+			input.Emojis = []string{"⭐️"}
 		} else {
 			// Handle unknown error here.
 			// We simply retry for 2 more times with 5 sec interval.
@@ -318,68 +324,8 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	return err
 }
 
-func editStickerEmoji(newEmoji string, index int, fid string, f string, ssLen int, ud *UserData) error {
-	c := ud.lastContext
-
-	//this ss will only be used to commit sticker.
-	ss := *ud.stickerData.stickerSet
-	if ss.Video {
-		ss.WebM = &tele.File{FileLocal: f}
-	} else {
-		ss.PNG = &tele.File{FileLocal: f}
-	}
-	ss.Emojis = newEmoji
-	ss.Stickers = nil
-	sf := &StickerFile{
-		oPath: f,
-		cPath: f,
-	}
-	flCount := 0
-	err := commitSticker(false, -1, &flCount, false, sf, c, ss)
-	if err != nil {
-		return errors.New("error commiting temp sticker " + err.Error())
-	}
-
-	for i := 0; i < 10; i++ {
-		select {
-		case <-ud.ctx.Done():
-			log.Warn("editStickerEmoji received ctxDone!")
-			return errors.New("user interrupted")
-		default:
-		}
-		time.Sleep(2 * time.Second)
-		ssNew, err := c.Bot().StickerSet(ud.stickerData.id)
-		if err != nil {
-			continue
-		}
-		log.Debugln(len(ssNew.Stickers))
-		log.Debugln(ssLen)
-		if len(ssNew.Stickers) != ssLen+1 {
-			//Not committed to API server yet.
-			continue
-		}
-		commitedFID := ssNew.Stickers[len(ssNew.Stickers)-1].FileID
-		if commitedFID == fid {
-			log.Warn("FID duplicated, try again?")
-			continue
-		}
-
-		log.Infoln("Setting position of:", commitedFID)
-		err = c.Bot().SetStickerPosition(commitedFID, index)
-		if err != nil {
-			//Another API bug.
-			//API returns a new file ID but refuses to use it.
-			//Try really hard to make it work.
-			log.Errorln("error setting position, retrying...", err)
-			continue
-		}
-
-		time.Sleep(1 * time.Second)
-		//commit back the lastest set.
-		ud.stickerData.stickerSet = ssNew
-		return c.Bot().DeleteSticker(fid)
-	}
-	return errors.New("error setting position after editing emoji")
+func editStickerEmoji(newEmojis []string, fid string, ud *UserData) error {
+	return b.SetStickerEmojiList(ud.lastContext.Recipient(), fid, newEmojis)
 }
 
 // Accept telebot Media and Sticker only
@@ -455,11 +401,6 @@ func guessIsArchive(f string) bool {
 	}
 	return false
 }
-
-// func moveSticker(oldIndex int, newIndex int, ud *UserData) error {
-// 	sid := ud.stickerData.stickerSet.Stickers[oldIndex].FileID
-// 	return b.SetStickerPosition(sid, newIndex)
-// }
 
 func verifyFloodedStickerSet(c tele.Context, fc int, ec int, desiredAmount int, ssn string) {
 	time.Sleep(31 * time.Second)

@@ -307,8 +307,8 @@ func sendAskTitle_Import(c tele.Context) error {
 		titleText, selector, tele.ModeHTML)
 }
 
-func sendAskTitle(c tele.Context) {
-	c.Send("Please send a title for this sticker set.\n" +
+func sendAskTitle(c tele.Context) error {
+	return c.Send("Please send a title for this sticker set.\n" +
 		"請傳送貼圖包的標題.")
 }
 
@@ -444,9 +444,12 @@ func sendNoSessionWarning(c tele.Context) error {
 
 func sendAskSTypeToCreate(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnStatic := selector.Data("Static/靜態", "static")
-	btnAnimated := selector.Data("Animated/動態", "video")
-	selector.Inline(selector.Row(btnStatic, btnAnimated))
+	btnStatic := selector.Data("Regular Sticker/普通貼圖", "static")
+	btnAnimated := selector.Data("Animated Sticker/動態貼圖", "video")
+	btnStaticEmoji := selector.Data("Static Custom Emoji/表情貼", "staticEmoji")
+	btnAnimatedEmoji := selector.Data("Animated Custom Emoji/動態表情貼", "videoEmoji")
+
+	selector.Inline(selector.Row(btnStatic), selector.Row(btnAnimated), selector.Row(btnStaticEmoji), selector.Row(btnAnimatedEmoji))
 	return c.Send("What kind of sticker set you want to create?\n"+
 		"您想要創建何種類型的貼圖包?", selector)
 }
@@ -848,25 +851,16 @@ func sendBadSNWarn(c tele.Context) error {
 	return c.Reply("Wrong sticker or link!\n貼圖或連結錯誤!")
 }
 
-func sendHowToChangeSSTitle(c tele.Context) error {
-	sid := users.data[c.Sender().ID].stickerData.id
+func sendSSTitleChanged(c tele.Context) error {
 	msg := fmt.Sprintf(`
-Currently, changing title can only be done through Telegram's official @Stickers bot.
-Please chat with @Stickers bot, then 
-1. Send <code>/renamepack</code>
-2. Send <code>%s</code>
-3. Send your new title.
-
-修改貼圖包的標題目前只能通過Telegram官方的 @Stickers 進行，
-請您與 @Stickers 對話，然後：
-1. 傳送 <code>/renamepack</code>
-2. 傳送 <code>%s</code>
-3. 傳送您想設定的新標題。`, sid, sid)
-
-	// err := c.Send(&tele.Photo{
-	// 	File:    tele.File{FileID: FID_CHANGE_TITLE_TUTORIAL},
-	// 	Caption: msg,
-	// }, tele.ModeHTML)
+Successfully changed title.
+新標題設定完成`)
+	return c.Reply(msg, tele.ModeHTML)
+}
+func sendSSTitleFailedToChanged(c tele.Context) error {
+	msg := fmt.Sprintf(`
+Failed to change title, please try again.
+新標題設定失敗，請再試一次。`)
 	return c.Reply(msg, tele.ModeHTML)
 }
 

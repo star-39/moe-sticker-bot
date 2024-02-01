@@ -60,6 +60,8 @@ func handleMessage(c tele.Context) error {
 			err = waitEmojiChoice(c)
 		case "waitSEmojiAssign":
 			err = waitSEmojiAssign(c)
+		case "waitSTitle":
+			err = waitSTitle(c)
 		case "waitSDel":
 			err = waitSDel(c)
 		case "waitCbDelset":
@@ -193,6 +195,11 @@ func confirmImport(c tele.Context) error {
 	}
 	ud.stickerData.lAmount = ud.lineData.Amount
 	ud.stickerData.isVideo = ud.lineData.IsAnimated
+	if ud.lineData.Category == msbimport.LINE_EMOJI_STATIC || ud.lineData.Category == msbimport.LINE_EMOJI_ANIMATION {
+		ud.stickerData.stickerSetType = tele.StickerCustomEmoji
+	} else {
+		ud.stickerData.stickerSetType = tele.StickerRegular
+	}
 
 	//After PrepareImportStickers returns, individual LineFile might not be ready yet.
 	//When transfering data to ud.stickerData.stickers, make sure to transfer finished data only.
@@ -284,7 +291,8 @@ func waitCbEditChoice(c tele.Context) error {
 		setState(c, "waitCbDelset")
 		return sendConfirmDelset(c)
 	case CB_CHANGE_TITLE:
-		return sendHowToChangeSSTitle(c)
+		setState(c, "waitSTitle")
+		return sendAskTitle(c)
 	case CB_BYE:
 		endManageSession(c)
 		terminateSession(c)
@@ -354,6 +362,11 @@ func waitSType(c tele.Context) error {
 	if strings.Contains(c.Callback().Data, "video") {
 		users.data[c.Sender().ID].stickerData.isVideo = true
 	}
+	if strings.Contains(c.Callback().Data, "emoji") {
+		users.data[c.Sender().ID].stickerData.stickerSetType = tele.StickerCustomEmoji
+	} else {
+		users.data[c.Sender().ID].stickerData.stickerSetType = tele.StickerRegular
+	}
 
 	sendAskTitle(c)
 	setState(c, "waitSTitle")
@@ -397,10 +410,22 @@ func waitSTitle(c tele.Context) error {
 	command := ud.command
 
 	if c.Callback() == nil {
-		ud.stickerData.title = c.Message().Text
-	} else {
-		// do not expect callback in /create
 		if command == "create" {
+			ud.stickerData.title = c.Message().Text
+		} else if command == "manage" {
+			err := c.Bot().SetStickerSetTitle(c.Recipient(), c.Message().Text, ud.stickerData.id)
+			setState(c, "waitCbEditChoice")
+			if err != nil {
+				log.Warnln(err)
+				return sendSSTitleFailedToChanged(c)
+			} else {
+				return sendSSTitleChanged(c)
+			}
+		} else {
+			return nil
+		}
+	} else {
+		if command != "import" {
 			return nil
 		}
 		titleIndex, atoiErr := strconv.Atoi(c.Callback().Data)
@@ -479,7 +504,7 @@ func waitEmojiChoice(c tele.Context) error {
 
 	setState(c, ST_PROCESSING)
 
-	err := execAutoCommit(!(ud.command == "manage"), c)
+	err := submitStickerSetAuto(!(ud.command == "manage"), c)
 	endSession(c)
 	if err != nil {
 		return err
@@ -488,15 +513,20 @@ func waitEmojiChoice(c tele.Context) error {
 }
 
 func waitSEmojiAssign(c tele.Context) error {
-	emojis := findEmojis(c.Message().Text)
-	if emojis == "" {
-		return c.Reply("Please send emoji.請傳送emoji。\ntry again or /quit")
+	emojiList := findEmojiList(c.Message().Text)
+	if len(emojiList) == 0 {
+		return c.Reply("Please send emoji and keywords(optional).\n請傳送emoji和 關鍵字(可選)。\ntry again or /quit")
 	}
-	ud := users.data[c.Sender().ID]
+	keywords := stripEmoji(c.Message().Text)
+	keywordList := []string{}
+	if len(keywords) > 0 {
+		keywordList = strings.Split(keywords, " ")
+	}
 
+	ud := users.data[c.Sender().ID]
 	setState(c, ST_PROCESSING)
 
-	err := execEmojiAssign(!(users.data[c.Sender().ID].command == "manage"), ud.stickerData.pos, emojis, c)
+	err := submitStickerManual(!(users.data[c.Sender().ID].command == "manage"), ud.stickerData.pos, emojiList, keywordList, c)
 	if err != nil {
 		return err
 	}
