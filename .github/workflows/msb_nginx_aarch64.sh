@@ -4,7 +4,7 @@ GITHUB_TOKEN=$1
 buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 #AArch64
-c1=$(buildah from docker://arm64v8/nginx:latest --arch=arm64)
+c1=$(buildah from --arch=arm64 docker://arm64v8/nginx:latest)
 
 # Copy nginx template and app link validation json.
 buildah run  $c1 -- mkdir -p /etc/nginx/templates
