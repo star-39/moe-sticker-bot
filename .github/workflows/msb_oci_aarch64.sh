@@ -8,7 +8,7 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 #################################
 if false ; then
 
-c1=$(buildah from docker://lopsided/archlinux-arm64v8:latest)
+c1=$(buildah from docker://lopsided/archlinux-arm64v8:latest --arch=arm64)
 
 buildah run $c1 -- pacman -Sy
 buildah run $c1 -- pacman --noconfirm -S libwebp libheif imagemagick curl gifsicle libarchive python python-pip make gcc
@@ -29,7 +29,7 @@ fi
 #################################
 
 # Build container image.
-c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base_aarch64)
+c1=$(buildah from ghcr.io/star-39/moe-sticker-bot:base_aarch64 --arch=arm64)
 
 
 # Install static build of ffmpeg.
