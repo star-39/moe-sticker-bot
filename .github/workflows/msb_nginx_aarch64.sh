@@ -7,8 +7,6 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 c1=$(buildah from --arch=arm64 docker://arm64v8/nginx:latest)
 
 # Copy nginx template and app link validation json.
-buildah run  $c1 -- mkdir -p /etc/nginx/templates
-buildah run  $c1 -- mkdir -p /www/.well-known
 buildah copy $c1 web/nginx/default.conf.template /etc/nginx/templates/
 buildah copy $c1 web/nginx/assetlinks.json /www/.well-known/assetlinks.json
 
