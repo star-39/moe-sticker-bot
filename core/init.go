@@ -41,6 +41,7 @@ func Init(conf ConfigTemplate) {
 	b.Handle("/privacy", cmdPrivacy)
 	b.Handle("/help", cmdStart)
 	b.Handle("/about", cmdAbout)
+	b.Handle("/command_list", cmdCommandList)
 	b.Handle("/import", cmdImport, checkState)
 	b.Handle("/download", cmdDownload, checkState)
 	b.Handle("/create", cmdCreate, checkState)

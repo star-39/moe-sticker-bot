@@ -16,25 +16,33 @@ import (
 
 func sendStartMessage(c tele.Context) error {
 	message := `
+Hi! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please:
+• Send <b>LINE/Kakao sticker share link</b> to import or download.
+• Send <b>Telegram sticker/link/GIF</b> to download or export to WhatsApp.
+• Send <b>keywords</b> to search sticker sets.
+• Tap to <b>/create</b> or <b>/manage</b> sticker set and CustomEmoji.
+• Tap to check all available <b>/command_list</b>.
+
+你好! 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
+• 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
+• 傳送<b>Telegram貼圖/連結/GIF</b>來下載或匯出到WhatsApp.
+• 傳送<b>關鍵字</b>來搜尋貼圖包.
+• 傳送 <b>/create</b> 或 <b>/manage</b> 來創建或管理貼圖包和表情貼。
+• 傳送 <b>/command_list</b> 檢視所有可用指令.
+`
+	return c.Send(message, tele.ModeHTML, tele.NoPreview)
+}
+
+func sendCommandList(c tele.Context) error {
+	message := `
 <b>/import</b>  <b>/search</b> LINE/Kakao stickers.<code>
 匯入或搜尋LINE/Kaka貼圖包.</code>
 <b>/download</b>  <b>/create</b>  <b>/manage</b> Telegram stickers.<code>
 下載、創建、管理Telegram貼圖包.</code>
 <b>/faq  /about  /changelog  /privacy</b><code>
 常見問題/關於/更新紀錄/私隱</code>
-
-Hello! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>! Please use a command above or:
-• Send <b>LINE/Kakao sticker share link</b> to import or download.
-• Send <b>Telegram sticker/link/GIF</b> to download or export to WhatsApp.
-• Send <b>keywords</b> to search titles.
-• Send <b>/create</b> or <b>/manage</b> to create or manage sticker set.
-
-你好! 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請從上方點選指令或：
-• 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
-• 傳送<b>Telegram貼圖/連結/GIF</b>來下載或匯出到WhatsApp.
-• 傳送<b>關鍵字</b>來搜尋貼圖包.
-• 傳送 <b>/create</b> 或 <b>/manage</b> 來創建或管理貼圖包。
 `
+
 	return c.Send(message, tele.ModeHTML, tele.NoPreview)
 }
 

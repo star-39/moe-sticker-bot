@@ -57,6 +57,10 @@ func cmdStart(c tele.Context) error {
 	return sendStartMessage(c)
 }
 
+func cmdCommandList(c tele.Context) error {
+	return sendCommandList(c)
+}
+
 func cmdSearch(c tele.Context) error {
 	if c.Chat().Type == tele.ChatGroup || c.Chat().Type == tele.ChatSuperGroup {
 		return cmdGroupSearch(c)
