@@ -11,7 +11,7 @@ import (
 // Workers pool for converting webm
 var wpConvertWebm, _ = ants.NewPoolWithFunc(4, wConvertWebm)
 
-// *LineFile
+// Accepts *LineFile
 func wConvertWebm(i interface{}) {
 	lf := i.(*LineFile)
 	defer lf.Wg.Done()
@@ -23,7 +23,11 @@ func wConvertWebm(i interface{}) {
 	if strings.HasSuffix(lf.OriginalFile, ".webp") {
 		lf.OriginalFile, _ = convert.IMToApng(lf.OriginalFile)
 	}
-	lf.ConvertedFile, err = convert.FFToWebm(lf.OriginalFile)
+	if lf.IsEmoji {
+		lf.ConvertedFile, err = convert.FFToWebmTGVideo(lf.OriginalFile, convert.FORMAT_TG_EMOJI_ANIMATED)
+	} else {
+		lf.ConvertedFile, err = convert.FFToWebmTGVideo(lf.OriginalFile, convert.FORMAT_TG_REGULAR_ANIMATED)
+	}
 
 	if err != nil {
 		lf.CError = err

@@ -41,6 +41,7 @@ func parseLineLink(link string, ld *LineData) (string, error) {
 	u := lineJson.Url
 	ls := fetchLineI18nLinks(doc)
 	a := false
+	e := false
 	c := ""
 	d := "https://stickershop.line-scdn.net/stickershop/v1/product/" + i + "/iphone/"
 
@@ -81,8 +82,10 @@ func parseLineLink(link string, ld *LineData) (string, error) {
 			c = LINE_EMOJI_ANIMATION
 			d = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + i + "/iphone/package_animation.zip"
 			a = true
+			e = true
 		} else {
 			c = LINE_EMOJI_STATIC
+			e = true
 			d = "https://stickershop.line-scdn.net/sticonshop/v1/sticon/" + i + "/iphone/package.zip"
 		}
 	} else {
@@ -99,6 +102,7 @@ func parseLineLink(link string, ld *LineData) (string, error) {
 	ld.Id = i
 	ld.Title = t
 	ld.IsAnimated = a
+	ld.IsEmoji = e
 
 	log.Debugln("line data parsed:", ld)
 
@@ -245,6 +249,7 @@ func prepareLineStickers(ctx context.Context, ld *LineData, workDir string, need
 
 	for _, pf := range pngFiles {
 		lf := &LineFile{
+			IsEmoji:      ld.IsEmoji,
 			OriginalFile: pf,
 		}
 		if needConvert {

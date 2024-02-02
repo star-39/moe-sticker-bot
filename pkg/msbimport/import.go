@@ -66,9 +66,18 @@ func convertSToTGFormat(ctx context.Context, ld *LineData) {
 		// If lineS is animated, commit to worker pool
 		// since encoding vp9 is time and resource costy.
 		if ld.IsAnimated {
+			if ld.IsEmoji {
+
+			} else {
+
+			}
 			wpConvertWebm.Invoke(s)
 		} else {
-			s.ConvertedFile, err = convert.IMToWebp(s.OriginalFile)
+			if ld.IsEmoji {
+				s.ConvertedFile, err = convert.IMToWebpTGStatic(s.OriginalFile, convert.FORMAT_TG_EMOJI_STATIC)
+			} else {
+				s.ConvertedFile, err = convert.IMToWebpTGStatic(s.OriginalFile, convert.FORMAT_TG_REGULAR_STATIC)
+			}
 			if err != nil {
 				s.CError = err
 			}

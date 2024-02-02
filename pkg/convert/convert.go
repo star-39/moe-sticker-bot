@@ -16,6 +16,13 @@ var BSDTAR_BIN = "bsdtar"
 var CONVERT_BIN = "convert"
 var CONVERT_ARGS []string
 
+const (
+	FORMAT_TG_REGULAR_STATIC   = "tg_reg_static"
+	FORMAT_TG_EMOJI_STATIC     = "tg_emoji_static"
+	FORMAT_TG_REGULAR_ANIMATED = "tg_reg_ani"
+	FORMAT_TG_EMOJI_ANIMATED   = "tg_emoji_ani"
+)
+
 // See: http://en.wikipedia.org/wiki/Binary_prefix
 const (
 	// Decimal
@@ -35,8 +42,7 @@ const (
 
 // Should call before using functions in this package.
 // Otherwise, defaults to Linux environment.
-// This function also call CheckDeps to check if executables exist and return a string slice
-// containing binaries that are not found in PATH.
+// This function also call CheckDeps to check if executables.
 func InitConvert() {
 	switch runtime.GOOS {
 	case "linux":
@@ -53,6 +59,8 @@ func InitConvert() {
 	}
 }
 
+// Check if required dependencies exist and return a string slice
+// containing binaries that are not found in PATH.
 func CheckDeps() []string {
 	unfoundBins := []string{}
 
@@ -74,15 +82,24 @@ func CheckDeps() []string {
 	return unfoundBins
 }
 
-func IMToWebp(f string) (string, error) {
+// Convert any image to static WEBP image, for Telegram use.
+// `format` takes either FORMAT_TG_REGULAR_STATIC or FORMAT_TG_EMOJI_STATIC
+func IMToWebpTGStatic(f string, format string) (string, error) {
 	pathOut := f + ".webp"
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
-	args = append(args, "-resize", "512x512", "-filter", "Lanczos", "-define", "webp:lossless=true", f+"[0]", pathOut)
+	if format == FORMAT_TG_REGULAR_STATIC {
+		args = append(args, "-resize", "512x512")
+	} else if format == FORMAT_TG_EMOJI_STATIC {
+		args = append(args, "-resize", "100x100")
+	} else {
+		return pathOut, errors.New("IMToWebpTG: Unknown format")
+	}
+	args = append(args, "-filter", "Lanczos", "-define", "webp:lossless=true", f+"[0]", pathOut)
 
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
-		log.Warnln("imToWebp ERROR:", string(out))
+		log.Warnln("IMToWebpTGRegular ERROR:", string(out))
 		return "", err
 	}
 
@@ -91,6 +108,7 @@ func IMToWebp(f string) (string, error) {
 		return "", err
 	}
 
+	// 100x100 should never exceed 255KIB, no need for extra check.
 	if st.Size() > 255*KiB {
 		args := CONVERT_ARGS
 		args = append(args, "-resize", "512x512", "-filter", "Lanczos", f+"[0]", pathOut)
@@ -100,8 +118,7 @@ func IMToWebp(f string) (string, error) {
 	return pathOut, err
 }
 
-// Bugfix20231009:
-// Fix static webp oversize.
+// Convert image to static Webp for Whatsapp, size limit is 100KiB.
 func IMToWebpWA(f string) error {
 	pathOut := f
 	bin := CONVERT_BIN
@@ -158,13 +175,19 @@ func IMToApng(f string) (string, error) {
 	return pathOut, err
 }
 
-func FFToWebm(f string) (string, error) {
+func FFToWebmTGVideo(f string, format string) (string, error) {
 	pathOut := f + ".webm"
 	bin := FFMPEG_BIN
-	baseargs := []string{"-hide_banner", "-i", f,
-		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
-		"-c:v", "libvpx-vp9", "-cpu-used", "5",
+	baseargs := []string{}
+	baseargs = append(baseargs, "-hide_banner", "-i", f)
+	if format == FORMAT_TG_REGULAR_ANIMATED {
+		baseargs = append(baseargs, "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos")
+	} else if format == FORMAT_TG_EMOJI_ANIMATED {
+		baseargs = append(baseargs, "-vf", "scale=100:100:force_original_aspect_ratio=decrease:flags=lanczos")
+	} else {
+		return "", errors.New("FFToWebmTGVideo: Unknown format")
 	}
+	baseargs = append(baseargs, "-pix_fmt", "yuva420p", "-c:v", "libvpx-vp9", "-cpu-used", "5")
 
 	for rc := 0; rc < 4; rc++ {
 		rcargs := []string{}
@@ -188,7 +211,7 @@ func FFToWebm(f string) (string, error) {
 			if strings.Contains(string(out), "skipping unsupported chunk: ANIM") {
 				log.Warnln("Trying to convert to APNG first.")
 				f2, _ := IMToApng(f)
-				return FFToWebm(f2)
+				return FFToWebmTGVideo(f2, format)
 			}
 			return pathOut, err
 		}
@@ -202,18 +225,27 @@ func FFToWebm(f string) (string, error) {
 			return pathOut, err
 		}
 	}
-	log.Errorln("fftowebm unable to compress below 256KiB:", pathOut)
-	return pathOut, errors.New("fftowebm unable to compress below 256KiB")
+	log.Errorln("FFToWebmTGVideo: unable to compress below 256KiB:", pathOut)
+	return pathOut, errors.New("FFToWebmTGVideo: unable to compress below 256KiB")
 }
 
 // This function will be called if Telegram's API rejected our webm.
-func FFToWebmSafe(f string) (string, error) {
+// It is normally due to overlength or bad FPS rate.
+func FFToWebmSafe(f string, format string) (string, error) {
 	pathOut := f + ".webm"
 	bin := FFMPEG_BIN
-	args := []string{"-hide_banner", "-i", f,
-		"-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos", "-pix_fmt", "yuva420p",
+	args := []string{}
+	args = append(args, "-hide_banner", "-i", f)
+	if format == FORMAT_TG_REGULAR_ANIMATED {
+		args = append(args, "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos")
+	} else if format == FORMAT_TG_EMOJI_ANIMATED {
+		args = append(args, "-vf", "scale=100:100:force_original_aspect_ratio=decrease:flags=lanczos")
+	} else {
+		return "", errors.New("FFToWebmTGVideo: Unknown format")
+	}
+	args = append(args, "-pix_fmt", "yuva420p",
 		"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
-		"-to", "00:00:02.800", "-r", "30", "-an", "-y", pathOut}
+		"-to", "00:00:02.800", "-r", "30", "-an", "-y", pathOut)
 
 	cmd := exec.Command(bin, args...)
 	err := cmd.Run()
@@ -281,17 +313,17 @@ func IMStackToWebp(base string, overlay string) (string, error) {
 	}
 }
 
-func RlottieToWebm(f string) (string, error) {
-	bin := "msb_rlottie.py"
-	fOut := f + ".apng"
-	args := []string{f, fOut, "75"}
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	if err != nil {
-		log.Errorln("lottieToGIF ERROR!", string(out))
-		return "", err
-	}
-	return FFToWebm(fOut)
-}
+// func RlottieToWebm(f string) (string, error) {
+// 	bin := "msb_rlottie.py"
+// 	fOut := f + ".apng"
+// 	args := []string{f, fOut, "75"}
+// 	out, err := exec.Command(bin, args...).CombinedOutput()
+// 	if err != nil {
+// 		log.Errorln("lottieToGIF ERROR!", string(out))
+// 		return "", err
+// 	}
+// 	return FFToWebmTGVideo(fOut)
+// }
 
 // Replaces tgs to gif.
 func RlottieToGIF(f string) (string, error) {

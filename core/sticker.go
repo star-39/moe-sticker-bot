@@ -65,6 +65,7 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	ss := tele.StickerSet{
 		Name:  ud.stickerData.id,
 		Title: ud.stickerData.title,
+		Video: ud.stickerData.isVideo,
 		Type:  ud.stickerData.stickerSetType,
 	}
 
@@ -216,7 +217,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	if ss.Video {
 		sFormat = "video"
 		if safeMode {
-			f, _ := convert.FFToWebmSafe(sf.oPath)
+			f, _ := convert.FFToWebmSafe(sf.oPath, convert.FORMAT_TG_REGULAR_ANIMATED)
 			file = tele.File{FileLocal: f}
 		} else {
 			file = tele.File{FileLocal: sf.cPath}
@@ -362,12 +363,12 @@ func appendMedia(c tele.Context) error {
 			if c.Message().Sticker != nil && c.Message().Sticker.Video {
 				cf = f
 			} else if c.Message().Sticker != nil && c.Message().Sticker.Animated {
-				cf, err = convert.RlottieToWebm(f)
+				return errors.New("appendMedia: TGS to Video sticker not supported, try another one.")
 			} else {
-				cf, err = convert.FFToWebm(f)
+				cf, err = convert.FFToWebmTGVideo(f, convert.FORMAT_TG_REGULAR_ANIMATED)
 			}
 		} else {
-			cf, err = convert.IMToWebp(f)
+			cf, err = convert.IMToWebpTGStatic(f, convert.FORMAT_TG_REGULAR_STATIC)
 		}
 		if err != nil {
 			log.Warnln("Failed converting one user sticker", err)

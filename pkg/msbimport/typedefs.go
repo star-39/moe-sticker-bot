@@ -34,7 +34,10 @@ const (
 )
 
 type LineFile struct {
+	//Waitgroup for conversion.
 	Wg sync.WaitGroup
+	//Is line emoji(emoticon).
+	IsEmoji bool
 	// path of original file
 	OriginalFile string
 	// path of converted filea
@@ -69,9 +72,12 @@ type LineData struct {
 	//I18n titles for LINE sticker packs, TitleWg must be waited before using this field.
 	I18nTitles []string
 	//WaitGroup for I18nTitles
-	TitleWg    sync.WaitGroup
+	TitleWg sync.WaitGroup
+	//Is Animated line sticker.
 	IsAnimated bool
-	Amount     int
+	//Is line emoji(emoticon).
+	IsEmoji bool
+	Amount  int
 }
 
 type LineJson struct {
