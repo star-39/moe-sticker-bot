@@ -9,7 +9,7 @@
 
 A Telegram bot doing sticker stuffs!
 
-Easily import LINE/Kakaotalk stickers, use your own image or video to create Telegram stickers set and manage it.
+Easily import LINE/Kakaotalk stickers, use your own image or video to create Telegram sticker set or CustomEmoji and manage it.
 
 Download stickers/GIF, also supports exporting to WhatsApp.
 
@@ -17,21 +17,21 @@ Download stickers/GIF, also supports exporting to WhatsApp.
 
 Telegram用萌萌貼圖BOT。
 
-匯入或下載LINE和kakaotalk貼圖包到Telegram. 使用自己的圖片和影片創建Telegram貼圖包並管理.
+匯入或下載LINE和kakaotalk貼圖包到Telegram. 使用自己的圖片和影片創建Telegram貼圖包或表情貼並管理.
 
 下載Telegram貼圖包/GIF，還可以匯出到WhatsApp。
 
 
 ## Features/功能
   * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
-  * Create your own sticker set with your own images or videos in any format.
+  * Create your own sticker set or CustomEmoji with your own images or videos in any format.
   * Batch download and convert Telegram stickers or GIFs to original or common formats.
   * Export Telegram stickers to WhatsApp (requires [Msb App](https://github.com/star-39/msb_app), supports iPhone and Android).
   * Manage your sticker set interactively through WebApp: add/move/remove/edit sticker and emoji.
   * Provides a CLI app [msbimport](https://github.com/star-39/moe-sticker-bot/tree/master/pkg/msbimport) for downloading LINE/Kakaotalk stickers.
 
   * 輕鬆匯入LINE/kakao貼圖包到Telegram, 可以統一或分開指定emoji.
-  * 輕鬆使用自己任意格式的圖片和影片來創建自己的貼圖包.
+  * 輕鬆使用自己任意格式的圖片和影片來創建自己的貼圖包或表情貼.
   * 下載Telegram/LINE/kakao貼圖包和GIF, 自動變換為常用格式, 並且保留原檔.
   * 匯出Telegram的貼圖包至WhatsApp（需要安裝[Msb App](https://github.com/star-39/msb_app), 支援iPhone和Android）。
   * 互動式WebApp可以輕鬆管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
