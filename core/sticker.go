@@ -362,7 +362,7 @@ func appendMedia(c tele.Context) error {
 			if c.Message().Sticker != nil && c.Message().Sticker.Video {
 				cf = f
 			} else if c.Message().Sticker != nil && c.Message().Sticker.Animated {
-				return errors.New("appendMedia: TGS to Video sticker not supported, try another one.")
+				return errors.New("appendMedia: TGS to Video sticker not supported, try another one")
 			} else {
 				cf, err = msbimport.FFToWebmTGVideo(f, msbimport.FORMAT_TG_REGULAR_ANIMATED)
 			}

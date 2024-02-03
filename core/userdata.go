@@ -114,7 +114,7 @@ func setState(c tele.Context, state string) {
 	ud.state = state
 }
 
-func setCommand(c tele.Context, command string) {
-	uid := c.Sender().ID
-	users.data[uid].command = command
-}
+// func setCommand(c tele.Context, command string) {
+// 	uid := c.Sender().ID
+// 	users.data[uid].command = command
+// }
