@@ -782,9 +782,9 @@ func sendStickerSetFullWarning(c tele.Context) error {
 			"提示：當前貼圖包已滿，您將不能增添貼圖和修改emoji。")
 }
 
-func sendEditingEmoji(c tele.Context) error {
-	return c.Send("Commiting changes...\n正在套用變更，請稍候...")
-}
+// func sendEditingEmoji(c tele.Context) error {
+// 	return c.Send("Commiting changes...\n正在套用變更，請稍候...")
+// }
 
 func sendAskSearchKeyword(c tele.Context) error {
 	return c.Send("Please send a word that you want to search\n請傳送想要搜尋的內容")
@@ -860,24 +860,24 @@ func sendBadSNWarn(c tele.Context) error {
 }
 
 func sendSSTitleChanged(c tele.Context) error {
-	msg := fmt.Sprintf(`
+	msg := `
 Successfully changed title.
-新標題設定完成`)
+新標題設定完成`
 	return c.Reply(msg, tele.ModeHTML)
 }
 func sendSSTitleFailedToChanged(c tele.Context) error {
-	msg := fmt.Sprintf(`
+	msg := `
 Failed to change title, please try again.
-新標題設定失敗，請再試一次。`)
+新標題設定失敗，請再試一次。`
 	return c.Reply(msg, tele.ModeHTML)
 }
 
-func sendInvalidEmojiWarn(c tele.Context) error {
-	return c.Reply(`
-Sorry, this emoji is invalid, it has been defaulted to ⭐️, you can edit it after done by using /manage command.
-抱歉，這個emoji無效，並且已默認設定為⭐️，你可以在完成製作後使用 /manage 來修改。
-	`)
-}
+// func sendInvalidEmojiWarn(c tele.Context) error {
+// 	return c.Reply(`
+// Sorry, this emoji is invalid, it has been defaulted to ⭐️, you can edit it after done by using /manage command.
+// 抱歉，這個emoji無效，並且已默認設定為⭐️，你可以在完成製作後使用 /manage 來修改。
+// 	`)
+// }
 
 func sendProcessingStickers(c tele.Context) error {
 	return c.Send(`

@@ -391,7 +391,7 @@ func curateDatabase() error {
 
 					if compCRC32(f, fp) {
 						dupSSCount++
-						log.Warnln("Found dup sticker in ss:%s,index:%d, deleting...", ss.Name, si)
+						log.Warnf("Found dup sticker in ss:%s,index:%d, deleting...", ss.Name, si)
 						b.DeleteSticker(s.FileID)
 					}
 				}
