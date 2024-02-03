@@ -103,12 +103,10 @@ https://github.com/star-39/moe-sticker-bot#changelog
 v2.4.0-RC1(20240203)
 * Support Importing LINE Emoji into CustomEmoji.
 * Support creating CustomEmoji.
-* Editing sticker emoji is now faster.
-* Support changing sticker set title.
+* Support editing sticker emoji and title.
 * 支援LINE表情貼匯入。
 * 支援創建表情貼。
-* 支援修改貼圖包標題。
-* 更快的修改貼圖Emoji.
+* 支援修改貼圖Emoji/貼圖包標題。
 
 v2.3.13-v2.3.15(20230228)
 * Support region locked LINE Message sticker.

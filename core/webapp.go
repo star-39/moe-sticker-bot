@@ -242,7 +242,7 @@ func commitEmojiChange(ud *UserData, so []webappStickerObject) error {
 			oldEmoji := findEmojis(ss[i].Emoji)
 			newEmoji := findEmojis(s.Emoji)
 			newEmojiList := findEmojiList(s.Emoji)
-			if newEmoji == "" || newEmoji == oldEmoji || len(newEmojiList) == 0 {
+			if newEmoji == "" || newEmoji == oldEmoji {
 				log.Info("webapp: ignored one invalid emoji.")
 				continue
 			}
