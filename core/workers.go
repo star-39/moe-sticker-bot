@@ -5,7 +5,7 @@ import (
 
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
+	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 )
 
 // Workers pool for converting webm
@@ -32,26 +32,26 @@ func wDownloadStickerObject(i interface{}) {
 		}
 		if obj.forWhatsApp {
 			if obj.sticker.Video {
-				obj.err = convert.FFToAnimatedWebpWA(obj.dest)
+				obj.err = msbimport.FFToAnimatedWebpWA(obj.dest)
 			} else if obj.sticker.Animated {
-				_, obj.err = convert.RlottieToWebp(obj.dest)
+				_, obj.err = msbimport.RlottieToWebp(obj.dest)
 
 			} else {
-				obj.err = convert.IMToWebpWA(obj.dest)
+				obj.err = msbimport.IMToWebpWA(obj.dest)
 			}
 
 			if obj.forWhatsAppThumb {
 				if obj.sticker.Animated {
 					f := strings.ReplaceAll(obj.dest, ".tgs", ".webp")
-					obj.err = convert.IMToPNGThumb(f)
+					obj.err = msbimport.IMToPNGThumb(f)
 				} else {
-					obj.err = convert.IMToPNGThumb(obj.dest)
+					obj.err = msbimport.IMToPNGThumb(obj.dest)
 				}
 			}
 		} else {
 			//TGS set is not managable, no need to convert.
 			if obj.sticker.Video {
-				obj.err = convert.FFToAnimatedWebpLQ(obj.dest)
+				obj.err = msbimport.FFToAnimatedWebpLQ(obj.dest)
 			}
 		}
 		return
@@ -64,19 +64,19 @@ func wDownloadStickerObject(i interface{}) {
 		f = obj.dest + ".webm"
 		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
-			cf, _ = convert.FFToGif(f)
+			cf, _ = msbimport.FFToGif(f)
 		}
 	} else if obj.sticker.Animated {
 		f = obj.dest + ".tgs"
 		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
-			cf, _ = convert.RlottieToGIF(f)
+			cf, _ = msbimport.RlottieToGIF(f)
 		}
 	} else {
 		f = obj.dest + ".webp"
 		err = teleDownload(&obj.sticker.File, f)
 		if obj.needConvert {
-			cf, _ = convert.IMToPng(f)
+			cf, _ = msbimport.IMToPng(f)
 		}
 	}
 	if err != nil {

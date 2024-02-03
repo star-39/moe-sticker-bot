@@ -8,7 +8,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
 	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 )
 
@@ -31,7 +30,7 @@ func main() {
 		}
 	}
 
-	convert.InitConvert()
+	msbimport.InitConvert()
 
 	ctx, _ := context.WithCancel(context.Background())
 	ld := &msbimport.LineData{}

@@ -9,9 +9,7 @@ import (
 	"time"
 
 	"github.com/panjf2000/ants/v2"
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
 	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
-	"github.com/star-39/moe-sticker-bot/pkg/util"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -54,7 +52,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		}
 		if s.Video || s.Animated {
 			zip := filepath.Join(workDir, secHex(4)+".zip")
-			util.FCompress(zip, []string{obj.cf})
+			msbimport.FCompress(zip, []string{obj.cf})
 			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
 		} else {
 			c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(obj.cf), File: tele.FromDisk(obj.cf)})
@@ -100,7 +98,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		go editProgressMsg(i, len(ss.Stickers), "", pText, pMsg, c)
 		obj.wg.Wait()
 		imageTime = imageTime.Add(time.Duration(i+1) * time.Second)
-		convert.SetImageTime(obj.of, imageTime)
+		msbimport.SetImageTime(obj.of, imageTime)
 		flist = append(flist, obj.of)
 		cflist = append(cflist, obj.cf)
 	}
@@ -115,14 +113,14 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	var zipPaths []string
 
 	if ss.Video {
-		zipPaths = append(zipPaths, util.FCompressVol(webmZipPath, flist)...)
-		zipPaths = append(zipPaths, util.FCompressVol(gifZipPath, cflist)...)
+		zipPaths = append(zipPaths, msbimport.FCompressVol(webmZipPath, flist)...)
+		zipPaths = append(zipPaths, msbimport.FCompressVol(gifZipPath, cflist)...)
 	} else if ss.Animated {
-		zipPaths = append(zipPaths, util.FCompressVol(tgsZipPath, flist)...)
-		zipPaths = append(zipPaths, util.FCompressVol(gifZipPath, cflist)...)
+		zipPaths = append(zipPaths, msbimport.FCompressVol(tgsZipPath, flist)...)
+		zipPaths = append(zipPaths, msbimport.FCompressVol(gifZipPath, cflist)...)
 	} else {
-		zipPaths = append(zipPaths, util.FCompressVol(webpZipPath, flist)...)
-		zipPaths = append(zipPaths, util.FCompressVol(pngZipPath, cflist)...)
+		zipPaths = append(zipPaths, msbimport.FCompressVol(webpZipPath, flist)...)
+		zipPaths = append(zipPaths, msbimport.FCompressVol(pngZipPath, cflist)...)
 	}
 	for _, zipPath := range zipPaths {
 		_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zipPath), File: tele.FromDisk(zipPath)})
@@ -147,11 +145,11 @@ func downloadGifToZip(c tele.Context) error {
 	if err != nil {
 		return err
 	}
-	cf, _ := convert.FFToGif(f)
+	cf, _ := msbimport.FFToGif(f)
 	cf2 := strings.ReplaceAll(cf, "animation_MP4.mp4", "animation_GIF.gif")
 	os.Rename(cf, cf2)
 	zip := filepath.Join(workDir, secHex(4)+".zip")
-	util.FCompress(zip, []string{cf2})
+	msbimport.FCompress(zip, []string{cf2})
 
 	_, err = c.Bot().Reply(c.Message(), &tele.Document{FileName: filepath.Base(zip), File: tele.FromDisk(zip)})
 	return err
@@ -174,7 +172,7 @@ func downloadLineSToZip(c tele.Context, ud *UserData) error {
 	for _, lf := range ud.lineData.Files {
 		files = append(files, lf.OriginalFile)
 	}
-	util.FCompress(zipPath, files)
+	msbimport.FCompress(zipPath, files)
 	_, err = c.Bot().Send(c.Recipient(), &tele.Document{FileName: zipName, File: tele.FromDisk(zipPath)})
 	endSession(c)
 	return err

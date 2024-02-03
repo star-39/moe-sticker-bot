@@ -10,14 +10,14 @@ import (
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
+	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
 )
 
 func Init(conf ConfigTemplate) {
 	msbconf = conf
 	initLogrus()
-	convert.InitConvert()
+	msbimport.InitConvert()
 	b = initBot(conf)
 	initWorkspace(b)
 	initWorkersPool()

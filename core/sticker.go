@@ -10,8 +10,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
-	"github.com/star-39/moe-sticker-bot/pkg/util"
+	"github.com/star-39/moe-sticker-bot/pkg/msbimport"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -217,7 +216,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	if ss.Video {
 		sFormat = "video"
 		if safeMode {
-			f, _ := convert.FFToWebmSafe(sf.oPath, convert.FORMAT_TG_REGULAR_ANIMATED)
+			f, _ := msbimport.FFToWebmSafe(sf.oPath, msbimport.FORMAT_TG_REGULAR_ANIMATED)
 			file = tele.File{FileLocal: f}
 		} else {
 			file = tele.File{FileLocal: sf.cPath}
@@ -350,7 +349,7 @@ func appendMedia(c tele.Context) error {
 		return errors.New("error downloading media")
 	}
 	if c.Message().Media().MediaType() == "document" && guessIsArchive(c.Message().Document.FileName) {
-		files = append(files, util.ArchiveExtract(savePath)...)
+		files = append(files, msbimport.ArchiveExtract(savePath)...)
 	} else {
 		files = append(files, savePath)
 	}
@@ -365,10 +364,10 @@ func appendMedia(c tele.Context) error {
 			} else if c.Message().Sticker != nil && c.Message().Sticker.Animated {
 				return errors.New("appendMedia: TGS to Video sticker not supported, try another one.")
 			} else {
-				cf, err = convert.FFToWebmTGVideo(f, convert.FORMAT_TG_REGULAR_ANIMATED)
+				cf, err = msbimport.FFToWebmTGVideo(f, msbimport.FORMAT_TG_REGULAR_ANIMATED)
 			}
 		} else {
-			cf, err = convert.IMToWebpTGStatic(f, convert.FORMAT_TG_REGULAR_STATIC)
+			cf, err = msbimport.IMToWebpTGStatic(f, msbimport.FORMAT_TG_REGULAR_STATIC)
 		}
 		if err != nil {
 			log.Warnln("Failed converting one user sticker", err)

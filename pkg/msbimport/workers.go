@@ -5,7 +5,6 @@ import (
 
 	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
 )
 
 // Workers pool for converting webm
@@ -21,12 +20,12 @@ func wConvertWebm(i interface{}) {
 	//FFMpeg doest not support animated webp.
 	//IM convert it to apng then feed to webm.
 	if strings.HasSuffix(lf.OriginalFile, ".webp") {
-		lf.OriginalFile, _ = convert.IMToApng(lf.OriginalFile)
+		lf.OriginalFile, _ = IMToApng(lf.OriginalFile)
 	}
 	if lf.IsEmoji {
-		lf.ConvertedFile, err = convert.FFToWebmTGVideo(lf.OriginalFile, convert.FORMAT_TG_EMOJI_ANIMATED)
+		lf.ConvertedFile, err = FFToWebmTGVideo(lf.OriginalFile, FORMAT_TG_EMOJI_ANIMATED)
 	} else {
-		lf.ConvertedFile, err = convert.FFToWebmTGVideo(lf.OriginalFile, convert.FORMAT_TG_REGULAR_ANIMATED)
+		lf.ConvertedFile, err = FFToWebmTGVideo(lf.OriginalFile, FORMAT_TG_REGULAR_ANIMATED)
 	}
 
 	if err != nil {

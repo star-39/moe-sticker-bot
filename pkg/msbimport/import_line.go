@@ -13,8 +13,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
-	"github.com/star-39/moe-sticker-bot/pkg/util"
 )
 
 func parseLineLink(link string, ld *LineData) (string, error) {
@@ -288,9 +286,9 @@ func lineZipExtract(f string, ld *LineData) []string {
 		for _, pf := range pfs {
 			os.Rename(pf, filepath.Join(workDir, strings.TrimSuffix(filepath.Base(pf), ".png")+"@99.png"))
 		}
-		files = util.LsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
+		files = LsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	default:
-		files = util.LsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
+		files = LsFiles(workDir, []string{".png"}, []string{"tab", "key", "json"})
 	}
 	if ld.IsAnimated {
 		sanitizeLinePNGs(files)
@@ -404,7 +402,7 @@ func prepareLineMessageS(ctx context.Context, ld *LineData, workDir string, need
 			oPath := filepath.Join(workDir, strconv.Itoa(i)+".overlay.png")
 			httpDownloadCurlUA(b, bPath)
 			httpDownloadCurlUA(overlayImages[i], oPath)
-			f, err := convert.IMStackToWebp(bPath, oPath)
+			f, err := IMStackToWebp(bPath, oPath)
 			if err != nil {
 				ld.Files[i].CError = err
 			}

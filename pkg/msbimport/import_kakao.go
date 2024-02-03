@@ -12,9 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
-	"github.com/star-39/moe-sticker-bot/pkg/util"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -114,7 +111,7 @@ func prepareKakaoStickers(ctx context.Context, ld *LineData, workDir string, nee
 			if err != nil {
 				ld.Files[i].CError = err
 			}
-			cf, _ := convert.IMToWebpTGStatic(f, convert.FORMAT_TG_REGULAR_STATIC)
+			cf, _ := IMToWebpTGStatic(f, FORMAT_TG_REGULAR_STATIC)
 			ld.Files[i].OriginalFile = f
 			ld.Files[i].ConvertedFile = cf
 			ld.Files[i].Wg.Done()
@@ -174,7 +171,7 @@ func kakaoZipExtract(f string, ld *LineData) []string {
 		return nil
 	}
 	log.Debugln("scanning workdir:", workDir)
-	files = util.LsFiles(workDir, []string{}, []string{})
+	files = LsFiles(workDir, []string{}, []string{})
 
 	for _, f := range files {
 		//PNG is not encrypted.

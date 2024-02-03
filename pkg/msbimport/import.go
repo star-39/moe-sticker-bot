@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/star-39/moe-sticker-bot/pkg/convert"
 )
 
 // Parse a LINE or Kakao link and fetch metadata.
@@ -74,9 +73,9 @@ func convertSToTGFormat(ctx context.Context, ld *LineData) {
 			wpConvertWebm.Invoke(s)
 		} else {
 			if ld.IsEmoji {
-				s.ConvertedFile, err = convert.IMToWebpTGStatic(s.OriginalFile, convert.FORMAT_TG_EMOJI_STATIC)
+				s.ConvertedFile, err = IMToWebpTGStatic(s.OriginalFile, FORMAT_TG_EMOJI_STATIC)
 			} else {
-				s.ConvertedFile, err = convert.IMToWebpTGStatic(s.OriginalFile, convert.FORMAT_TG_REGULAR_STATIC)
+				s.ConvertedFile, err = IMToWebpTGStatic(s.OriginalFile, FORMAT_TG_REGULAR_STATIC)
 			}
 			if err != nil {
 				s.CError = err
