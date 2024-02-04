@@ -462,8 +462,8 @@ func sendAskSTypeToCreate(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	btnStatic := selector.Data("Regular Sticker/普通貼圖", "static")
 	btnAnimated := selector.Data("Animated Sticker/動態貼圖", "video")
-	btnStaticEmoji := selector.Data("Static Custom Emoji/表情貼", "staticEmoji")
-	btnAnimatedEmoji := selector.Data("Animated Custom Emoji/動態表情貼", "videoEmoji")
+	btnStaticEmoji := selector.Data("Static Custom Emoji/表情貼", "staticemoji")
+	btnAnimatedEmoji := selector.Data("Animated Custom Emoji/動態表情貼", "videoemoji")
 
 	selector.Inline(selector.Row(btnStatic), selector.Row(btnAnimated), selector.Row(btnStaticEmoji), selector.Row(btnAnimatedEmoji))
 	return c.Send("What kind of sticker set you want to create?\n"+

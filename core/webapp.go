@@ -253,15 +253,10 @@ func commitEmojiChange(ud *UserData, so []webappStickerObject) error {
 			if err != nil {
 				return err
 			}
-			// Have a rest.
-			time.Sleep(1 * time.Second)
 		}
 	}
 
 	sendSEditOK(ud.lastContext)
-	sendSFromSS(ud.lastContext, ud.stickerData.id, nil)
-	endManageSession(ud.lastContext)
-	endSession(ud.lastContext)
 	return nil
 }
 
