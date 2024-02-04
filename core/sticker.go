@@ -328,7 +328,8 @@ func editStickerEmoji(newEmojis []string, fid string, ud *UserData) error {
 	return b.SetStickerEmojiList(ud.lastContext.Recipient(), fid, newEmojis)
 }
 
-// Accept telebot Media and Sticker only
+// Receive and process user uploaded media file and convert to Telegram compliant format.
+// Accept telebot Media and Sticker only.
 func appendMedia(c tele.Context) error {
 	log.Debugf("Received file, MType:%s, FileID:%s", c.Message().Media().MediaType(), c.Message().Media().MediaFile().FileID)
 	var files []string
@@ -360,14 +361,18 @@ func appendMedia(c tele.Context) error {
 		var err error
 		if ud.stickerData.isVideo {
 			if c.Message().Sticker != nil && c.Message().Sticker.Video {
-				cf = f
+				if (c.Message().Sticker.CustomEmoji != "") == ud.stickerData.isCustomEmoji {
+					cf = f
+				} else {
+					cf, err = msbimport.FFToWebmTGVideo(f, ud.stickerData.isCustomEmoji)
+				}
 			} else if c.Message().Sticker != nil && c.Message().Sticker.Animated {
 				return errors.New("appendMedia: TGS to Video sticker not supported, try another one")
 			} else {
-				cf, err = msbimport.FFToWebmTGVideo(f, msbimport.FORMAT_TG_REGULAR_ANIMATED)
+				cf, err = msbimport.FFToWebmTGVideo(f, ud.stickerData.isCustomEmoji)
 			}
 		} else {
-			cf, err = msbimport.IMToWebpTGStatic(f, msbimport.FORMAT_TG_REGULAR_STATIC)
+			cf, err = msbimport.IMToWebpTGStatic(f, ud.stickerData.isCustomEmoji)
 		}
 		if err != nil {
 			log.Warnln("Failed converting one user sticker", err)

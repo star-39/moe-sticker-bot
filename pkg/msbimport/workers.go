@@ -22,12 +22,8 @@ func wConvertWebm(i interface{}) {
 	if strings.HasSuffix(lf.OriginalFile, ".webp") {
 		lf.OriginalFile, _ = IMToApng(lf.OriginalFile)
 	}
-	if lf.IsEmoji {
-		lf.ConvertedFile, err = FFToWebmTGVideo(lf.OriginalFile, FORMAT_TG_EMOJI_ANIMATED)
-	} else {
-		lf.ConvertedFile, err = FFToWebmTGVideo(lf.OriginalFile, FORMAT_TG_REGULAR_ANIMATED)
-	}
 
+	lf.ConvertedFile, err = FFToWebmTGVideo(lf.OriginalFile, lf.IsEmoji)
 	if err != nil {
 		lf.CError = err
 	}

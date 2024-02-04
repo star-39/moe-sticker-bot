@@ -111,7 +111,7 @@ func prepareKakaoStickers(ctx context.Context, ld *LineData, workDir string, nee
 			if err != nil {
 				ld.Files[i].CError = err
 			}
-			cf, _ := IMToWebpTGStatic(f, FORMAT_TG_REGULAR_STATIC)
+			cf, _ := IMToWebpTGStatic(f, false)
 			ld.Files[i].OriginalFile = f
 			ld.Files[i].ConvertedFile = cf
 			ld.Files[i].Wg.Done()

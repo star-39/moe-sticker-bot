@@ -84,16 +84,14 @@ func CheckDeps() []string {
 
 // Convert any image to static WEBP image, for Telegram use.
 // `format` takes either FORMAT_TG_REGULAR_STATIC or FORMAT_TG_EMOJI_STATIC
-func IMToWebpTGStatic(f string, format string) (string, error) {
+func IMToWebpTGStatic(f string, isCustomEmoji bool) (string, error) {
 	pathOut := f + ".webp"
 	bin := CONVERT_BIN
 	args := CONVERT_ARGS
-	if format == FORMAT_TG_REGULAR_STATIC {
-		args = append(args, "-resize", "512x512")
-	} else if format == FORMAT_TG_EMOJI_STATIC {
-		args = append(args, "-resize", "100x100")
+	if isCustomEmoji {
+		args = append(args, "-resize", "100x100", "-gravity", "center", "-extent", "100x100", "-background", "none")
 	} else {
-		return pathOut, errors.New("IMToWebpTG: Unknown format")
+		args = append(args, "-resize", "512x512")
 	}
 	args = append(args, "-filter", "Lanczos", "-define", "webp:lossless=true", f+"[0]", pathOut)
 
@@ -175,17 +173,15 @@ func IMToApng(f string) (string, error) {
 	return pathOut, err
 }
 
-func FFToWebmTGVideo(f string, format string) (string, error) {
+func FFToWebmTGVideo(f string, isCustomEmoji bool) (string, error) {
 	pathOut := f + ".webm"
 	bin := FFMPEG_BIN
 	baseargs := []string{}
 	baseargs = append(baseargs, "-hide_banner", "-i", f)
-	if format == FORMAT_TG_REGULAR_ANIMATED {
-		baseargs = append(baseargs, "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos")
-	} else if format == FORMAT_TG_EMOJI_ANIMATED {
+	if isCustomEmoji {
 		baseargs = append(baseargs, "-vf", "scale=100:100:force_original_aspect_ratio=decrease:flags=lanczos")
 	} else {
-		return "", errors.New("FFToWebmTGVideo: Unknown format")
+		baseargs = append(baseargs, "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos")
 	}
 	baseargs = append(baseargs, "-pix_fmt", "yuva420p", "-c:v", "libvpx-vp9", "-cpu-used", "5")
 
@@ -211,7 +207,7 @@ func FFToWebmTGVideo(f string, format string) (string, error) {
 			if strings.Contains(string(out), "skipping unsupported chunk: ANIM") {
 				log.Warnln("Trying to convert to APNG first.")
 				f2, _ := IMToApng(f)
-				return FFToWebmTGVideo(f2, format)
+				return FFToWebmTGVideo(f2, isCustomEmoji)
 			}
 			return pathOut, err
 		}

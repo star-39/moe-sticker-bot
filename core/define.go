@@ -136,6 +136,7 @@ type StickerData struct {
 	stickerSetType tele.StickerSetType
 	isVideo        bool
 	isAnimated     bool
+	isCustomEmoji  bool
 	pos            int
 	// amount of local files
 	lAmount int

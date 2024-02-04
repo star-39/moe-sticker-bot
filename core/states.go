@@ -359,13 +359,16 @@ func waitSType(c tele.Context) error {
 		return c.Send("Please press a button. /quit")
 	}
 
+	ud := users.data[c.Sender().ID]
 	if strings.Contains(c.Callback().Data, "video") {
-		users.data[c.Sender().ID].stickerData.isVideo = true
+		ud.stickerData.isVideo = true
 	}
 	if strings.Contains(c.Callback().Data, "emoji") {
-		users.data[c.Sender().ID].stickerData.stickerSetType = tele.StickerCustomEmoji
+		ud.stickerData.stickerSetType = tele.StickerCustomEmoji
+		ud.stickerData.isCustomEmoji = true
 	} else {
-		users.data[c.Sender().ID].stickerData.stickerSetType = tele.StickerRegular
+		ud.stickerData.stickerSetType = tele.StickerRegular
+		ud.stickerData.isCustomEmoji = false
 	}
 
 	sendAskTitle(c)
