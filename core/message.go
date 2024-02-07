@@ -553,6 +553,7 @@ Preparing stickers, please wait...
 LINE Cat: <code>%s</code>
 LINE ID: <code>%s</code>
 TG ID: <code>%s</code>
+TG TYPE: <code>%s</code>
 TG Title: <a href="%s">%s</a>
 
 <b>Progress / 進展</b>
@@ -560,6 +561,7 @@ TG Title: <a href="%s">%s</a>
 `, ud.lineData.Category,
 		ud.lineData.Id,
 		ud.stickerData.id,
+		ud.stickerData.stickerSetType,
 		"https://t.me/addstickers/"+ud.stickerData.id,
 		escapeTagMark(ud.stickerData.title),
 		optMsg)

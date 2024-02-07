@@ -128,7 +128,6 @@ type StickerData struct {
 	// link     string
 	title          string
 	emojis         []string
-	sticker        *tele.Sticker
 	stickers       []*StickerFile
 	stickerSet     *tele.StickerSet
 	sDnObjects     []*StickerDownloadObject
