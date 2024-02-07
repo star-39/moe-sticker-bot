@@ -105,27 +105,29 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 			Emojis:   ud.stickerData.emojis,
 			Keywords: []string{"sticker"},
 		}
-		if createSet {
+		if createSet && index == 0 {
 			//Already finished.
-			if !ud.stickerData.isVideo && skipFirstFiftyStickers && len(ud.stickerData.stickers) < 51 {
+			if skipFirstFiftyStickers && len(ud.stickerData.stickers) < 51 {
 				go editProgressMsg(len(ud.stickerData.stickers), len(ud.stickerData.stickers), "", pText, teleMsg, c)
 				break
 			}
-			if !ud.stickerData.isVideo && skipFirstFiftyStickers && len(ud.stickerData.stickers) > 50 {
+			if skipFirstFiftyStickers && len(ud.stickerData.stickers) > 50 {
+				continue
+			}
+
+			err = commitSticker(true, index, flCount, false, sf, c, inputSticker, ss)
+			if err != nil {
+				log.Errorln("create sticker set failed!. ", err)
+				return err
+			} else {
+				committedStickers += 1
+			}
+		} else {
+			if skipFirstFiftyStickers {
 				if index < 50 {
 					continue
 				}
 			}
-			if index == 0 {
-				err = commitSticker(true, index, flCount, false, sf, c, inputSticker, ss)
-				if err != nil {
-					log.Errorln("create sticker set failed!. ", err)
-					return err
-				} else {
-					committedStickers += 1
-				}
-			}
-		} else {
 			go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
 
 			err = commitSticker(false, index, flCount, false, sf, c, inputSticker, ss)
