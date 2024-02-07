@@ -22,7 +22,7 @@ func Init(conf ConfigTemplate) {
 	initWorkspace(b)
 	initWorkersPool()
 	go initGoCron()
-	if msbconf.WebApp {
+	if msbconf.WebappUrl != "" {
 		InitWebAppServer()
 	} else {
 		log.Info("WebApp not enabled.")
@@ -138,20 +138,6 @@ func initBot(conf ConfigTemplate) *tele.Bot {
 	var poller tele.Poller
 	url := tele.DefaultApiURL
 
-	if msbconf.WebhookListenAddr != "" {
-		poller = &tele.Webhook{
-			Endpoint: &tele.WebhookEndpoint{
-				PublicURL: msbconf.WebhookPublicAddr,
-			},
-			Listen: msbconf.WebhookListenAddr,
-		}
-		if msbconf.BotApiAddr != "" {
-			url = msbconf.BotApiAddr
-		}
-	} else {
-		poller = &tele.LongPoller{Timeout: 10 * time.Second}
-	}
-
 	pref := tele.Settings{
 		URL:         url,
 		Token:       msbconf.BotToken,
@@ -182,7 +168,7 @@ func initWorkspace(b *tele.Bot) {
 		log.Fatal(err)
 	}
 
-	if msbconf.UseDB {
+	if msbconf.DbAddr != "" {
 		dbName := botName + "_db"
 		err = initDB(dbName)
 		if err != nil {
@@ -197,7 +183,7 @@ func initGoCron() {
 	time.Sleep(15 * time.Second)
 	cronScheduler = gocron.NewScheduler(time.UTC)
 	cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
-	if msbconf.UseDB {
+	if msbconf.DbAddr != "" {
 		cronScheduler.Every(1).Weeks().Do(curateDatabase)
 	}
 	cronScheduler.StartAsync()

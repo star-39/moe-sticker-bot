@@ -50,19 +50,19 @@ func purgeOutdatedStorageData() {
 		}
 	}
 
-	if msbconf.BotApiDir != "" {
-		filepath.Walk(msbconf.BotApiDir, func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() {
-				return nil
-			}
-			// fInfo, _ := f.Info()
-			fMTime := info.ModTime().Unix()
-			// 2 Days
-			if fMTime < (time.Now().Unix() - 172800) {
-				os.RemoveAll(path)
-				log.Infoln("Purged outdated LocalBotApiDir:", path)
-			}
-			return nil
-		})
-	}
+	// if msbconf.BotApiDir != "" {
+	// 	filepath.Walk(msbconf.BotApiDir, func(path string, info os.FileInfo, err error) error {
+	// 		if info.IsDir() {
+	// 			return nil
+	// 		}
+	// 		// fInfo, _ := f.Info()
+	// 		fMTime := info.ModTime().Unix()
+	// 		// 2 Days
+	// 		if fMTime < (time.Now().Unix() - 172800) {
+	// 			os.RemoveAll(path)
+	// 			log.Infoln("Purged outdated LocalBotApiDir:", path)
+	// 		}
+	// 		return nil
+	// 	})
+	// }
 }

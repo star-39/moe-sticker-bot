@@ -23,20 +23,17 @@ func parseCmdLine() core.ConfigTemplate {
 	var adminUid = flag.Int64("admin_uid", -1, "Admin's UID(optional)")
 	var botToken = flag.String("bot_token", "", "Telegram Bot Token")
 	var dataDir = flag.String("data_dir", "", "Overwrites the working directory where msb puts data.")
-	var webapp = flag.Bool("webapp", false, "Enable WebApp support")
-	var webappUrl = flag.String("webapp_url", "", "Public URL to WebApp, HTTPS only")
-	// var webappApiUrl = flag.String("webapp_api_url", "", "Public URL to WebApp API server, if unset, same as webapp_url HTTPS only")
-	var WebappListenAddr = flag.String("webapp_listen_addr", "", "Webapp API server listen address(IP:PORT)")
+	var webappUrl = flag.String("webapp_url", "", "Public HTTPS URL to WebApp, in unset, webapp will be disabled.")
+	var WebappApiListenAddr = flag.String("webapp_listen_addr", "", "Webapp API server listen address(IP:PORT)")
 	var webappDataDir = flag.String("webapp_data_dir", "", "Where to put webapp data to share with ReactApp ")
-	var useDB = flag.Bool("use_db", false, "Use MariaDB")
-	var dbAddr = flag.String("db_addr", "", "mariadb address")
-	var dbUser = flag.String("db_user", "", "mariadb usernmae")
-	var dbPass = flag.String("db_pass", "", "mariadb password")
+	var dbAddr = flag.String("db_addr", "", "mariadb(mysql) address, if unset, database will be disabled.")
+	var dbUser = flag.String("db_user", "", "mariadb(mysql) usernmae")
+	var dbPass = flag.String("db_pass", "", "mariadb(mysql) password")
 	var logLevel = flag.String("log_level", "debug", "Log level")
-	var botApiAddr = flag.String("botapi_addr", "", "Local Bot API Server Address")
-	var botApiDir = flag.String("botapi_dir", "", "Local Bot API Working directory")
-	var webhookPublicAddr = flag.String("webhook_public_addr", "", "Webhook public address(WebhookEndpoint).")
-	var webhookListenAddr = flag.String("webhook_listen_addr", "", "Webhook listen address(IP:PORT)")
+	// var botApiAddr = flag.String("botapi_addr", "", "Local Bot API Server Address")
+	// var botApiDir = flag.String("botapi_dir", "", "Local Bot API Working directory")
+	// var webhookPublicAddr = flag.String("webhook_public_addr", "", "Webhook public address(WebhookEndpoint).")
+	// var webhookListenAddr = flag.String("webhook_listen_addr", "", "Webhook listen address(IP:PORT)")
 	// var webhookCert = flag.String("webhook_cert", "", "Certificate for WebHook")
 	flag.Parse()
 	if *help {
@@ -51,36 +48,24 @@ func parseCmdLine() core.ConfigTemplate {
 	if conf.BotToken == "" {
 		log.Error("Please set --bot_token")
 		log.Error("Use --help to see options.")
-		// log.Error("Please note that specifing BOT_TOKEN env var is no longer supported.")
 		log.Fatal("No bot token provided!")
 	}
 	if !strings.Contains(conf.BotToken, ":") {
 		log.Fatal("Bad bot token!")
 	}
 
-	//Use the second half of bot token as secret_token for webhook.
-	conf.WebhookSecretToken = strings.Split(conf.BotToken, ":")[1]
-
-	conf.UseDB = *useDB
 	conf.DbAddr = *dbAddr
 	conf.DbUser = *dbUser
 	conf.DbPass = *dbPass
 
-	conf.WebApp = *webapp
 	conf.WebappUrl = *webappUrl
-	// Defaults apiUrl to webappUrl
-	// if conf.WebappApiUrl == "" {
-	conf.WebappApiUrl = *webappUrl
-	// } else {
-	// 	conf.WebappApiUrl = *webappApiUrl
-	// }
 	conf.WebappDataDir = *webappDataDir
-	conf.WebappListenAddr = *WebappListenAddr
+	conf.WebappApiListenAddr = *WebappApiListenAddr
 
-	conf.BotApiAddr = *botApiAddr
-	conf.BotApiDir = *botApiDir
-	conf.WebhookPublicAddr = *webhookPublicAddr
-	conf.WebhookListenAddr = *webhookListenAddr
+	// conf.BotApiAddr = *botApiAddr
+	// conf.BotApiDir = *botApiDir
+	// conf.WebhookPublicAddr = *webhookPublicAddr
+	// conf.WebhookListenAddr = *webhookListenAddr
 	// conf.WebhookCert = *webhookCert
 
 	conf.LogLevel = *logLevel

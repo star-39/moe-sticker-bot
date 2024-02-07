@@ -656,7 +656,7 @@ func sendAskEditChoice(c tele.Context) error {
 	btnChangeTitle := selector.Data("Change title/修改標題", CB_CHANGE_TITLE)
 	btnExit := selector.Data("Exit/退出", "bye")
 
-	if msbconf.WebApp {
+	if msbconf.WebappUrl != "" {
 		baseUrl, _ := url.JoinPath(msbconf.WebappUrl, "edit")
 		url := fmt.Sprintf("%s?ss=%s&dt=%d",
 			baseUrl,

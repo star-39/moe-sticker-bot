@@ -45,11 +45,11 @@ func InitWebAppServer() {
 	}
 
 	go func() {
-		err := r.Run(msbconf.WebappListenAddr)
+		err := r.Run(msbconf.WebappApiListenAddr)
 		if err != nil {
 			log.Fatalln("WebApp: Gin Run failed! Check your addr or disable webapp.\n", err)
 		}
-		log.Infoln("WebApp: Listening on ", msbconf.WebappListenAddr)
+		log.Infoln("WebApp: Listening on ", msbconf.WebappApiListenAddr)
 	}()
 }
 

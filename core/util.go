@@ -113,7 +113,7 @@ func findLinkWithType(s string) (string, string) {
 // func httpDownloadCurlUA(link string, f string) error {
 // 	req, _ := http.NewRequest("GET", link, nil)
 // 	req.Header.Set("User-Agent", "curl/7.61.1")
-// 	res, err := httpClient.Do(req)
+// 	res, err := httpClient.Do(req)tr
 // 	if err != nil {
 // 		return err
 // 	}
@@ -264,6 +264,9 @@ func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
 	sd.cAmount = len(ss.Stickers)
 	sd.isVideo = ss.Video
 	sd.stickerSetType = ss.Type
+	if ss.Type == tele.StickerCustomEmoji {
+		sd.isCustomEmoji = true
+	}
 	return nil
 }
 
@@ -382,17 +385,17 @@ func checkGnerateSIDFromLID(ld *msbimport.LineData) string {
 // We move the file from api server to target location.
 // Be careful, this does not work when crossing mount points.
 func teleDownload(tf *tele.File, f string) error {
-	if msbconf.BotApiAddr != "" {
-		tf2, err := b.FileByID(tf.FileID)
-		if err != nil {
-			return err
-		}
-		err = os.Rename(tf2.FilePath, f)
-		if err != nil {
-			exec.Command("cp", tf2.FilePath, f).CombinedOutput()
-		}
-		return os.Chmod(f, 0644)
-	} else {
-		return b.Download(tf, f)
-	}
+	// if msbconf.BotApiAddr != "" {
+	// 	tf2, err := b.FileByID(tf.FileID)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	err = os.Rename(tf2.FilePath, f)
+	// 	if err != nil {
+	// 		exec.Command("cp", tf2.FilePath, f).CombinedOutput()
+	// 	}
+	// 	return os.Chmod(f, 0644)
+	// } else {
+	return b.Download(tf, f)
+	// }
 }

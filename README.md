@@ -104,18 +104,18 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
 * bsdtar (libarchive-tools)
 * ffmpeg
 * curl
-* gifsicle (optional, for converting GIF)
+* gifsicle (for converting GIF)
+* python3 (for following tools)
+* [msb_emoji.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_emoji.py) (for extracting emoji)
+* [msb_kakao_decrypt.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_kakao_decrypt.py) (for decrypting animated kakao)
+* [msb_rlottie.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_rlottie.py) (for converting TGS)
 * mariadb-server (optional, for database)
-* nginx (optional, for WebApp and WebHook)
-* python3 (optional, for following tools)
-* [msb_emoji.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_emoji.py) (optional, for emoji assign)
-* [msb_kakao_decrypt.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_kakao_decrypt.py) (optional, for decrypting animated kakao)
-* [msb_rlottie.py](https://github.com/star-39/moe-sticker-bot/tree/master/tools/msb_rlottie.py) (optional, for converting TGS)
+* nginx (optional, for WebApp)
 
 
 ## Build
 ### Build Dependencies
- * golang v18+
+ * golang v1.18+
  * nodejs v18+ (optional, for WebApp)
  * react-js v18+ (optional, for WebApp)
 
