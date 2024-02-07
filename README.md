@@ -148,6 +148,11 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 
 
 ## CHANGELOG
+v2.4.0-RC1-RC2(20240207)
+  * Support Importing LINE Emoji into CustomEmoji.
+  * Support creating CustomEmoji.
+  * Support editing sticker emoji and title.
+  
 v2.3.14-2.3.15(20230228)
   * Fix missing libwebp in OCI.
   * Support TGS export.
