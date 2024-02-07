@@ -14,8 +14,9 @@ function Export() {
     get: (searchParams, prop) => searchParams.get(prop),
   });
 
-  const exportLinkHttps = `https://${process.env.REACT_APP_HOST}/webapp/api/export?sn=${params.sn}&qid=${queryId}&hex=${params.hex}`
-  const exportLinkMsb = `msb://app/export/${params.sn}/?qid=${queryId}&hex=${params.hex}`
+  const host = process.env.REACT_APP_HOST
+  const exportLinkHttps = `https://${host}/webapp/api/export?dn=${host}&sn=${params.sn}&qid=${queryId}&hex=${params.hex}`
+  const exportLinkMsb = `msb://app/export/${params.sn}/?dn=${host}&qid=${queryId}&hex=${params.hex}`
 
   useEffect(() => {
     axios.get(`/webapp/api/ss?sn=${params.sn}&uid=${uid}&qid=${queryId}&hex=${params.hex}&cmd=export`)
