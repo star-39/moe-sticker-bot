@@ -132,16 +132,26 @@ type StickerData struct {
 	stickerSet     *tele.StickerSet
 	sDnObjects     []*StickerDownloadObject
 	stickerSetType tele.StickerSetType
-	isVideo        bool
-	isAnimated     bool
-	isCustomEmoji  bool
-	pos            int
+	//either static or video, used for CreateNewStickerSet
+	// getFormat     StickerData
+	isVideo       bool
+	isAnimated    bool
+	isCustomEmoji bool
+	pos           int
 	// amount of local files
 	lAmount int
 	// amount on cloud
 	cAmount int
 	// amout of flood error encounterd
 	flCount int
+}
+
+func (sd StickerData) getFormat() string {
+	if sd.isVideo {
+		return "video"
+	} else {
+		return "static"
+	}
 }
 
 type StickerDownloadObject struct {

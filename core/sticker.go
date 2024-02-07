@@ -68,23 +68,66 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 		Type:  ud.stickerData.stickerSetType,
 	}
 
+	//Try experimental batch create.
+	//For static sets only.
+	var inputsForBatchCreate []tele.InputSticker
+	var skipFirstFiftyStickers bool
+	if !ud.stickerData.isVideo && createSet {
+		for index, sf := range ud.stickerData.stickers {
+			var err error
+
+			sf.wg.Wait()
+			inputSticker := tele.InputSticker{
+				Emojis:   ud.stickerData.emojis,
+				Keywords: []string{"sticker"},
+				Sticker:  "file://" + sf.cPath,
+			}
+
+			inputsForBatchCreate = append(inputsForBatchCreate, inputSticker)
+			// Up to 50 stickers in batch create.
+			if index == len(ud.stickerData.stickers)-1 || index == 49 {
+				err = c.Bot().CreateStickerSet(c.Recipient(), ud.stickerData.getFormat(), inputsForBatchCreate, ss)
+				if err == nil {
+					skipFirstFiftyStickers = true
+					committedStickers = index + 1
+				} else {
+					log.Warnln("Error experimental batch create:", err.Error())
+				}
+				break
+			}
+		}
+	}
+
 	for index, sf := range ud.stickerData.stickers {
 		var err error
-		go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
 
 		inputSticker := tele.InputSticker{
 			Emojis:   ud.stickerData.emojis,
 			Keywords: []string{"sticker"},
 		}
-		if index == 0 && createSet {
-			err = commitSticker(true, index, flCount, false, sf, c, inputSticker, ss)
-			if err != nil {
-				log.Errorln("create sticker set failed!. ", err)
-				return err
-			} else {
-				committedStickers += 1
+		if createSet {
+			//Already finished.
+			if !ud.stickerData.isVideo && skipFirstFiftyStickers && len(ud.stickerData.stickers) < 51 {
+				go editProgressMsg(len(ud.stickerData.stickers), len(ud.stickerData.stickers), "", pText, teleMsg, c)
+				break
+			}
+			if !ud.stickerData.isVideo && skipFirstFiftyStickers && len(ud.stickerData.stickers) > 50 {
+				if index < 50 {
+					continue
+				}
+			}
+			if index == 0 {
+				err = commitSticker(true, index, flCount, false, sf, c, inputSticker, ss)
+				if err != nil {
+					log.Errorln("create sticker set failed!. ", err)
+					return err
+				} else {
+					committedStickers += 1
+				}
 			}
 		} else {
+			go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
+
 			err = commitSticker(false, index, flCount, false, sf, c, inputSticker, ss)
 			if err != nil {
 				log.Warnln("execAutoCommit: a sticker failed to add. ", err)
@@ -209,21 +252,20 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	var err error
 	var floodErr tele.FloodError
 	var sFormat string
-	var file tele.File
+	var file string
 
 	sf.wg.Wait()
 
 	if ss.Video {
 		sFormat = "video"
 		if safeMode {
-			f, _ := msbimport.FFToWebmSafe(sf.oPath, msbimport.FORMAT_TG_REGULAR_ANIMATED)
-			file = tele.File{FileLocal: f}
+			file, _ = msbimport.FFToWebmSafe(sf.oPath, msbimport.FORMAT_TG_REGULAR_ANIMATED)
 		} else {
-			file = tele.File{FileLocal: sf.cPath}
+			file = sf.cPath
 		}
 	} else {
 		sFormat = "static"
-		file = tele.File{FileLocal: sf.cPath}
+		file = sf.cPath
 	}
 
 	log.Debugln("sticker file path:", sf.cPath)
@@ -231,13 +273,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	// Retry loop.
 	// For each sticker, retry at most 2 times, means 3 commit attempts in total.
 	for i := 0; i < 3; i++ {
-		uploadedFile, err := c.Bot().UploadSticker(c.Recipient(), sFormat, &file)
-		if err != nil {
-			log.Errorln("commitSticker: error on UploadSticker")
-			//jump to error handling without furthur action.
-			goto HANDLE_ERROR
-		}
-		input.Sticker = uploadedFile.FileID
+		input.Sticker = "file://" + file
 		if createSet {
 			err = c.Bot().CreateStickerSet(c.Recipient(), sFormat, []tele.InputSticker{input}, ss)
 		} else {
@@ -247,7 +283,6 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 			return nil
 		}
 
-	HANDLE_ERROR:
 		log.Errorf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
 		// Is flood limit error.
 		// Telegram's flood limit is strange.
