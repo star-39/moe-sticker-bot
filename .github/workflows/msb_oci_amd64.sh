@@ -6,7 +6,7 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 # AMD64
 #################################
-if false ; then
+if true ; then
 
 c1=$(buildah from docker://archlinux:latest)
 
