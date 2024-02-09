@@ -86,7 +86,7 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 			inputsForBatchCreate = append(inputsForBatchCreate, inputSticker)
 			// Up to 50 stickers in batch create.
 			if index == len(ud.stickerData.stickers)-1 || index == 49 {
-				err = c.Bot().CreateStickerSet(c.Recipient(), ud.stickerData.getFormat(), inputsForBatchCreate, ss)
+				err = c.Bot().CreateStickerSet(c.Recipient(), inputsForBatchCreate, ss)
 				if err == nil {
 					skipFirstFiftyStickers = true
 					committedStickers = index + 1
@@ -253,20 +253,17 @@ func finalizeSubmitStickerManual(c tele.Context, createSet bool, ud *UserData) e
 func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, input tele.InputSticker, ss tele.StickerSet) error {
 	var err error
 	var floodErr tele.FloodError
-	var sFormat string
 	var file string
 
 	sf.wg.Wait()
 
 	if ss.Video {
-		sFormat = "video"
 		if safeMode {
-			file, _ = msbimport.FFToWebmSafe(sf.oPath, msbimport.FORMAT_TG_REGULAR_ANIMATED)
+			file, _ = msbimport.FFToWebmSafe(sf.oPath, ss.IsCustomEmoji())
 		} else {
 			file = sf.cPath
 		}
 	} else {
-		sFormat = "static"
 		file = sf.cPath
 	}
 
@@ -277,7 +274,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	for i := 0; i < 3; i++ {
 		input.Sticker = "file://" + file
 		if createSet {
-			err = c.Bot().CreateStickerSet(c.Recipient(), sFormat, []tele.InputSticker{input}, ss)
+			err = c.Bot().CreateStickerSet(c.Recipient(), []tele.InputSticker{input}, ss)
 		} else {
 			err = c.Bot().AddSticker(c.Recipient(), input, ss)
 		}

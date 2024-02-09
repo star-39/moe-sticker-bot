@@ -33,9 +33,6 @@ func wDownloadStickerObject(i interface{}) {
 		if obj.forWhatsApp {
 			if obj.sticker.Video {
 				obj.err = msbimport.FFToAnimatedWebpWA(obj.dest)
-			} else if obj.sticker.Animated {
-				_, obj.err = msbimport.RlottieToWebp(obj.dest)
-
 			} else {
 				obj.err = msbimport.IMToWebpWA(obj.dest)
 			}

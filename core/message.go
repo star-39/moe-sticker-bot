@@ -221,24 +221,27 @@ Download:下載:
 `, tele.ModeHTML, tele.NoPreview, selector)
 }
 
-func genSDnMnEInline(canManage bool, sn string) *tele.ReplyMarkup {
+func genSDnMnEInline(canManage bool, isTGS bool, sn string) *tele.ReplyMarkup {
 	selector := &tele.ReplyMarkup{}
 	btnSingle := selector.Data("Download this sticker/下載這張貼圖", CB_DN_SINGLE)
 	btnAll := selector.Data("Download sticker set/下載整個貼圖包", CB_DN_WHOLE)
 	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
 	btnExport := selector.Data("Export to WhatsApp/匯出到WhatsApp", CB_EXPORT_WA)
 	if canManage {
-		selector.Inline(selector.Row(btnSingle), selector.Row(btnAll),
-			selector.Row(btnMan), selector.Row(btnExport))
+		selector.Inline(selector.Row(btnSingle), selector.Row(btnAll), selector.Row(btnMan), selector.Row(btnExport))
 	} else {
-		selector.Inline(selector.Row(btnSingle), selector.Row(btnAll),
-			selector.Row(btnExport))
+		if isTGS {
+			//If is TGS, do not support export to WA.
+			selector.Inline(selector.Row(btnSingle), selector.Row(btnAll))
+		} else {
+			selector.Inline(selector.Row(btnSingle), selector.Row(btnAll), selector.Row(btnExport))
+		}
 	}
 	return selector
 }
 
-func sendAskSDownloadChoice(c tele.Context, sn string) error {
-	selector := genSDnMnEInline(false, sn)
+func sendAskSDownloadChoice(c tele.Context, s *tele.Sticker) error {
+	selector := genSDnMnEInline(false, s.Animated, s.SetName)
 	return c.Reply(`
 You can download this sticker or the whole sticker set, please select below.
 您可以下載這個貼圖或者其所屬的整個貼圖包, 請選擇:
@@ -246,7 +249,7 @@ You can download this sticker or the whole sticker set, please select below.
 }
 
 func sendAskSChoice(c tele.Context, sn string) error {
-	selector := genSDnMnEInline(true, sn)
+	selector := genSDnMnEInline(true, false, sn)
 	return c.Reply(`
 You own this sticker set. You can download or manage this sticker set, please select below.
 您擁有這個貼圖包. 您可以下載或者管理這個貼圖包, 請選擇:

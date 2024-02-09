@@ -179,9 +179,9 @@ func FFToWebmTGVideo(f string, isCustomEmoji bool) (string, error) {
 	baseargs := []string{}
 	baseargs = append(baseargs, "-hide_banner", "-i", f)
 	if isCustomEmoji {
-		baseargs = append(baseargs, "-vf", "scale=100:100:force_original_aspect_ratio=decrease:flags=lanczos")
+		baseargs = append(baseargs, "-vf", "scale=100:100:force_original_aspect_ratio=decrease")
 	} else {
-		baseargs = append(baseargs, "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos")
+		baseargs = append(baseargs, "-vf", "scale=512:512:force_original_aspect_ratio=decrease")
 	}
 	baseargs = append(baseargs, "-pix_fmt", "yuva420p", "-c:v", "libvpx-vp9", "-cpu-used", "5")
 
@@ -227,17 +227,15 @@ func FFToWebmTGVideo(f string, isCustomEmoji bool) (string, error) {
 
 // This function will be called if Telegram's API rejected our webm.
 // It is normally due to overlength or bad FPS rate.
-func FFToWebmSafe(f string, format string) (string, error) {
+func FFToWebmSafe(f string, isCustomEmoji bool) (string, error) {
 	pathOut := f + ".webm"
 	bin := FFMPEG_BIN
 	args := []string{}
 	args = append(args, "-hide_banner", "-i", f)
-	if format == FORMAT_TG_REGULAR_ANIMATED {
-		args = append(args, "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos")
-	} else if format == FORMAT_TG_EMOJI_ANIMATED {
-		args = append(args, "-vf", "scale=100:100:force_original_aspect_ratio=decrease:flags=lanczos")
+	if isCustomEmoji {
+		args = append(args, "-vf", "scale=100:100:force_original_aspect_ratio=decrease")
 	} else {
-		return "", errors.New("FFToWebmTGVideo: Unknown format")
+		args = append(args, "-vf", "scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos")
 	}
 	args = append(args, "-pix_fmt", "yuva420p",
 		"-c:v", "libvpx-vp9", "-cpu-used", "5", "-minrate", "50k", "-b:v", "200k", "-maxrate", "300k",
@@ -273,25 +271,25 @@ func FFToGif(f string) (string, error) {
 	return pathOut, err
 }
 
-func FFToAPNG(f string) (string, error) {
-	var decoder []string
-	var args []string
-	if strings.HasSuffix(f, ".webm") {
-		decoder = []string{"-c:v", "libvpx-vp9"}
-	}
-	pathOut := f + ".apng"
-	bin := FFMPEG_BIN
-	args = append(args, decoder...)
-	args = append(args, "-i", f, "-hide_banner",
-		"-loglevel", "error", "-y", pathOut)
+// func FFToAPNG(f string) (string, error) {
+// 	var decoder []string
+// 	var args []string
+// 	if strings.HasSuffix(f, ".webm") {
+// 		decoder = []string{"-c:v", "libvpx-vp9"}
+// 	}
+// 	pathOut := f + ".apng"
+// 	bin := FFMPEG_BIN
+// 	args = append(args, decoder...)
+// 	args = append(args, "-i", f, "-hide_banner",
+// 		"-loglevel", "error", "-y", pathOut)
 
-	out, err := exec.Command(bin, args...).CombinedOutput()
-	if err != nil {
-		log.Warnf("ffToAPNG ERROR:\n%s", string(out))
-		return "", err
-	}
-	return pathOut, err
-}
+// 	out, err := exec.Command(bin, args...).CombinedOutput()
+// 	if err != nil {
+// 		log.Warnf("ffToAPNG ERROR:\n%s", string(out))
+// 		return "", err
+// 	}
+// 	return pathOut, err
+// }
 
 func IMStackToWebp(base string, overlay string) (string, error) {
 	bin := CONVERT_BIN
@@ -309,23 +307,11 @@ func IMStackToWebp(base string, overlay string) (string, error) {
 	}
 }
 
-// func RlottieToWebm(f string) (string, error) {
-// 	bin := "msb_rlottie.py"
-// 	fOut := f + ".apng"
-// 	args := []string{f, fOut, "75"}
-// 	out, err := exec.Command(bin, args...).CombinedOutput()
-// 	if err != nil {
-// 		log.Errorln("lottieToGIF ERROR!", string(out))
-// 		return "", err
-// 	}
-// 	return FFToWebmTGVideo(fOut)
-// }
-
 // Replaces tgs to gif.
 func RlottieToGIF(f string) (string, error) {
 	bin := "msb_rlottie.py"
 	fOut := strings.ReplaceAll(f, ".tgs", ".gif")
-	args := []string{f, fOut, "75"}
+	args := []string{f, fOut}
 	out, err := exec.Command(bin, args...).CombinedOutput()
 	if err != nil {
 		log.Errorln("lottieToGIF ERROR!", string(out))
@@ -338,33 +324,33 @@ func RlottieToGIF(f string) (string, error) {
 
 // Replaces tgs to webp.
 // The only purpose for this func is for WhatsApp export.
-func RlottieToWebp(f string) (string, error) {
-	bin := "msb_rlottie.py"
-	pathOut := strings.ReplaceAll(f, ".tgs", ".webp")
+// func RlottieToWebpWAAnimated(f string) (string, error) {
+// 	bin := "msb_rlottie.py"
+// 	pathOut := strings.ReplaceAll(f, ".tgs", ".webp")
 
-	qualities := []string{"50", "20", "0"}
-	for _, q := range qualities {
-		args := []string{f, pathOut, q}
-		out, err := exec.Command(bin, args...).CombinedOutput()
-		if err != nil {
-			log.Errorln("RlottieToWebp ERROR!", string(out))
-			return "", err
-		}
-		//WhatsApp uses KiB.
-		st, err := os.Stat(pathOut)
-		if err != nil {
-			return pathOut, err
-		}
-		if st.Size() > 500*KiB {
-			log.Warnf("convert: awebp exceeded 500KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
-			continue
-		} else {
-			return pathOut, nil
-		}
-	}
-	log.Warnln("all quality failed! s:", pathOut)
-	return pathOut, errors.New("bad animated webp?")
-}
+// 	qualities := []string{"50", "20", "0"}
+// 	for _, q := range qualities {
+// 		args := []string{f, pathOut, q}
+// 		out, err := exec.Command(bin, args...).CombinedOutput()
+// 		if err != nil {
+// 			log.Errorln("RlottieToWebp ERROR!", string(out))
+// 			return "", err
+// 		}
+// 		//WhatsApp uses KiB.
+// 		st, err := os.Stat(pathOut)
+// 		if err != nil {
+// 			return pathOut, err
+// 		}
+// 		if st.Size() > 500*KiB {
+// 			log.Warnf("convert: awebp exceeded 500KiB, q:%s z:%d s:%s", q, st.Size(), pathOut)
+// 			continue
+// 		} else {
+// 			return pathOut, nil
+// 		}
+// 	}
+// 	log.Warnln("all quality failed! s:", pathOut)
+// 	return pathOut, errors.New("bad animated webp?")
+// }
 
 // Replaces .webm ext to .webp
 func IMToAnimatedWebpLQ(f string) error {

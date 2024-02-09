@@ -6,14 +6,14 @@ buildah login -u star-39 -p $GITHUB_TOKEN ghcr.io
 
 # AMD64
 #################################
-if false ; then
+if true ; then
 
 c1=$(buildah from docker://archlinux:latest)
 
 buildah run $c1 -- pacman -Sy
 buildah run $c1 -- pacman --noconfirm -S libwebp libheif imagemagick curl gifsicle libarchive python python-pip make gcc
 
-buildah run $c1 -- pip3 install emoji rlottie-python
+buildah run $c1 -- pip3 install emoji rlottie-python Pillow
 
 buildah run $c1 -- pacman --noconfirm -Rsc make gcc python-pip
 buildah run $c1 -- sh -c 'yes | pacman -Scc'

@@ -122,11 +122,10 @@ func handleNoSession(c tele.Context) error {
 
 	// bare sticker, ask user's choice.
 	if c.Message().Sticker != nil {
-		sn := c.Message().Sticker.SetName
 		if matchUserS(c.Sender().ID, c.Message().Sticker.SetName) {
-			return sendAskSChoice(c, sn)
+			return sendAskSChoice(c, c.Message().Sticker.SetName)
 		} else {
-			return sendAskSDownloadChoice(c, sn)
+			return sendAskSDownloadChoice(c, c.Message().Sticker)
 		}
 	}
 
