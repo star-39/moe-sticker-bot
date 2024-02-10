@@ -196,6 +196,7 @@ func confirmImport(c tele.Context) error {
 	ud.stickerData.isVideo = ud.lineData.IsAnimated
 	if ud.lineData.IsEmoji {
 		ud.stickerData.stickerSetType = tele.StickerCustomEmoji
+		ud.stickerData.isCustomEmoji = true
 	} else {
 		ud.stickerData.stickerSetType = tele.StickerRegular
 	}
