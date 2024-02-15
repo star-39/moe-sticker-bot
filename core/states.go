@@ -50,8 +50,6 @@ func handleMessage(c tele.Context) error {
 		}
 	case "manage":
 		switch state {
-		// case "waitSManage":
-		// 	err = statePrepareSManage(c)
 		case "waitCbEditChoice":
 			err = waitCbEditChoice(c)
 		case "waitSFile":
@@ -69,13 +67,6 @@ func handleMessage(c tele.Context) error {
 		case "process":
 			err = stateProcessing(c)
 		}
-	// case "register":
-	// 	switch state {
-	// 	case "waitRegLineLink":
-	// 		err = waitRegLineLink(c)
-	// 	case "waitRegS":
-	// 		err = waitRegS(c)
-	// 	}
 	case "search":
 		switch state {
 		case "waitSearchKW":
@@ -412,8 +403,9 @@ func waitSTitle(c tele.Context) error {
 	ud := users.data[c.Sender().ID]
 	command := ud.command
 
+	// User sent text instead of clicking button.
 	if c.Callback() == nil {
-		if command == "create" {
+		if command == "create" || command == "import" {
 			ud.stickerData.title = c.Message().Text
 		} else if command == "manage" {
 			err := c.Bot().SetStickerSetTitle(c.Recipient(), c.Message().Text, ud.stickerData.id)
@@ -427,7 +419,9 @@ func waitSTitle(c tele.Context) error {
 		} else {
 			return nil
 		}
+		// User clicked a button, only command "import" is allowed.
 	} else {
+		//Reject.
 		if command != "import" {
 			return nil
 		}
