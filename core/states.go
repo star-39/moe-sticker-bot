@@ -94,7 +94,9 @@ func handleNoSession(c tele.Context) error {
 		case CB_MANAGE:
 			return statePrepareSManage(c)
 		case CB_OK_IMPORT:
-			return confirmImport(c)
+			return confirmImport(c, false)
+		case CB_OK_IMPORT_EMOJI:
+			return confirmImport(c, true)
 		case CB_OK_DN:
 			ud := initUserData(c, "download", "process")
 			c.Send("Please wait...")
@@ -151,9 +153,8 @@ func handleNoSession(c tele.Context) error {
 				sendPreferKakaoShareLinkWarning(c)
 			}
 		}
-
 		sendNotifySExist(c, ld.Id)
-		return sendAskWantImportOrDownload(c)
+		return sendAskWantImportOrDownload(c, ld.IsEmoji)
 
 	default:
 		if c.Message().Text == "" {
@@ -168,7 +169,7 @@ func handleNoSession(c tele.Context) error {
 	}
 }
 
-func confirmImport(c tele.Context) error {
+func confirmImport(c tele.Context, wantEmoji bool) error {
 	ud := initUserData(c, "import", "waitSTitle")
 	_, err := msbimport.ParseImportLink(findLink(c.Message().ReplyTo.Text), ud.lineData)
 	if err != nil {
@@ -178,14 +179,14 @@ func confirmImport(c tele.Context) error {
 	workDir := filepath.Join(ud.workDir, ud.lineData.Id)
 	sendAskTitle_Import(c)
 	ud.wg.Add(1)
-	err = msbimport.PrepareImportStickers(ud.ctx, ud.lineData, workDir, true)
+	err = msbimport.PrepareImportStickers(ud.ctx, ud.lineData, workDir, true, wantEmoji)
 	ud.wg.Done()
 	if err != nil {
 		return err
 	}
 	ud.stickerData.lAmount = ud.lineData.Amount
 	ud.stickerData.isVideo = ud.lineData.IsAnimated
-	if ud.lineData.IsEmoji {
+	if ud.lineData.IsEmoji && wantEmoji {
 		ud.stickerData.stickerSetType = tele.StickerCustomEmoji
 		ud.stickerData.isCustomEmoji = true
 	} else {

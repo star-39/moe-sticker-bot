@@ -13,7 +13,7 @@ import (
 // The metadata can be used to call prepareImportStickers.
 // Returns a string and an error. String act as a warning message, empty string means no warning yield.
 //
-// Attention: During this step, ld.Amount, ld.Files and ld.IsAnimated will NOT be available!
+// Attention: After this function returns, ld.Amount, ld.Files will NOT be available!
 func ParseImportLink(link string, ld *LineData) (string, error) {
 	var warn string
 
@@ -33,19 +33,21 @@ func ParseImportLink(link string, ld *LineData) (string, error) {
 	}
 }
 
-// Prepare import stickers files.
+// Prepare stickers files.
+// Should be called after calling ParseImportLink().
 // A context is provided, which can be used to interrupt the process.
-// When this function returns, stickers are ready to be sent to execAutoCommit.
-// However, wg inside each LineFile might still not being done yet,
+// wg inside each LineFile(ld.Files) might still not being done yet,
 // wg.Wait() is required for individual sticker file.
+// ld.Amount, ld.Files will be produced after return.
 //
-// ld.Amount, ld.Files and ld.IsAnimated will be produced after return.
-func PrepareImportStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
+// convertToTGFormat: Convert original stickers to Telegram sticker format.
+// convertToTGEmoji: If present sticker set is Emoji(LINE), convert to 100x100 Telegram CustomEmoji.
+func PrepareImportStickers(ctx context.Context, ld *LineData, workDir string, convertToTGFormat bool, convertToTGEmoji bool) error {
 	switch ld.Store {
 	case "line":
-		return prepareLineStickers(ctx, ld, workDir, needConvert)
+		return prepareLineStickers(ctx, ld, workDir, convertToTGFormat, convertToTGEmoji)
 	case "kakao":
-		return prepareKakaoStickers(ctx, ld, workDir, needConvert)
+		return prepareKakaoStickers(ctx, ld, workDir, convertToTGFormat)
 	}
 	return nil
 }
@@ -67,7 +69,7 @@ func convertSToTGFormat(ctx context.Context, ld *LineData) {
 		if ld.IsAnimated {
 			wpConvertWebm.Invoke(s)
 		} else {
-			s.ConvertedFile, err = IMToWebpTGStatic(s.OriginalFile, ld.IsEmoji)
+			s.ConvertedFile, err = IMToWebpTGStatic(s.OriginalFile, s.ConvertToEmoji)
 			if err != nil {
 				s.CError = err
 			}

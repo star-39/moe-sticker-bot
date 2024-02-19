@@ -23,7 +23,7 @@ func wConvertWebm(i interface{}) {
 		lf.OriginalFile, _ = IMToApng(lf.OriginalFile)
 	}
 
-	lf.ConvertedFile, err = FFToWebmTGVideo(lf.OriginalFile, lf.IsEmoji)
+	lf.ConvertedFile, err = FFToWebmTGVideo(lf.OriginalFile, lf.ConvertToEmoji)
 	if err != nil {
 		lf.CError = err
 	}

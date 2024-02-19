@@ -26,6 +26,7 @@ const (
 	CB_DN_WHOLE           = "dall"
 	CB_DN_SINGLE          = "dsingle"
 	CB_OK_IMPORT          = "yesimport"
+	CB_OK_IMPORT_EMOJI    = "yesimportemoji"
 	CB_OK_DN              = "yesd"
 	CB_BYE                = "bye"
 	CB_MANAGE             = "manage"

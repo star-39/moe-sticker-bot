@@ -36,8 +36,8 @@ const (
 type LineFile struct {
 	//Waitgroup for conversion.
 	Wg sync.WaitGroup
-	//Is line emoji(emoticon).
-	IsEmoji bool
+	//Convert to 100x100 emoji.
+	ConvertToEmoji bool
 	// path of original file
 	OriginalFile string
 	// path of converted filea

@@ -227,9 +227,9 @@ func parseLineDetails(doc *goquery.Document, lj *LineJson) error {
 }
 
 // Download and convert sticker files after parseLineLink.
-func prepareLineStickers(ctx context.Context, ld *LineData, workDir string, needConvert bool) error {
+func prepareLineStickers(ctx context.Context, ld *LineData, workDir string, convertToTGFormat bool, convertToTGEmoji bool) error {
 	if ld.Category == LINE_STICKER_MESSAGE {
-		return prepareLineMessageS(ctx, ld, workDir, needConvert)
+		return prepareLineMessageS(ctx, ld, workDir, convertToTGFormat)
 	}
 
 	savePath := filepath.Join(workDir, "line.zip")
@@ -247,17 +247,17 @@ func prepareLineStickers(ctx context.Context, ld *LineData, workDir string, need
 
 	for _, pf := range pngFiles {
 		lf := &LineFile{
-			IsEmoji:      ld.IsEmoji,
-			OriginalFile: pf,
+			ConvertToEmoji: convertToTGEmoji,
+			OriginalFile:   pf,
 		}
-		if needConvert {
+		if convertToTGFormat {
 			lf.Wg.Add(1)
 		}
 		ld.Files = append(ld.Files, lf)
 	}
 	ld.Amount = len(pngFiles)
 
-	if needConvert {
+	if convertToTGFormat {
 		log.Debugln("start converting...")
 		go convertSToTGFormat(ctx, ld)
 	}

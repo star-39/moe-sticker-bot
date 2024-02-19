@@ -45,7 +45,7 @@ func main() {
 		log.Warnln(warn)
 	}
 
-	err = msbimport.PrepareImportStickers(ctx, ld, *workDir, *convertTG)
+	err = msbimport.PrepareImportStickers(ctx, ld, *workDir, *convertTG, false)
 	if err != nil {
 		log.Fatalln(err)
 	}
