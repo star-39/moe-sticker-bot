@@ -148,6 +148,12 @@ See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/mast
 
 
 ## CHANGELOG
+v2.4.0-RC3(20240226)
+  * Remove deduplication during database curation.
+  * LINE emoji can be imported to either sticker or CustomEmoji.
+  * Support creating sticker set with under 50 stickers in batch.
+  * Import speed is imcreased significantly.
+
 v2.4.0-RC1-RC2(20240207)
   * Support Importing LINE Emoji into CustomEmoji.
   * Support creating CustomEmoji.

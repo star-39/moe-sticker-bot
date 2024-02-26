@@ -100,7 +100,7 @@ func sendChangelog(c tele.Context) error {
 	return c.Send(`
 Details: 詳細:
 https://github.com/star-39/moe-sticker-bot#changelog
-v2.4.0-RC1(20240203)
+v2.4.0-RC1-RC3(20240226)
 * Support Importing LINE Emoji into CustomEmoji.
 * Support creating CustomEmoji.
 * Support editing sticker emoji and title.
