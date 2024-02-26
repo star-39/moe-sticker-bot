@@ -68,27 +68,25 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 		Type:  ud.stickerData.stickerSetType,
 	}
 
-	//Try experimental batch create.
-	//For static sets only.
+	//Try batch create.
 	var inputsForBatchCreate []tele.InputSticker
-	var skipFirstFiftyStickers bool
-	if !ud.stickerData.isVideo && createSet {
+	var batchCreated bool
+	if createSet {
 		for index, sf := range ud.stickerData.stickers {
 			var err error
-
 			sf.wg.Wait()
 			inputSticker := tele.InputSticker{
 				Emojis:   ud.stickerData.emojis,
 				Keywords: []string{"sticker"},
 				Sticker:  "file://" + sf.cPath,
 			}
-
 			inputsForBatchCreate = append(inputsForBatchCreate, inputSticker)
-			// Up to 50 stickers in batch create.
+			// Up to 50 stickers in batch create. This is by Telegram restriction.
+			// Finish this loop by submitting sticker set.
 			if index == len(ud.stickerData.stickers)-1 || index == 49 {
 				err = c.Bot().CreateStickerSet(c.Recipient(), inputsForBatchCreate, ss)
 				if err == nil {
-					skipFirstFiftyStickers = true
+					batchCreated = true
 					committedStickers = index + 1
 				} else {
 					log.Warnln("Error experimental batch create:", err.Error())
@@ -100,21 +98,25 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 
 	for index, sf := range ud.stickerData.stickers {
 		var err error
-
 		inputSticker := tele.InputSticker{
 			Emojis:   ud.stickerData.emojis,
 			Keywords: []string{"sticker"},
 		}
-		if createSet && index == 0 {
-			//Already finished.
-			if skipFirstFiftyStickers && len(ud.stickerData.stickers) < 51 {
-				go editProgressMsg(len(ud.stickerData.stickers), len(ud.stickerData.stickers), "", pText, teleMsg, c)
-				break
-			}
-			if skipFirstFiftyStickers && len(ud.stickerData.stickers) > 50 {
+
+		//Sticker set already finished.
+		if batchCreated && len(ud.stickerData.stickers) < 51 {
+			go editProgressMsg(len(ud.stickerData.stickers), len(ud.stickerData.stickers), "", pText, teleMsg, c)
+			break
+		}
+		//Sticker set is larger than 50.
+		//Skip first 50 stickers.
+		if batchCreated && len(ud.stickerData.stickers) > 50 {
+			if index < 50 {
 				continue
 			}
-
+		}
+		//Batch creation failed, run normal creation procedure.
+		if createSet && index == 0 {
 			err = commitSticker(true, index, flCount, false, sf, c, inputSticker, ss)
 			if err != nil {
 				log.Errorln("create sticker set failed!. ", err)
@@ -122,37 +124,35 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 			} else {
 				committedStickers += 1
 			}
-		} else {
-			if skipFirstFiftyStickers {
-				if index < 50 {
-					continue
-				}
-			}
-			go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
-
-			err = commitSticker(false, index, flCount, false, sf, c, inputSticker, ss)
-			if err != nil {
-				log.Warnln("execAutoCommit: a sticker failed to add. ", err)
-				sendOneStickerFailedToAdd(c, index, err)
-				errorCount += 1
-			} else {
-				log.Debugln("one sticker commited. count: ", committedStickers)
-				committedStickers += 1
-			}
-			// If encountered flood limit more than once, set a interval.
-			if *flCount == 1 {
-				sleepTime := 10 + rand.Intn(10)
-				time.Sleep(time.Duration(sleepTime) * time.Second)
-			} else if *flCount > 1 {
-				sleepTime := 60 + rand.Intn(10)
-				time.Sleep(time.Duration(sleepTime) * time.Second)
-			}
+			continue
 		}
-		// Tolerate at most 3 errors when importing sticker set.
-		if ud.command == "import" && errorCount > 3 {
-			return errors.New("too many errors importing")
+
+		go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
+
+		err = commitSticker(false, index, flCount, false, sf, c, inputSticker, ss)
+		if err != nil {
+			log.Warnln("execAutoCommit: a sticker failed to add.", err)
+			sendOneStickerFailedToAdd(c, index, err)
+			errorCount += 1
+		} else {
+			log.Debugln("one sticker commited. count: ", committedStickers)
+			committedStickers += 1
+		}
+		// If encountered flood limit more than once, set a interval.
+		if *flCount == 1 {
+			sleepTime := 10 + rand.Intn(10)
+			time.Sleep(time.Duration(sleepTime) * time.Second)
+		} else if *flCount > 1 {
+			sleepTime := 60 + rand.Intn(10)
+			time.Sleep(time.Duration(sleepTime) * time.Second)
 		}
 	}
+
+	// Tolerate at most 3 errors when importing sticker set.
+	if ud.command == "import" && errorCount > 3 {
+		return errors.New("too many errors importing")
+	}
+
 	if createSet {
 		if ud.command == "import" {
 			insertLineS(ud.lineData.Id, ud.lineData.Link, ud.stickerData.id, ud.stickerData.title, true)
