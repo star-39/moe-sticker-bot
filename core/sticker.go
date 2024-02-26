@@ -86,10 +86,11 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 			if index == len(ud.stickerData.stickers)-1 || index == 49 {
 				err = c.Bot().CreateStickerSet(c.Recipient(), inputsForBatchCreate, ss)
 				if err == nil {
+					log.Debugln("sticker.go: Batch create success.")
 					batchCreated = true
 					committedStickers = index + 1
 				} else {
-					log.Warnln("Error experimental batch create:", err.Error())
+					log.Warnln("sticker.go: Error batch create:", err.Error())
 				}
 				break
 			}

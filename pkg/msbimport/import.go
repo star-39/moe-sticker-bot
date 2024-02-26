@@ -9,8 +9,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// This function serves as an entrypoint for this package.
 // Parse a LINE or Kakao link and fetch metadata.
-// The metadata can be used to call prepareImportStickers.
+// The metadata (which means the LineData struct) can be used to call prepareImportStickers.
 // Returns a string and an error. String act as a warning message, empty string means no warning yield.
 //
 // Attention: After this function returns, ld.Amount, ld.Files will NOT be available!
@@ -36,9 +37,9 @@ func ParseImportLink(link string, ld *LineData) (string, error) {
 // Prepare stickers files.
 // Should be called after calling ParseImportLink().
 // A context is provided, which can be used to interrupt the process.
-// wg inside each LineFile(ld.Files) might still not being done yet,
-// wg.Wait() is required for individual sticker file.
-// ld.Amount, ld.Files will be produced after return.
+// Even if this function returns, file preparation might still in progress.
+// LineData.Amount, LineData.Files will be produced after return.
+// wg.Wait() is required for individual LineData.Files
 //
 // convertToTGFormat: Convert original stickers to Telegram sticker format.
 // convertToTGEmoji: If present sticker set is Emoji(LINE), convert to 100x100 Telegram CustomEmoji.

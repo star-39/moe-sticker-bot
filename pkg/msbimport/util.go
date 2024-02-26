@@ -1,7 +1,6 @@
 package msbimport
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -75,20 +74,6 @@ func httpGetWithRedirLink(link string) (string, string, error) {
 	return res.Request.URL.String(), string(content), nil
 }
 
-func httpGetCurlUA(link string) (string, error) {
-	req, _ := http.NewRequest("GET", link, nil)
-	req.Header.Set("User-Agent", "curl/7.61.1")
-	req.Header.Set("Accept-Language", "zh-Hant;q=0.9, ja;q=0.8, en;q=0.7")
-	res, err := httpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	content, _ := io.ReadAll(res.Body)
-
-	return string(content), nil
-}
-
 func httpGetAndroidUA(link string) (string, error) {
 	req, _ := http.NewRequest("GET", link, nil)
 	req.Header.Set("User-Agent", "Android")
@@ -99,22 +84,6 @@ func httpGetAndroidUA(link string) (string, error) {
 	defer res.Body.Close()
 	content, _ := io.ReadAll(res.Body)
 	return string(content), nil
-}
-
-func httpPost(link string, data string) (string, error) {
-	bdata := []byte(data)
-	req, err := http.Post(link, "Content-Type: text/plain",
-		bytes.NewBuffer(bdata))
-	if err != nil {
-		return "", err
-	}
-
-	resbody := req.Body
-	res, err := io.ReadAll(resbody)
-	if err != nil {
-		return "", err
-	}
-	return string(res), nil
 }
 
 func fDownload(link string, savePath string) error {
