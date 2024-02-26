@@ -2,9 +2,6 @@ package core
 
 import (
 	"database/sql"
-	"os"
-	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
@@ -348,15 +345,10 @@ func searchLineS(keywords []string) []LineStickerQ {
 
 func curateDatabase() error {
 	log.Info("Starting database curation...")
-	lastIndexOfDedupOK := getLastLineDedupIndex()
 	invalidSSCount := 0
-	dupSSCount := 0
 	//Line stickers.
 	ls := queryLineS("QUERY_ALL")
-	for i, l := range ls {
-		// if i < startIndex {
-		// 	continue
-		// }
+	for _, l := range ls {
 		log.Debugf("Scanning:%s", l.Tg_id)
 		ss, err := b.StickerSet(l.Tg_id)
 		if err != nil {
@@ -379,28 +371,7 @@ func curateDatabase() error {
 				}
 			}
 		}
-
-		if i > lastIndexOfDedupOK {
-			workdir := filepath.Join(dataDir, secHex(8))
-			os.MkdirAll(workdir, 0755)
-			for si, s := range ss.Stickers {
-				if si > 0 {
-					fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
-					f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
-					teleDownload(&s.File, f)
-
-					if compCRC32(f, fp) {
-						dupSSCount++
-						log.Warnf("Found dup sticker in ss:%s,index:%d, deleting...", ss.Name, si)
-						b.DeleteSticker(s.FileID)
-					}
-				}
-			}
-			os.RemoveAll(workdir)
-			lastIndexOfDedupOK = i
-		}
 	}
-	setLastLineDedupIndex(lastIndexOfDedupOK)
 
 	//User stickers.
 	us := queryUserS(-1)
@@ -417,20 +388,20 @@ func curateDatabase() error {
 		}
 	}
 
-	log.Infof("Database curation done. dup:%d, invalid:%d", dupSSCount, invalidSSCount)
+	log.Infof("Database curation done. invalid:%d", invalidSSCount)
 	return nil
 }
 
-func setLastLineDedupIndex(index int) {
-	value := strconv.Itoa(index)
-	db.Exec("UPDATE properties SET value=? WHERE name=?", value, "last_line_dedup_index")
-	log.Infoln("setLastLineDedupIndex to :", value)
-}
+// func setLastLineDedupIndex(index int) {
+// 	value := strconv.Itoa(index)
+// 	db.Exec("UPDATE properties SET value=? WHERE name=?", value, "last_line_dedup_index")
+// 	log.Infoln("setLastLineDedupIndex to :", value)
+// }
 
-func getLastLineDedupIndex() int {
-	var value string
-	db.QueryRow("SELECT value FROM properties WHERE name=?", "last_line_dedup_index").Scan(&value)
-	index, _ := strconv.Atoi(value)
-	log.Infoln("getLastLineDedupIndex", value)
-	return index
-}
+// func getLastLineDedupIndex() int {
+// 	var value string
+// 	db.QueryRow("SELECT value FROM properties WHERE name=?", "last_line_dedup_index").Scan(&value)
+// 	index, _ := strconv.Atoi(value)
+// 	log.Infoln("getLastLineDedupIndex", value)
+// 	return index
+// }
