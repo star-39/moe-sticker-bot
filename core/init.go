@@ -175,18 +175,20 @@ func initWorkspace(b *tele.Bot) {
 			log.Fatalln("Error initializing database!!", err)
 		}
 	} else {
-		log.Warn("Not using database because --use_db is not set.")
+		log.Warn("Database not enabled because --db_addr is not set.")
 	}
 }
 
+// This gocron is intended to do periodic cleanups.
 func initGoCron() {
+	// Delay start.
 	time.Sleep(15 * time.Second)
 	cronScheduler = gocron.NewScheduler(time.UTC)
-	cronScheduler.Every(2).Days().Do(purgeOutdatedStorageData)
+	cronScheduler.Every(1).Days().Do(purgeOutdatedStorageData)
 	if msbconf.DbAddr != "" {
 		cronScheduler.Every(1).Weeks().Do(curateDatabase)
 	}
-	cronScheduler.StartAsync()
+	cronScheduler.StartBlocking()
 }
 
 func initLogrus() {
