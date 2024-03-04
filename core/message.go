@@ -281,21 +281,21 @@ You can download this sticker set. Press Yes to continue.
 func sendAskWantImportOrDownload(c tele.Context, avalAsEmoji bool) error {
 	msg := ""
 	selector := &tele.ReplyMarkup{}
-	btnImportSticker := selector.Data("Import to Telegram/匯入到Telegram", CB_OK_IMPORT)
-	btnImportEmoji := selector.Data("Import as CustomEmoji/作為表情貼匯入", CB_OK_IMPORT)
+	btnImportSticker := selector.Data("Import sticker set/匯入貼圖包", CB_OK_IMPORT)
+	btnImportEmoji := selector.Data("Import as CustomEmoji/作為表情貼匯入", CB_OK_IMPORT_EMOJI)
 	btnDownload := selector.Data("Download/下載", CB_OK_DN)
 	if avalAsEmoji {
 		selector.Inline(selector.Row(btnImportSticker), selector.Row(btnImportEmoji), selector.Row(btnDownload))
 		msg = `
 You can import this sticker set to Telegram or download it.
 Import as Custom Emoji is also available, however you will need Telegram Premium to send them.
-您可以匯入或下載這個貼圖包.
-這個貼圖包也可以作為表情貼匯入，但是傳送需要Telegram會員。`
+您可以下載或匯入這個貼圖包到Telegram.
+也可以作為表情貼匯入，但是傳送需要Telegram會員。`
 	} else {
 		selector.Inline(selector.Row(btnImportSticker), selector.Row(btnDownload))
 		msg = `
 You can import this sticker set to Telegram or download it.
-您可以匯入或下載這個貼圖包.`
+您可以下載或匯入這個貼圖包到Telegram.`
 	}
 
 	return c.Reply(msg, selector)
