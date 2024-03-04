@@ -51,6 +51,7 @@ const (
 	LINK_IMPORT = "IMPORT"
 )
 
+// Object for quering database for Line Sticker.
 type LineStickerQ struct {
 	Line_id   string
 	Line_link string
@@ -59,12 +60,14 @@ type LineStickerQ struct {
 	Ae        bool
 }
 
+// Object for quering database for User Sticker.
 type UserStickerQ struct {
 	tg_id     string
 	tg_title  string
 	timestamp int64
 }
 
+// Telegram API JSON.
 type WebAppUser struct {
 	Id            int
 	Is_bot        bool
@@ -76,6 +79,7 @@ type WebAppUser struct {
 	Photo_url     string
 }
 
+// Unique user data for one user and one session.
 type UserData struct {
 	//waitgroup for sticker set, wait before commit.
 	wg sync.WaitGroup
@@ -84,9 +88,11 @@ type UserData struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 
-	state            string
-	sessionID        string
-	workDir          string
+	//Current conversational state.
+	state     string
+	sessionID string
+	workDir   string
+	//Current command.
 	command          string
 	progress         string
 	progressMsg      *tele.Message
@@ -98,11 +104,15 @@ type UserData struct {
 	lastContext      tele.Context
 }
 
+// Map for users, identified by user id.
+// All temporal user data are stored in this struct.
 type Users struct {
 	mu   sync.Mutex
 	data map[int64]*UserData
 }
 
+// Object for ants worker function.
+// wg must be initiated with wg.Add(1)
 type StickerMoveObject struct {
 	wg       sync.WaitGroup
 	err      error
@@ -115,6 +125,8 @@ func (ud *UserData) udSetState(state string) {
 	ud.state = state
 }
 
+// Object for ants worker function.
+// wg must be initialized with wg.Add(1)
 type StickerFile struct {
 	wg sync.WaitGroup
 	// path of original file
@@ -124,6 +136,7 @@ type StickerFile struct {
 	cError error
 }
 
+// General sticker data for internal use.
 type StickerData struct {
 	id string
 	// link     string
