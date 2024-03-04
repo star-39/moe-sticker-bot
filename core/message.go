@@ -100,7 +100,7 @@ func sendChangelog(c tele.Context) error {
 	return c.Send(`
 Details: 詳細:
 https://github.com/star-39/moe-sticker-bot#changelog
-v2.4.0-RC1-RC3(20240226)
+v2.4.0-RC1-RC4(20240304)
 * Support Importing LINE Emoji into CustomEmoji.
 * Support creating CustomEmoji.
 * Support editing sticker emoji and title.
@@ -802,8 +802,8 @@ func sendSEditOK(c tele.Context) error {
 
 func sendStickerSetFullWarning(c tele.Context) error {
 	return c.Send(
-		"Warning: Your sticker set is already full. You cannot add new sticker or edit emoji.\n" +
-			"提示：當前貼圖包已滿，您將不能增添貼圖和修改emoji。")
+		"Warning: Your sticker set is already full. You cannot add new sticker.\n" +
+			"提示：當前貼圖包已滿，您將不能增添貼圖。")
 }
 
 // func sendEditingEmoji(c tele.Context) error {
