@@ -48,7 +48,6 @@ func sendCommandList(c tele.Context) error {
 
 func sendAboutMessage(c tele.Context) {
 	c.Send(fmt.Sprintf(`
-@%s by @plow283
 <b>Please star for this project on Github if you like this bot!
 如果您喜歡這個bot, 歡迎在Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
@@ -69,7 +68,6 @@ Version:版本: %s
 
 func sendFAQ(c tele.Context) {
 	c.Send(fmt.Sprintf(`
-@%s by @plow283
 <b>Please hit Star for this project on Github if you like this bot!
 如果您喜歡這個bot, 歡迎在Github給本專案標Star喔!
 https://github.com/star-39/moe-sticker-bot</b>
@@ -533,7 +531,7 @@ func sendFatalError(err error, c tele.Context) {
 
 	c.Send("<b>Fatal error encounterd. Please try again. /start\n"+
 		"發生嚴重錯誤. 請您從頭再試一次. /start </b>\n\n"+
-		"You can report this error to @plow283 or https://github.com/star-39/moe-sticker-bot/issues\n\n"+
+		"You can report this error to https://github.com/star-39/moe-sticker-bot/issues\n\n"+
 		"<code>"+errMsg+"</code>", tele.ModeHTML, tele.NoPreview)
 }
 
