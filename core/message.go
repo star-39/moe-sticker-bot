@@ -429,27 +429,12 @@ func sendSearchResult(entriesWant int, lines []LineStickerQ, c tele.Context) err
 }
 
 func sendAskStickerFile(c tele.Context) error {
-
-	if users.data[c.Sender().ID].stickerData.isVideo {
-		c.Send("Please send images/stickers/videos(less than 50 in total),\n" +
-			"or send an archive containing image files,\n" +
-			"wait until upload complete, then tap 'Done adding'.\n\n" +
-			"請傳送任意格式的圖片/貼圖/影片(少於50張)\n" +
-			"或者傳送內有貼圖檔案的歸檔,\n" +
-			"等候所有檔案上載完成, 然後按下「停止增添」\n")
-		c.Send("Special note: Sending GIF with transparent background will lose transparency.\n" +
-			"You can compress your GIF into a ZIP file then send it to bot to bypass.\n" +
-			"特別提示: 傳送帶有透明背景的GIF會丟失透明層.\n" +
-			"您可以將貼圖放入ZIP歸檔中再傳送給bot來繞過這個限制.")
-	} else {
-		c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
-			"or send an archive containing image files,\n" +
-			"wait until upload complete, then tap 'Done adding'.\n\n" +
-			"請傳送任意格式的圖片/照片/貼圖(少於120張)\n" +
-			"或者傳送內有貼圖檔案的歸檔,\n" +
-			"等候所有檔案上載完成, 然後按下「停止增添」\n")
-	}
-	return nil
+	return c.Send("Please send images/photos/stickers(less than 120 in total),\n" +
+		"or send an archive containing image files,\n" +
+		"wait until upload complete, then tap 'Done adding'.\n\n" +
+		"請傳送任意格式的圖片/影片/貼圖(少於120張)\n" +
+		"或者傳送內有貼圖檔案的歸檔,\n" +
+		"等候所有檔案上載完成, 然後按下「停止增添」\n")
 }
 
 func sendInStateWarning(c tele.Context) error {
