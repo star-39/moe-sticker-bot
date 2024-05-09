@@ -94,7 +94,7 @@ func findLinkWithType(s string) (string, string) {
 		host = LINK_IMPORT
 	}
 
-	log.Debugf("link parsed: link=%s, host=%s", link, host)
+	log.Debugf("link found within findLinkWithType: link=%s, host=%s", link, host)
 	return link, host
 }
 

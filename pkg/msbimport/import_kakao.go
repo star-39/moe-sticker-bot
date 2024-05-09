@@ -41,6 +41,7 @@ func parseKakaoLink(link string, ld *LineData) (string, error) {
 	var kakaoJson KakaoJson
 	err = fetchKakaoMetadata(&kakaoJson, kakaoID)
 	if err != nil {
+		log.Debugln("Failed fetchKakaoMetadata:", err)
 		return warn, err
 	}
 
@@ -185,8 +186,10 @@ func kakaoZipExtract(f string, ld *LineData) []string {
 
 // kakao eid(code), kakao id
 func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
+	log.Debugln("fetchKakaoDetailsFromShareLink: Link is:", link)
 	res, err := httpGetAndroidUA(link)
 	if err != nil {
+		log.Errorln("fetchKakaoDetailsFromShareLink: failed httpGetAndroidUA!", err)
 		return "", "", err
 	}
 	split1 := strings.Split(res, "kakaotalk://store/emoticon/")
