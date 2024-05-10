@@ -36,6 +36,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	var cflist []string
 	var err error
 
+	//Single sticker
 	if s != nil {
 		obj := &StickerDownloadObject{
 			wg:          sync.WaitGroup{},
@@ -60,6 +61,7 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 		return err
 	}
 
+	//Sticker set
 	ss, err := c.Bot().StickerSet(setID)
 	if err != nil {
 		return sendBadSNWarn(c)
@@ -67,16 +69,10 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	ud.stickerData.id = ss.Name
 	ud.stickerData.title = ss.Title
 	pText, pMsg, _ := sendProcessStarted(ud, c, "")
-	sendNotifyWorkingOnBackground(c)
 	cleanUserData(c.Sender().ID)
 	defer os.RemoveAll(workDir)
 	var wpDownloadSticker *ants.PoolWithFunc
-
-	if ss.Animated {
-		wpDownloadSticker, _ = ants.NewPoolWithFunc(4, wDownloadStickerObject)
-	} else {
-		wpDownloadSticker, _ = ants.NewPoolWithFunc(8, wDownloadStickerObject)
-	}
+	wpDownloadSticker, _ = ants.NewPoolWithFunc(4, wDownloadStickerObject)
 
 	defer wpDownloadSticker.Release()
 	imageTime := time.Now()
@@ -104,24 +100,14 @@ func downloadStickersAndSend(s *tele.Sticker, setID string, c tele.Context) erro
 	}
 	go editProgressMsg(0, 0, "Uploading...", pText, pMsg, c)
 
-	webmZipPath := filepath.Join(workDir, setID+"_webm.zip")
-	webpZipPath := filepath.Join(workDir, setID+"_webp.zip")
-	pngZipPath := filepath.Join(workDir, setID+"_png.zip")
-	gifZipPath := filepath.Join(workDir, setID+"_gif.zip")
-	tgsZipPath := filepath.Join(workDir, setID+"_tgs.zip")
+	originalZipPath := filepath.Join(workDir, setID+"_original.zip")
+	convertedZipPath := filepath.Join(workDir, setID+"_converted.zip")
 
 	var zipPaths []string
 
-	if ss.Video {
-		zipPaths = append(zipPaths, msbimport.FCompressVol(webmZipPath, flist)...)
-		zipPaths = append(zipPaths, msbimport.FCompressVol(gifZipPath, cflist)...)
-	} else if ss.Animated {
-		zipPaths = append(zipPaths, msbimport.FCompressVol(tgsZipPath, flist)...)
-		zipPaths = append(zipPaths, msbimport.FCompressVol(gifZipPath, cflist)...)
-	} else {
-		zipPaths = append(zipPaths, msbimport.FCompressVol(webpZipPath, flist)...)
-		zipPaths = append(zipPaths, msbimport.FCompressVol(pngZipPath, cflist)...)
-	}
+	zipPaths = append(zipPaths, msbimport.FCompressVol(originalZipPath, flist)...)
+	zipPaths = append(zipPaths, msbimport.FCompressVol(convertedZipPath, cflist)...)
+
 	for _, zipPath := range zipPaths {
 		_, err := c.Bot().Send(c.Recipient(), &tele.Document{FileName: filepath.Base(zipPath), File: tele.FromDisk(zipPath)})
 		time.Sleep(1 * time.Second)

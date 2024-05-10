@@ -63,7 +63,7 @@ Please send /start to start using
 </b><code>
 Version:版本: %s
 </code>
-`, botName, BOT_VERSION), tele.ModeHTML)
+`, BOT_VERSION), tele.ModeHTML)
 }
 
 func sendFAQ(c tele.Context) {
@@ -82,16 +82,11 @@ A: Please send /quit to interrupt.
 A: It's forced by Telegram, bot created sticker set must have its name in ID suffix.
 因為這個是Telegram的強制要求, 由bot創造的貼圖ID末尾必須有bot名字.
 
-<b>Q: Can I add video sticker to static sticker set or vice versa?
-    我可以往靜態貼圖包加動態貼圖, 或者反之嗎?</b>
-A: Yes, however, video will be static in static set
-    可以. 惟動態貼圖在靜態貼圖包裡會變成靜態.
-
 <b>Q: Who owns the sticker sets the bot created?
     BOT創造的貼圖包由誰所有?</b>
 A: It's you of course. You can manage them through /manage or Telegram's official @Stickers bot.
     當然是您. 您可以通過 /manage 指令或者Telegram官方的 @Stickers 管理您的貼圖包.
-`, botName, botName, botName), tele.ModeHTML)
+`, botName, botName), tele.ModeHTML)
 }
 
 func sendChangelog(c tele.Context) error {
@@ -748,11 +743,6 @@ func sendBadImportLinkWarn(c tele.Context) error {
 		"For example: 例如:\n"+
 		"<code>https://store.line.me/stickershop/product/7673/ja</code>\n"+
 		"<code>https://e.kakao.com/t/pretty-all-friends</code>", tele.ModeHTML)
-}
-
-func sendNotifyWorkingOnBackground(c tele.Context) error {
-	return c.Send("Work has been started on the background. You can continue using other features. /start\n" +
-		"工作已開始在背景處理, 您可以繼續使用bot的其他功能. /start")
 }
 
 func sendNoSToManage(c tele.Context) error {

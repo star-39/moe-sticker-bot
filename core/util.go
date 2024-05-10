@@ -166,7 +166,6 @@ func retrieveSSDetails(c tele.Context, id string, sd *StickerData) error {
 	sd.title = ss.Title
 	sd.id = ss.Name
 	sd.cAmount = len(ss.Stickers)
-	sd.isVideo = ss.Video
 	sd.stickerSetType = ss.Type
 	if ss.Type == tele.StickerCustomEmoji {
 		sd.isCustomEmoji = true
@@ -293,4 +292,14 @@ func teleDownload(tf *tele.File, f string) error {
 	// } else {
 	return b.Download(tf, f)
 	// }
+}
+
+// To comply with new InputSticker requirement on format,
+// guess format based on file extension.
+func guessInputStickerFormat(f string) string {
+	if strings.HasSuffix(f, ".webm") {
+		return "video"
+	} else {
+		return "static"
+	}
 }

@@ -136,9 +136,8 @@ func apiSS(c *gin.Context) {
 	}
 
 	wss := webappStickerSet{
-		SSTitle:  ss.Title,
-		SSName:   ss.Name,
-		Animated: ss.Video || ss.Animated,
+		SSTitle: ss.Title,
+		SSName:  ss.Name,
 	}
 	sl := []webappStickerObject{}
 	ready := true
@@ -390,7 +389,7 @@ func prepareWebAppEditStickers(ud *UserData) error {
 
 	for _, s := range ud.stickerData.stickerSet.Stickers {
 		var f string
-		if ud.stickerData.stickerSet.Video {
+		if s.Video {
 			f = filepath.Join(dest, s.UniqueID+".webm")
 		} else {
 			f = filepath.Join(dest, s.UniqueID+".webp")
@@ -425,9 +424,9 @@ func prepareWebAppExportStickers(ss *tele.StickerSet, hex string) error {
 
 	for i, s := range ss.Stickers {
 		var f string
-		if ss.Video {
+		if s.Video {
 			f = filepath.Join(dest, s.UniqueID+".webm")
-		} else if ss.Animated {
+		} else if s.Animated {
 			f = filepath.Join(dest, s.UniqueID+".tgs")
 		} else {
 			f = filepath.Join(dest, s.UniqueID+".webp")
@@ -448,33 +447,3 @@ func prepareWebAppExportStickers(ss *tele.StickerSet, hex string) error {
 	}
 	return nil
 }
-
-// func appendSStoQIDAuthList(sn string, qid string) {
-// 	webAppSSAuthList.mu.Lock()
-// 	defer webAppSSAuthList.mu.Unlock()
-
-// 	obj := &WebAppQIDAuthObject{sn: sn, dt: time.Now().Unix()}
-// 	webAppSSAuthList.sa[qid] = obj
-// }
-
-// func removeSSfromQIDAuthList(sn string, qid string) {
-// 	webAppSSAuthList.mu.Lock()
-// 	defer webAppSSAuthList.mu.Unlock()
-
-// 	_, exist := webAppSSAuthList.sa[qid]
-// 	if exist {
-// 		delete(webAppSSAuthList.sa, qid)
-// 	}
-// }
-
-// func veriyQIDfromAuthList(sn string, qid string) bool {
-// 	sa := webAppSSAuthList.sa[qid]
-// 	if sa == nil {
-// 		return false
-// 	}
-// 	if sa.sn == sn {
-// 		return true
-// 	} else {
-// 		return false
-// 	}
-// }

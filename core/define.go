@@ -129,6 +129,8 @@ func (ud *UserData) udSetState(state string) {
 // wg must be initialized with wg.Add(1)
 type StickerFile struct {
 	wg sync.WaitGroup
+	//Must be regular or custom_emoji
+	format string
 	// path of original file
 	oPath string
 	// path of converted filea
@@ -172,6 +174,7 @@ type StickerDownloadObject struct {
 	wg      sync.WaitGroup
 	sticker tele.Sticker
 	dest    string
+	isVideo bool
 	//Convert to conventional format?
 	needConvert bool
 	//Shrink oversized GIF?

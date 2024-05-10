@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,7 +15,9 @@ import (
 var FFMPEG_BIN = "ffmpeg"
 var BSDTAR_BIN = "bsdtar"
 var CONVERT_BIN = "convert"
+var IDENTIFY_BIN = "identify"
 var CONVERT_ARGS []string
+var IDENTIFY_ARGS []string
 
 const (
 	FORMAT_TG_REGULAR_STATIC   = "tg_reg_static"
@@ -49,7 +52,9 @@ func InitConvert() {
 		CONVERT_BIN = "convert"
 	default:
 		CONVERT_BIN = "magick"
+		IDENTIFY_BIN = "magick"
 		CONVERT_ARGS = []string{"convert"}
+		IDENTIFY_ARGS = []string{"identify"}
 	}
 	unfoundBins := CheckDeps()
 	if len(unfoundBins) != 0 {
@@ -171,6 +176,40 @@ func IMToApng(f string) (string, error) {
 		return "", err
 	}
 	return pathOut, err
+}
+
+// If the source is IMAGE, convert to WEBP,
+// If the source is VIDEO, convert to WEBM
+func ConverMediaToTGStickerSmart(f string, isCustomEmoji bool) (string, error) {
+	var isVideo bool
+	//Determine wether the media is Video or Image by counting frames.
+	identifyBin := IDENTIFY_BIN
+	identifyArgs := IDENTIFY_ARGS
+	identifyArgs = append(identifyArgs, "-format", "%n", f)
+	identifyOut, err := exec.Command(identifyBin, identifyArgs...).CombinedOutput()
+	if err != nil {
+		log.Warnln("ConverMediaToTGStickerSmart ERROR:", string(identifyOut))
+		return "", err
+	}
+
+	frameCount, err := strconv.Atoi(string(identifyOut))
+	if err != nil {
+		log.Warnln("ConverMediaToTGStickerSmart Atoi ERROR:", err)
+		return "", err
+	}
+
+	if frameCount > 1 {
+		isVideo = true
+	} else if frameCount == 0 {
+		log.Warnln("ConverMediaToTGStickerSmart ERROR: Frame count is zero.")
+		return "", errors.New("frame count is zero")
+	}
+
+	if isVideo {
+		return FFToWebmTGVideo(f, isCustomEmoji)
+	} else {
+		return IMToWebpTGStatic(f, isCustomEmoji)
+	}
 }
 
 func FFToWebmTGVideo(f string, isCustomEmoji bool) (string, error) {

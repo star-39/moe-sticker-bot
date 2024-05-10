@@ -26,7 +26,6 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	cud := *users.data[uid]
 	ud = &cud
 	cleanUserData(c.Sender().ID)
-	sendNotifyWorkingOnBackground(c)
 
 	if len(ud.stickerData.stickers) == 0 {
 		log.Error("No sticker to commit!")
@@ -64,11 +63,11 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	ss := tele.StickerSet{
 		Name:  ud.stickerData.id,
 		Title: ud.stickerData.title,
-		Video: ud.stickerData.isVideo,
 		Type:  ud.stickerData.stickerSetType,
 	}
 
 	//Try batch create.
+	//This also skips commitSticker.
 	var inputsForBatchCreate []tele.InputSticker
 	var batchCreated bool
 	if createSet {
@@ -79,6 +78,7 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 				Emojis:   ud.stickerData.emojis,
 				Keywords: []string{"sticker"},
 				Sticker:  "file://" + sf.cPath,
+				Format:   guessInputStickerFormat(sf.cPath),
 			}
 			inputsForBatchCreate = append(inputsForBatchCreate, inputSticker)
 			// Up to 50 stickers in batch create. This is by Telegram restriction.
@@ -97,6 +97,7 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 		}
 	}
 
+	//One by one commit.
 	for index, sf := range ud.stickerData.stickers {
 		var err error
 		inputSticker := tele.InputSticker{
@@ -182,7 +183,6 @@ func submitStickerManual(createSet bool, pos int, emojis []string, keywords []st
 	ss := tele.StickerSet{
 		Name:  ud.stickerData.id,
 		Title: ud.stickerData.title,
-		Video: ud.stickerData.isVideo,
 		Type:  ud.stickerData.stickerSetType,
 	}
 
@@ -258,12 +258,8 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 
 	sf.wg.Wait()
 
-	if ss.Video {
-		if safeMode {
-			file, _ = msbimport.FFToWebmSafe(sf.oPath, ss.IsCustomEmoji())
-		} else {
-			file = sf.cPath
-		}
+	if safeMode {
+		file, _ = msbimport.FFToWebmSafe(sf.oPath, ss.IsCustomEmoji())
 	} else {
 		file = sf.cPath
 	}
@@ -274,6 +270,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	// For each sticker, retry at most 2 times, means 3 commit attempts in total.
 	for i := 0; i < 3; i++ {
 		input.Sticker = "file://" + file
+		input.Format = guessInputStickerFormat(file)
 		if createSet {
 			err = c.Bot().CreateStickerSet(c.Recipient(), []tele.InputSticker{input}, ss)
 		} else {
@@ -372,8 +369,7 @@ func appendMedia(c tele.Context) error {
 	ud.wg.Add(1)
 	defer ud.wg.Done()
 
-	if (ud.stickerData.isVideo && ud.stickerData.cAmount+len(ud.stickerData.stickers) > 50) ||
-		(ud.stickerData.cAmount+len(ud.stickerData.stickers) > 120) {
+	if ud.stickerData.cAmount+len(ud.stickerData.stickers) > 120 {
 		return errors.New("sticker set already full 此貼圖包已滿")
 	}
 
@@ -394,21 +390,13 @@ func appendMedia(c tele.Context) error {
 	for _, f := range files {
 		var cf string
 		var err error
-		if ud.stickerData.isVideo {
-			if c.Message().Sticker != nil && c.Message().Sticker.Video {
-				if (c.Message().Sticker.CustomEmoji != "") == ud.stickerData.isCustomEmoji {
-					cf = f
-				} else {
-					cf, err = msbimport.FFToWebmTGVideo(f, ud.stickerData.isCustomEmoji)
-				}
-			} else if c.Message().Sticker != nil && c.Message().Sticker.Animated {
-				return errors.New("appendMedia: TGS to Video sticker not supported, try another one")
-			} else {
-				cf, err = msbimport.FFToWebmTGVideo(f, ud.stickerData.isCustomEmoji)
-			}
+		//If incoming media is already a sticker, use the file as is.
+		if c.Message().Sticker != nil && ((c.Message().Sticker.Type == "custom_emoji") == ud.stickerData.isCustomEmoji) {
+			cf = f
 		} else {
-			cf, err = msbimport.IMToWebpTGStatic(f, ud.stickerData.isCustomEmoji)
+			cf, err = msbimport.ConverMediaToTGStickerSmart(f, ud.stickerData.isCustomEmoji)
 		}
+
 		if err != nil {
 			log.Warnln("Failed converting one user sticker", err)
 			c.Send("Failed converting one user sticker:" + err.Error())
@@ -471,5 +459,4 @@ func verifyFloodedStickerSet(c tele.Context, fc int, ec int, desiredAmount int, 
 	} else {
 		log.Infof("A flooded sticker set seems ok. floodCount:%d, errorCount:%d, ssn:%s, desired:%d, got:%d", fc, ec, ssn, desiredAmount, len(ss.Stickers))
 	}
-
 }
