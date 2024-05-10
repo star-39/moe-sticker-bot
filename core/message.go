@@ -452,14 +452,12 @@ func sendNoSessionWarning(c tele.Context) error {
 
 func sendAskSTypeToCreate(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnStatic := selector.Data("Regular Sticker/普通貼圖", "static")
-	btnAnimated := selector.Data("Animated Sticker/動態貼圖", "video")
-	btnStaticEmoji := selector.Data("Static Custom Emoji/表情貼", "staticemoji")
-	btnAnimatedEmoji := selector.Data("Animated Custom Emoji/動態表情貼", "videoemoji")
+	btnRegular := selector.Data("Regular Sticker/普通貼圖", CB_REGULAR_STICKER)
+	btnCustomEmoji := selector.Data("Custom Emoji/表情貼", CB_CUSTOM_EMOJI)
 
-	selector.Inline(selector.Row(btnStatic), selector.Row(btnAnimated), selector.Row(btnStaticEmoji), selector.Row(btnAnimatedEmoji))
-	return c.Send("What kind of sticker set you want to create?\n"+
-		"您想要創建何種類型的貼圖包?", selector)
+	selector.Inline(selector.Row(btnRegular), selector.Row(btnCustomEmoji))
+	return c.Send("What kind of sticker set you want to create?\nNote that custom emoji can only be sent by Telegram Premium member."+
+		"您想要創建何種類型的貼圖包?\n請注意只有Telgram會員可以傳送表情貼。", selector)
 }
 
 func sendAskEmojiAssign(c tele.Context) error {

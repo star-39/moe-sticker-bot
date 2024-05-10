@@ -39,6 +39,8 @@ const (
 	CB_DELETE_STICKER     = "dels"
 	CB_DELETE_STICKER_SET = "delss"
 	CB_CHANGE_TITLE       = "changetitle"
+	CB_REGULAR_STICKER    = "regular"
+	CB_CUSTOM_EMOJI       = "customemoji"
 
 	ST_WAIT_WEBAPP = "waitWebApp"
 	ST_PROCESSING  = "process"
