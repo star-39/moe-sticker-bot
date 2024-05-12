@@ -131,6 +131,8 @@ func (ud *UserData) udSetState(state string) {
 // wg must be initialized with wg.Add(1)
 type StickerFile struct {
 	wg sync.WaitGroup
+	//Telegram FileID(if exists on cloud)
+	fileID string
 	//Must be regular or custom_emoji
 	format string
 	// path of original file

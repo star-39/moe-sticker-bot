@@ -269,8 +269,14 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 	// Retry loop.
 	// For each sticker, retry at most 2 times, means 3 commit attempts in total.
 	for i := 0; i < 3; i++ {
-		input.Sticker = "file://" + file
-		input.Format = guessInputStickerFormat(file)
+		if sf.fileID != "" {
+			input.Sticker = sf.fileID
+			input.Format = sf.format
+		} else {
+			input.Sticker = "file://" + file
+			input.Format = guessInputStickerFormat(file)
+		}
+
 		if createSet {
 			err = c.Bot().CreateStickerSet(c.Recipient(), []tele.InputSticker{input}, ss)
 		} else {
@@ -365,6 +371,9 @@ func editStickerEmoji(newEmojis []string, fid string, ud *UserData) error {
 func appendMedia(c tele.Context) error {
 	log.Debugf("Received file, MType:%s, FileID:%s", c.Message().Media().MediaType(), c.Message().Media().MediaFile().FileID)
 	var files []string
+	var sfs []*StickerFile
+	var err error
+
 	ud := users.data[c.Sender().ID]
 	ud.wg.Add(1)
 	defer ud.wg.Done()
@@ -376,7 +385,23 @@ func appendMedia(c tele.Context) error {
 	workDir := users.data[c.Sender().ID].workDir
 	savePath := filepath.Join(workDir, secHex(4))
 
-	err := teleDownload(c.Message().Media().MediaFile(), savePath)
+	//DEBUG
+	if c.Message().Sticker != nil && ((c.Message().Sticker.Type == "custom_emoji") == ud.stickerData.isCustomEmoji) {
+		var format string
+		if c.Message().Sticker.Video {
+			format = "video"
+		} else {
+			format = "static"
+		}
+		sfs = append(sfs, &StickerFile{
+			fileID: c.Message().Sticker.FileID,
+			format: format,
+		})
+		log.Debugf("One received sticker file OK. ID:%s", c.Message().Sticker.FileID)
+		goto CONTINUE
+	}
+
+	err = teleDownload(c.Message().Media().MediaFile(), savePath)
 	if err != nil {
 		return errors.New("error downloading media")
 	}
@@ -386,7 +411,6 @@ func appendMedia(c tele.Context) error {
 		files = append(files, savePath)
 	}
 
-	var sfs []*StickerFile
 	for _, f := range files {
 		var cf string
 		var err error
@@ -409,6 +433,7 @@ func appendMedia(c tele.Context) error {
 		log.Debugf("One received file OK. oPath:%s | cPath:%s", f, cf)
 	}
 
+CONTINUE:
 	if len(sfs) == 0 {
 		return errors.New("download or convert error")
 	}
