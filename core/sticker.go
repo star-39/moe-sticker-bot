@@ -14,6 +14,8 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
+//TODO: Shrink oversized function.
+
 // Final stage of automated sticker submission.
 func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	uid := c.Sender().ID
@@ -59,67 +61,42 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	committedStickers := 0
 	errorCount := 0
 	flCount := &ud.stickerData.flCount
-
-	ss := tele.StickerSet{
-		Name:  ud.stickerData.id,
-		Title: ud.stickerData.title,
-		Type:  ud.stickerData.stickerSetType,
-	}
+	ssName := ud.stickerData.id
+	ssTitle := ud.stickerData.title
+	ssType := ud.stickerData.stickerSetType
 
 	//Try batch create.
-	//This also skips commitSticker.
-	var inputsForBatchCreate []tele.InputSticker
-	var batchCreated bool
-	if createSet {
-		for index, sf := range ud.stickerData.stickers {
-			var err error
-			sf.wg.Wait()
-			inputSticker := tele.InputSticker{
-				Emojis:   ud.stickerData.emojis,
-				Keywords: []string{"sticker"},
-				Sticker:  "file://" + sf.cPath,
-				Format:   guessInputStickerFormat(sf.cPath),
-			}
-			inputsForBatchCreate = append(inputsForBatchCreate, inputSticker)
-			// Up to 50 stickers in batch create. This is by Telegram restriction.
-			// Finish this loop by submitting sticker set.
-			if index == len(ud.stickerData.stickers)-1 || index == 49 {
-				err = c.Bot().CreateStickerSet(c.Recipient(), inputsForBatchCreate, ss)
-				if err == nil {
-					log.Debugln("sticker.go: Batch create success.")
-					batchCreated = true
-					committedStickers = index + 1
-				} else {
-					log.Warnln("sticker.go: Error batch create:", err.Error())
-				}
-				break
-			}
+	var batchCreateSuccess bool
+	if createSet && len(ud.stickerData.stickers) <= 50 {
+		err := createStickerSetBatch(ud.stickerData.stickers, c, ssName, ssTitle, ssType)
+		if err != nil {
+			log.Warnln("sticker.go: Error batch create:", err.Error())
+		} else {
+			log.Debugln("sticker.go: Batch create success.")
+			batchCreateSuccess = true
+			committedStickers = len(ud.stickerData.stickers)
 		}
 	}
 
 	//One by one commit.
 	for index, sf := range ud.stickerData.stickers {
 		var err error
-		inputSticker := tele.InputSticker{
-			Emojis:   ud.stickerData.emojis,
-			Keywords: []string{"sticker"},
-		}
 
 		//Sticker set already finished.
-		if batchCreated && len(ud.stickerData.stickers) < 51 {
+		if batchCreateSuccess && len(ud.stickerData.stickers) < 51 {
 			go editProgressMsg(len(ud.stickerData.stickers), len(ud.stickerData.stickers), "", pText, teleMsg, c)
 			break
 		}
-		//Sticker set is larger than 50.
+		//Sticker set is larger than 50 and batch succeeded.
 		//Skip first 50 stickers.
-		if batchCreated && len(ud.stickerData.stickers) > 50 {
+		if batchCreateSuccess && len(ud.stickerData.stickers) > 50 {
 			if index < 50 {
 				continue
 			}
 		}
-		//Batch creation failed, run normal creation procedure.
+		//Batch creation failed, run normal creation procedure if createSet is true.
 		if createSet && index == 0 {
-			err = commitSticker(true, index, flCount, false, sf, c, inputSticker, ss)
+			err = createStickerSet(false, sf, c, ssName, ssTitle, ssType)
 			if err != nil {
 				log.Errorln("create sticker set failed!. ", err)
 				return err
@@ -131,7 +108,7 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 
 		go editProgressMsg(index, len(ud.stickerData.stickers), "", pText, teleMsg, c)
 
-		err = commitSticker(false, index, flCount, false, sf, c, inputSticker, ss)
+		err = commitSingleticker(index, flCount, false, sf, c, ssName, ssType)
 		if err != nil {
 			log.Warnln("execAutoCommit: a sticker failed to add.", err)
 			sendOneStickerFailedToAdd(c, index, err)
@@ -174,31 +151,24 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 // Only fatal error should be returned.
 func submitStickerManual(createSet bool, pos int, emojis []string, keywords []string, c tele.Context) error {
 	ud := users.data[c.Sender().ID]
+	var err error
+	name := ud.stickerData.id
+	title := ud.stickerData.title
+	ssType := ud.stickerData.stickerSetType
 
 	if len(ud.stickerData.stickers) == 0 {
 		log.Error("No sticker to commit!!")
 		return errors.New("no sticker available")
 	}
-	var err error
-	ss := tele.StickerSet{
-		Name:  ud.stickerData.id,
-		Title: ud.stickerData.title,
-		Type:  ud.stickerData.stickerSetType,
-	}
-
-	log.Debugln("execEmojiAssign: sticker summary: ", ss)
-	log.Debugf("execEmojiAssign: attempting to commit: pos:%d, lAmount:%d, cAmount:%d", pos, ud.stickerData.lAmount, ud.stickerData.cAmount)
 
 	sf := ud.stickerData.stickers[pos]
-	input := tele.InputSticker{
-		Emojis:   emojis,
-		Keywords: keywords,
-	}
+	sf.emojis = emojis
+	sf.keywords = keywords
 
 	//Do not submit to goroutine when creating sticker set.
 	if createSet && pos == 0 {
 		defer close(ud.commitChans[pos])
-		err = commitSticker(true, pos, &ud.stickerData.flCount, false, sf, c, input, ss)
+		err = createStickerSet(false, sf, c, name, title, ssType)
 		if err != nil {
 			log.Errorln("create failed. ", err)
 			return err
@@ -215,7 +185,7 @@ func submitStickerManual(createSet bool, pos int, emojis []string, keywords []st
 				<-ud.commitChans[pos-1]
 			}
 
-			err = commitSticker(false, pos, &ud.stickerData.flCount, false, sf, c, input, ss)
+			err = commitSingleticker(pos, &ud.stickerData.flCount, false, sf, c, name, ssType)
 			if err != nil {
 				sendOneStickerFailedToAdd(c, pos, err)
 				log.Warnln("execEmojiAssign: a sticker failed to add: ", err)
@@ -246,29 +216,114 @@ func finalizeSubmitStickerManual(c tele.Context, createSet bool, ud *UserData) e
 	return nil
 }
 
+// Create sticker set if needed.
+func createStickerSet(safeMode bool, sf *StickerFile, c tele.Context, name string, title string, ssType string) error {
+	var file string
+	var isCustomEmoji bool
+	if ssType == tele.StickerCustomEmoji {
+		isCustomEmoji = true
+	}
+
+	sf.wg.Wait()
+
+	if safeMode {
+		file, _ = msbimport.FFToWebmSafe(sf.oPath, isCustomEmoji)
+	} else {
+		file = sf.cPath
+	}
+
+	log.Debugln("createStickerSet: attempting, sticker file path:", sf.cPath)
+
+	input := tele.InputSticker{}
+	if sf.fileID != "" {
+		input.Sticker = sf.fileID
+		input.Format = sf.format
+	} else {
+		input.Sticker = "file://" + file
+		input.Format = guessInputStickerFormat(file)
+	}
+
+	err := c.Bot().CreateStickerSet(c.Recipient(), []tele.InputSticker{input}, name, title, ssType)
+	if err == nil {
+		return nil
+	}
+
+	log.Errorf("createStickerSet error:%s for set:%s.", err, name)
+
+	// Only handle video_long error here, return all other error types.
+	if strings.Contains(strings.ToLower(err.Error()), "video_long") {
+		// Redo with safe mode on.
+		// This should happen only one time.
+		// So if safe mode is on and this error still occurs, return err.
+		if safeMode {
+			log.Error("safe mode DID NOT resolve video_long problem.")
+			return err
+
+		} else {
+			log.Warnln("returned video_long, attempting safe mode.")
+			return createStickerSet(true, sf, c, name, title, ssType)
+		}
+	} else {
+		return err
+	}
+}
+
+// Create sticker set with multiple StickerFile.
+// API 7.2 feature, consider it experimental.
+// If it failed, no retry, just return error and we try conventional way.
+func createStickerSetBatch(sfs []*StickerFile, c tele.Context, name string, title string, ssType string) error {
+	var inputs []tele.InputSticker
+	log.Debugln("createStickerSetBatch: attempting, batch creation:", name)
+
+	for _, sf := range sfs {
+		sf.wg.Wait()
+		file := sf.cPath
+		input := tele.InputSticker{
+			Emojis:   sf.emojis,
+			Keywords: sf.keywords,
+		}
+		if sf.fileID != "" {
+			input.Sticker = sf.fileID
+			input.Format = sf.format
+		} else {
+			input.Sticker = "file://" + file
+			input.Format = guessInputStickerFormat(file)
+		}
+		inputs = append(inputs, input)
+	}
+
+	return c.Bot().CreateStickerSet(c.Recipient(), inputs, name, title, ssType)
+}
+
 // Commit single sticker, retry happens inside this function.
 // If all retries failed, return err.
 //
 // flCount counts the total flood limit for entire sticker set.
 // pos is for logging only.
-func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, input tele.InputSticker, ss tele.StickerSet) error {
+func commitSingleticker(pos int, flCount *int, safeMode bool, sf *StickerFile, c tele.Context, name string, ssType string) error {
 	var err error
 	var floodErr tele.FloodError
 	var file string
-
+	var isCustomEmoji bool
+	if ssType == tele.StickerCustomEmoji {
+		isCustomEmoji = true
+	}
 	sf.wg.Wait()
 
 	if safeMode {
-		file, _ = msbimport.FFToWebmSafe(sf.oPath, ss.IsCustomEmoji())
+		file, _ = msbimport.FFToWebmSafe(sf.oPath, isCustomEmoji)
 	} else {
 		file = sf.cPath
 	}
 
-	log.Debugln("sticker file path:", sf.cPath)
-	log.Debugln("attempt commiting:", ss)
+	log.Debugln("commitSingleticker: attempting, sticker file path:", sf.cPath)
 	// Retry loop.
 	// For each sticker, retry at most 2 times, means 3 commit attempts in total.
 	for i := 0; i < 3; i++ {
+		input := tele.InputSticker{
+			Emojis:   sf.emojis,
+			Keywords: sf.keywords,
+		}
 		if sf.fileID != "" {
 			input.Sticker = sf.fileID
 			input.Format = sf.format
@@ -277,34 +332,23 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 			input.Format = guessInputStickerFormat(file)
 		}
 
-		if createSet {
-			err = c.Bot().CreateStickerSet(c.Recipient(), []tele.InputSticker{input}, ss)
-		} else {
-			err = c.Bot().AddSticker(c.Recipient(), input, ss)
-		}
+		err = c.Bot().AddSticker(c.Recipient(), input, name)
 		if err == nil {
 			return nil
 		}
 
-		log.Errorf("commit sticker error:%s for set:%s. creatSet?: %v", err, ss.Name, createSet)
-		// Is flood limit error.
-		// Telegram's flood limit is strange.
-		// It only happens to a specific user at a specific time.
+		log.Errorf("commit sticker error:%s for set:%s.", err, name)
+		// This flood limit error only happens to a specific user at a specific time.
 		// It is "fake" most of time, since TDLib in API Server will automatically retry.
-		// However! API always return 429 without mentioning its self retry.
+		// However, API always return 429.
 		// Since API side will always do retry at TDLib level, message_id was also being kept so
 		// no position shift will happen.
 		// Flood limit error could be probably ignored.
 		if errors.As(err, &floodErr) {
 			// This reflects the retry count for entire SS.
 			*flCount += 1
-			log.Warnf("commitSticker: Flood limit encountered for user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, ss.Name, *flCount, pos)
+			log.Warnf("commitSticker: Flood limit encountered for user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, name, *flCount, pos)
 			log.Warnln("commitSticker: commit sticker retry after: ", floodErr.RetryAfter)
-			// If flood limit encountered when creating set, return immediately.
-			if createSet {
-				sendTooManyFloodLimits(c)
-				return errors.New("flood limit when creating set")
-			}
 			if *flCount == 2 {
 				sendFLWarning(c)
 			}
@@ -319,7 +363,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 				time.Sleep(time.Duration(floodErr.RetryAfter+extraRA) * time.Second)
 			}
 
-			log.Warnf("Woken up from RA sleep. ignoring this error. user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, ss.Name, *flCount, pos)
+			log.Warnf("Woken up from RA sleep. ignoring this error. user:%d, set:%s, count:%d, pos:%d", c.Sender().ID, name, *flCount, pos)
 
 			//According to collected logs, exceeding 2 flood counts will sometimes cause api server to stop auto retrying.
 			//Hence, we do retry here, else, break retry loop.
@@ -338,7 +382,7 @@ func commitSticker(createSet bool, pos int, flCount *int, safeMode bool, sf *Sti
 				return err
 			} else {
 				log.Warnln("returned video_long, attempting safe mode.")
-				return commitSticker(createSet, pos, flCount, true, sf, c, input, ss)
+				return commitSingleticker(pos, flCount, true, sf, c, name, ssType)
 			}
 		} else if strings.Contains(err.Error(), "400") {
 			// return remaining 400 BAD REQUEST immediately to parent without retry.

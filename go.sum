@@ -441,6 +441,8 @@ github.com/star-39/telebot/v3 v3.99.7 h1:hkzOqAwksn7yMo7LxyhmOSqwBxo3PFk7vRbhGcA
 github.com/star-39/telebot/v3 v3.99.7/go.mod h1:Ao7cUAFKISN5qXdy7s32HTjE8yJfKSV0FDhaW3+Qw74=
 github.com/star-39/telebot/v3 v3.99.8 h1:/AOYaKvaUsDl7wVle5PIu/+HLjeapobiAhSF8c8RCyc=
 github.com/star-39/telebot/v3 v3.99.8/go.mod h1:Ao7cUAFKISN5qXdy7s32HTjE8yJfKSV0FDhaW3+Qw74=
+github.com/star-39/telebot/v3 v3.99.9 h1:0AzpYI796wpcEw4+aT0dHoFB/x0LStdqfpggVyZPoOE=
+github.com/star-39/telebot/v3 v3.99.9/go.mod h1:Ao7cUAFKISN5qXdy7s32HTjE8yJfKSV0FDhaW3+Qw74=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=

@@ -127,19 +127,26 @@ func (ud *UserData) udSetState(state string) {
 	ud.state = state
 }
 
-// Object for ants worker function.
-// wg must be initialized with wg.Add(1)
+// StickerFile object, for internal use.
+// Also used for ants worker function.
+// wg must be initialized with wg.Add(1) and must be waited when cPath is needed!
 type StickerFile struct {
 	wg sync.WaitGroup
 	//Telegram FileID(if exists on cloud)
 	fileID string
-	//Must be regular or custom_emoji
-	format string
 	// path of original file
 	oPath string
 	// path of converted filea
 	cPath  string
 	cError error
+	//////////////////
+	//Following fields comply with tele.InputSticker
+	//////////////////
+	emojis []string `json:"emoji_list"`
+	// MaskPosition MaskPosition `json:"mask_position"`
+	keywords []string `json:"keywords"`
+	//One of static, video, animated.
+	format string `json:"format"`
 }
 
 // General sticker data for internal use.
@@ -164,14 +171,6 @@ type StickerData struct {
 	cAmount int
 	// amout of flood error encounterd
 	flCount int
-}
-
-func (sd StickerData) getFormat() string {
-	if sd.isVideo {
-		return "video"
-	} else {
-		return "static"
-	}
 }
 
 type StickerDownloadObject struct {

@@ -2,7 +2,7 @@ module github.com/star-39/moe-sticker-bot
 
 go 1.19
 
-replace gopkg.in/telebot.v3 => github.com/star-39/telebot/v3 v3.99.8
+replace gopkg.in/telebot.v3 => github.com/star-39/telebot/v3 v3.99.9
 
 replace github.com/armon/go-metrics => github.com/hashicorp/go-metrics v0.5.3
 
