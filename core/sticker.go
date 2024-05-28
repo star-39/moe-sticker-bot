@@ -234,7 +234,10 @@ func createStickerSet(safeMode bool, sf *StickerFile, c tele.Context, name strin
 
 	log.Debugln("createStickerSet: attempting, sticker file path:", sf.cPath)
 
-	input := tele.InputSticker{}
+	input := tele.InputSticker{
+		Emojis:   sf.emojis,
+		Keywords: sf.keywords,
+	}
 	if sf.fileID != "" {
 		input.Sticker = sf.fileID
 		input.Format = sf.format
@@ -258,7 +261,6 @@ func createStickerSet(safeMode bool, sf *StickerFile, c tele.Context, name strin
 		if safeMode {
 			log.Error("safe mode DID NOT resolve video_long problem.")
 			return err
-
 		} else {
 			log.Warnln("returned video_long, attempting safe mode.")
 			return createStickerSet(true, sf, c, name, title, ssType)
@@ -413,10 +415,12 @@ func editStickerEmoji(newEmojis []string, fid string, ud *UserData) error {
 // Receive and process user uploaded media file and convert to Telegram compliant format.
 // Accept telebot Media and Sticker only.
 func appendMedia(c tele.Context) error {
-	log.Debugf("Received file, MType:%s, FileID:%s", c.Message().Media().MediaType(), c.Message().Media().MediaFile().FileID)
+	log.Debugf("appendMedia: Received file, MType:%s, FileID:%s", c.Message().Media().MediaType(), c.Message().Media().MediaFile().FileID)
 	var files []string
 	var sfs []*StickerFile
 	var err error
+	var workDir string
+	var savePath string
 
 	ud := users.data[c.Sender().ID]
 	ud.wg.Add(1)
@@ -426,11 +430,8 @@ func appendMedia(c tele.Context) error {
 		return errors.New("sticker set already full 此貼圖包已滿")
 	}
 
-	workDir := users.data[c.Sender().ID].workDir
-	savePath := filepath.Join(workDir, secHex(4))
-
 	//DEBUG
-	if c.Message().Sticker != nil && ((c.Message().Sticker.Type == "custom_emoji") == ud.stickerData.isCustomEmoji) {
+	if c.Message().Sticker != nil && ((c.Message().Sticker.Type == tele.StickerCustomEmoji) == ud.stickerData.isCustomEmoji) {
 		var format string
 		if c.Message().Sticker.Video {
 			format = "video"
@@ -445,16 +446,24 @@ func appendMedia(c tele.Context) error {
 		goto CONTINUE
 	}
 
-	err = teleDownload(c.Message().Media().MediaFile(), savePath)
-	if err != nil {
-		return errors.New("error downloading media")
-	}
+	workDir = users.data[c.Sender().ID].workDir
+	savePath = filepath.Join(workDir, secHex(4))
+
 	if c.Message().Media().MediaType() == "document" && guessIsArchive(c.Message().Document.FileName) {
+		savePath += filepath.Ext(c.Message().Document.FileName)
 		files = append(files, msbimport.ArchiveExtract(savePath)...)
+	} else if c.Message().Media().MediaType() == "animation" {
+		savePath += filepath.Ext(c.Message().Animation.FileName)
+		files = append(files, savePath)
 	} else {
 		files = append(files, savePath)
 	}
 
+	err = c.Bot().Download(c.Message().Media().MediaFile(), savePath)
+	if err != nil {
+		return errors.New("error downloading media")
+	}
+	log.Debugln("appendMedia: Media downloaded to savepath:", savePath)
 	for _, f := range files {
 		var cf string
 		var err error
@@ -514,7 +523,7 @@ func verifyFloodedStickerSet(c tele.Context, fc int, ec int, desiredAmount int, 
 			if si > 0 {
 				fp := filepath.Join(workdir, strconv.Itoa(si-1)+".webp")
 				f := filepath.Join(workdir, strconv.Itoa(si)+".webp")
-				teleDownload(&s.File, f)
+				c.Bot().Download(&s.File, f)
 
 				if compCRC32(f, fp) {
 					b.DeleteSticker(s.FileID)

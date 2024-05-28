@@ -127,7 +127,7 @@ func downloadGifToZip(c tele.Context) error {
 	defer os.RemoveAll(workDir)
 
 	f := filepath.Join(workDir, "animation_MP4.mp4")
-	err := teleDownload(&c.Message().Animation.File, f)
+	err := c.Bot().Download(&c.Message().Animation.File, f)
 	if err != nil {
 		return err
 	}

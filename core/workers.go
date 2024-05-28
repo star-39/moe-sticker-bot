@@ -24,7 +24,7 @@ func wDownloadStickerObject(i interface{}) {
 	log.Debugf("Downloading in pool: %s -> %s", obj.sticker.FileID, obj.dest)
 
 	if obj.forWebApp || obj.forWhatsApp {
-		err := teleDownload(&obj.sticker.File, obj.dest)
+		err := b.Download(&obj.sticker.File, obj.dest)
 		if err != nil {
 			log.Warnln("download: error downloading sticker:", err)
 			obj.err = err
@@ -59,19 +59,19 @@ func wDownloadStickerObject(i interface{}) {
 	var err error
 	if obj.sticker.Video {
 		f = obj.dest + ".webm"
-		err = teleDownload(&obj.sticker.File, f)
+		err = b.Download(&obj.sticker.File, f)
 		if obj.needConvert {
 			cf, _ = msbimport.FFToGif(f)
 		}
 	} else if obj.sticker.Animated {
 		f = obj.dest + ".tgs"
-		err = teleDownload(&obj.sticker.File, f)
+		err = b.Download(&obj.sticker.File, f)
 		if obj.needConvert {
 			cf, _ = msbimport.RlottieToGIF(f)
 		}
 	} else {
 		f = obj.dest + ".webp"
-		err = teleDownload(&obj.sticker.File, f)
+		err = b.Download(&obj.sticker.File, f)
 		if obj.needConvert {
 			cf, _ = msbimport.IMToPng(f)
 		}

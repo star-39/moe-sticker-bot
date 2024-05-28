@@ -274,25 +274,25 @@ func checkGnerateSIDFromLID(ld *msbimport.LineData) string {
 	return s
 }
 
-// Local bot api returns a absolute path in FilePath.
-// We need to separate "real" api server and local api server.
-// We move the file from api server to target location.
-// Be careful, this does not work when crossing mount points.
-func teleDownload(tf *tele.File, f string) error {
-	// if msbconf.BotApiAddr != "" {
-	// 	tf2, err := b.FileByID(tf.FileID)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	err = os.Rename(tf2.FilePath, f)
-	// 	if err != nil {
-	// 		exec.Command("cp", tf2.FilePath, f).CombinedOutput()
-	// 	}
-	// 	return os.Chmod(f, 0644)
-	// } else {
-	return b.Download(tf, f)
-	// }
-}
+// // Local bot api returns a absolute path in FilePath.
+// // We need to separate "real" api server and local api server.
+// // We move the file from api server to target location.
+// // Be careful, this does not work when crossing mount points.
+// func teleDownload(tf *tele.File, f string) error {
+// 	// if msbconf.BotApiAddr != "" {
+// 	// 	tf2, err := b.FileByID(tf.FileID)
+// 	// 	if err != nil {
+// 	// 		return err
+// 	// 	}
+// 	// 	err = os.Rename(tf2.FilePath, f)
+// 	// 	if err != nil {
+// 	// 		exec.Command("cp", tf2.FilePath, f).CombinedOutput()
+// 	// 	}
+// 	// 	return os.Chmod(f, 0644)
+// 	// } else {
+// 	return b.Download(tf, f)
+// 	// }
+// }
 
 // To comply with new InputSticker requirement on format,
 // guess format based on file extension.

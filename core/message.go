@@ -93,6 +93,12 @@ func sendChangelog(c tele.Context) error {
 	return c.Send(`
 Details: 詳細:
 https://github.com/star-39/moe-sticker-bot#changelog
+v2.5.0-RC1(20240528)
+* Support mix-typed sticker set.
+* You can add video to static set and vice versa.
+* 支援混合貼圖包。
+* 貼圖包可以同時存入靜態與動態貼圖。
+
 v2.4.0-RC1-RC4(20240304)
 * Support Importing LINE Emoji into CustomEmoji.
 * Support creating CustomEmoji.
@@ -462,7 +468,8 @@ func sendAskSTypeToCreate(c tele.Context) error {
 
 func sendAskEmojiAssign(c tele.Context) error {
 	sd := users.data[c.Sender().ID].stickerData
-	sd.stickers[sd.pos].wg.Wait()
+	sf := sd.stickers[sd.pos]
+	sf.wg.Wait()
 	caption := fmt.Sprintf(`
 Send emoji(s) representing this sticker.
 請傳送代表這個貼圖的emoji(可以多個).
@@ -470,8 +477,16 @@ Send emoji(s) representing this sticker.
 %d of %d
 `, sd.pos+1, sd.lAmount)
 
-	err := c.Send(&tele.Photo{
-		File:    tele.FromDisk(sd.stickers[sd.pos].oPath),
+	if sf.fileID != "" {
+		msg, _ := c.Bot().Send(c.Sender(), &tele.Sticker{
+			File: tele.File{FileID: sf.fileID},
+		})
+		_, err := c.Bot().Reply(msg, caption)
+		return err
+	}
+
+	err := c.Send(&tele.Video{
+		File:    tele.FromDisk(sf.oPath),
 		Caption: caption,
 	})
 	if err != nil {
@@ -486,7 +501,10 @@ Send emoji(s) representing this sticker.
 				Caption:  caption,
 			})
 			if err3 != nil {
-				return err3
+				err4 := c.Send(&tele.Sticker{File: tele.File{FileID: sd.stickers[sd.pos].oPath}})
+				if err4 != nil {
+					return err4
+				}
 			}
 		}
 	}

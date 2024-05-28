@@ -135,6 +135,7 @@ type StickerFile struct {
 	//Telegram FileID(if exists on cloud)
 	fileID string
 	// path of original file
+	// If fileID exists, oPath can be omitted.
 	oPath string
 	// path of converted filea
 	cPath  string
@@ -142,8 +143,7 @@ type StickerFile struct {
 	//////////////////
 	//Following fields comply with tele.InputSticker
 	//////////////////
-	emojis []string `json:"emoji_list"`
-	// MaskPosition MaskPosition `json:"mask_position"`
+	emojis   []string `json:"emoji_list"`
 	keywords []string `json:"keywords"`
 	//One of static, video, animated.
 	format string `json:"format"`

@@ -182,7 +182,7 @@ func IMToApng(f string) (string, error) {
 // If the source is VIDEO, convert to WEBM
 func ConverMediaToTGStickerSmart(f string, isCustomEmoji bool) (string, error) {
 	var isVideo bool
-	//Determine wether the media is Video or Image by counting frames.
+	//Determine whether the media is Video or Image by counting frames.
 	identifyBin := IDENTIFY_BIN
 	identifyArgs := IDENTIFY_ARGS
 	identifyArgs = append(identifyArgs, "-format", "%n", f)
@@ -191,6 +191,9 @@ func ConverMediaToTGStickerSmart(f string, isCustomEmoji bool) (string, error) {
 		log.Warnln("ConverMediaToTGStickerSmart ERROR:", string(identifyOut))
 		return "", err
 	}
+	//IM might get buggy and return insane frame count causing overflow.
+	//Trim it.
+	identifyOut = identifyOut[:2]
 
 	frameCount, err := strconv.Atoi(string(identifyOut))
 	if err != nil {
