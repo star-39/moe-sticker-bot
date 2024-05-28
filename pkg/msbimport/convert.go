@@ -193,9 +193,12 @@ func ConverMediaToTGStickerSmart(f string, isCustomEmoji bool) (string, error) {
 	}
 	//IM might get buggy and return insane frame count causing overflow.
 	//Trim it.
-	identifyOut = identifyOut[:2]
+	identifyOutString := string(identifyOut)
+	if len(identifyOutString) > 5 {
+		identifyOutString = identifyOutString[:3]
+	}
 
-	frameCount, err := strconv.Atoi(string(identifyOut))
+	frameCount, err := strconv.Atoi(identifyOutString)
 	if err != nil {
 		log.Warnln("ConverMediaToTGStickerSmart Atoi ERROR:", err)
 		return "", err
