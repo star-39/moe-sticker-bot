@@ -262,9 +262,9 @@ func matchUserS(uid int64, id string) bool {
 		return false
 	}
 	//Allow admin to manage all sticker sets.
-	if uid == msbconf.AdminUid {
-		return true
-	}
+	// if uid == msbconf.AdminUid {
+	// 	return true
+	// }
 	qs, _ := db.Query("SELECT * FROM stickers WHERE user_id=? AND tg_id=?", uid, id)
 	defer qs.Close()
 	return qs.Next()
