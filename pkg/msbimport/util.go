@@ -118,6 +118,7 @@ func ArchiveExtract(f string) []string {
 
 	err := exec.Command(BSDTAR_BIN, "-xvf", f, "-C", targetDir).Run()
 	if err != nil {
+		log.Warnln("ArchiveExtract error:", err)
 		return []string{}
 	}
 	return LsFilesR(targetDir, []string{}, []string{})

@@ -17,6 +17,7 @@ import (
 //TODO: Shrink oversized function.
 
 // Final stage of automated sticker submission.
+// Automated means all emojis are same.
 func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	uid := c.Sender().ID
 	ud := users.data[uid]
@@ -65,16 +66,26 @@ func submitStickerSetAuto(createSet bool, c tele.Context) error {
 	ssTitle := ud.stickerData.title
 	ssType := ud.stickerData.stickerSetType
 
+	//Set emojis and keywords in batch.
+	for _, s := range ud.stickerData.stickers {
+		s.emojis = ud.stickerData.emojis
+		s.keywords = MSB_DEFAULT_STICKER_KEYWORDS
+	}
+
 	//Try batch create.
 	var batchCreateSuccess bool
-	if createSet && len(ud.stickerData.stickers) <= 50 {
+	if createSet {
 		err := createStickerSetBatch(ud.stickerData.stickers, c, ssName, ssTitle, ssType)
 		if err != nil {
 			log.Warnln("sticker.go: Error batch create:", err.Error())
 		} else {
 			log.Debugln("sticker.go: Batch create success.")
 			batchCreateSuccess = true
-			committedStickers = len(ud.stickerData.stickers)
+			if len(ud.stickerData.stickers) < 51 {
+				committedStickers = len(ud.stickerData.stickers)
+			} else {
+				committedStickers = 50
+			}
 		}
 	}
 
@@ -277,7 +288,7 @@ func createStickerSetBatch(sfs []*StickerFile, c tele.Context, name string, titl
 	var inputs []tele.InputSticker
 	log.Debugln("createStickerSetBatch: attempting, batch creation:", name)
 
-	for _, sf := range sfs {
+	for i, sf := range sfs {
 		sf.wg.Wait()
 		file := sf.cPath
 		input := tele.InputSticker{
@@ -292,6 +303,11 @@ func createStickerSetBatch(sfs []*StickerFile, c tele.Context, name string, titl
 			input.Format = guessInputStickerFormat(file)
 		}
 		inputs = append(inputs, input)
+
+		//Up to 50 stickers.
+		if i == 49 {
+			break
+		}
 	}
 
 	return c.Bot().CreateStickerSet(c.Recipient(), inputs, name, title, ssType)
@@ -430,7 +446,7 @@ func appendMedia(c tele.Context) error {
 		return errors.New("sticker set already full 此貼圖包已滿")
 	}
 
-	//DEBUG
+	//Incoming media is a sticker.
 	if c.Message().Sticker != nil && ((c.Message().Sticker.Type == tele.StickerCustomEmoji) == ud.stickerData.isCustomEmoji) {
 		var format string
 		if c.Message().Sticker.Video {
@@ -449,20 +465,23 @@ func appendMedia(c tele.Context) error {
 	workDir = users.data[c.Sender().ID].workDir
 	savePath = filepath.Join(workDir, secHex(4))
 
-	if c.Message().Media().MediaType() == "document" && guessIsArchive(c.Message().Document.FileName) {
+	if c.Message().Media().MediaType() == "document" {
 		savePath += filepath.Ext(c.Message().Document.FileName)
-		files = append(files, msbimport.ArchiveExtract(savePath)...)
 	} else if c.Message().Media().MediaType() == "animation" {
 		savePath += filepath.Ext(c.Message().Animation.FileName)
-		files = append(files, savePath)
-	} else {
-		files = append(files, savePath)
 	}
 
 	err = c.Bot().Download(c.Message().Media().MediaFile(), savePath)
 	if err != nil {
 		return errors.New("error downloading media")
 	}
+
+	if guessIsArchive(savePath) {
+		files = append(files, msbimport.ArchiveExtract(savePath)...)
+	} else {
+		files = append(files, savePath)
+	}
+
 	log.Debugln("appendMedia: Media downloaded to savepath:", savePath)
 	for _, f := range files {
 		var cf string
