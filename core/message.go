@@ -25,7 +25,7 @@ Hi! I'm <a href="https://github.com/star-39/moe-sticker-bot">moe_sticker_bot</a>
 
 你好! 歡迎使用<a href="https://github.com/star-39/moe-sticker-bot">萌萌貼圖BOT</a>! 請：
 • 傳送<b>LINE/kakao貼圖包的分享連結</b>來匯入或下載.
-• 傳送<b>Telegram貼圖/連結/GIF</b>來下載或匯出到WhatsApp.
+• 傳送<b>Telegram貼圖/連結/GIF</b>來下載.
 • 傳送<b>關鍵字</b>來搜尋貼圖包.
 • 傳送 <b>/create</b> 或 <b>/manage</b> 來創建或管理貼圖包和表情貼。
 • 傳送 <b>/command_list</b> 檢視所有可用指令.
@@ -96,8 +96,10 @@ https://github.com/star-39/moe-sticker-bot#changelog
 v2.5.0-RC1(20240528)
 * Support mix-typed sticker set.
 * You can add video to static set and vice versa.
+* Removed WhatsApp export temporarily .
 * 支援混合貼圖包。
 * 貼圖包可以同時存入靜態與動態貼圖。
+* 暫時移除WhatsApp匯出功能。
 
 v2.4.0-RC1-RC4(20240304)
 * Support Importing LINE Emoji into CustomEmoji.
@@ -192,11 +194,11 @@ func sendAskEmoji(c tele.Context) error {
 	selector.Inline(selector.Row(btnManu), selector.Row(btnRand))
 
 	return c.Send(`
-Telegram sticker requires emoji to represent it:
-• Press "Assign separately" to assign emoji one by one.
+Telegram requires emoji to and keywords for each sticker:
+• Press "Assign separately" to assign emoji and keywords one by one.
 • Send an emoji to do batch assign.
-Telegram要求為貼圖設定emoji來表示它:
-• 按下"分別設定"來為每個貼圖分別設定相應的emoji.
+Telegram要求為每張貼圖分別設定emoji和關鍵字:
+• 按下"分別設定"來為每個貼圖分別設定相應的emoji和關鍵字.
 • 傳送一個emoji來為全部貼圖設定成一樣的.
 `, selector)
 }
@@ -225,15 +227,15 @@ func genSDnMnEInline(canManage bool, isTGS bool, sn string) *tele.ReplyMarkup {
 	btnSingle := selector.Data("Download this sticker/下載這張貼圖", CB_DN_SINGLE)
 	btnAll := selector.Data("Download sticker set/下載整個貼圖包", CB_DN_WHOLE)
 	btnMan := selector.Data("Manage sticker set/管理這個貼圖包", CB_MANAGE)
-	btnExport := selector.Data("Export to WhatsApp/匯出到WhatsApp", CB_EXPORT_WA)
+	// btnExport := selector.Data("Export to WhatsApp/匯出到WhatsApp", CB_EXPORT_WA)
 	if canManage {
-		selector.Inline(selector.Row(btnSingle), selector.Row(btnAll), selector.Row(btnMan), selector.Row(btnExport))
+		selector.Inline(selector.Row(btnSingle), selector.Row(btnAll), selector.Row(btnMan))
 	} else {
 		if isTGS {
 			//If is TGS, do not support export to WA.
 			selector.Inline(selector.Row(btnSingle), selector.Row(btnAll))
 		} else {
-			selector.Inline(selector.Row(btnSingle), selector.Row(btnAll), selector.Row(btnExport))
+			selector.Inline(selector.Row(btnSingle), selector.Row(btnAll))
 		}
 	}
 	return selector
@@ -280,7 +282,7 @@ You can download this sticker set. Press Yes to continue.
 func sendAskWantImportOrDownload(c tele.Context, avalAsEmoji bool) error {
 	msg := ""
 	selector := &tele.ReplyMarkup{}
-	btnImportSticker := selector.Data("Import sticker set/匯入貼圖包", CB_OK_IMPORT)
+	btnImportSticker := selector.Data("Import as sticker set/作為普通貼圖包匯入", CB_OK_IMPORT)
 	btnImportEmoji := selector.Data("Import as CustomEmoji/作為表情貼匯入", CB_OK_IMPORT_EMOJI)
 	btnDownload := selector.Data("Download/下載", CB_OK_DN)
 	if avalAsEmoji {
@@ -458,7 +460,7 @@ func sendNoSessionWarning(c tele.Context) error {
 
 func sendAskSTypeToCreate(c tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	btnRegular := selector.Data("Regular Sticker/普通貼圖", CB_REGULAR_STICKER)
+	btnRegular := selector.Data("Regular sticker set/普通貼圖包", CB_REGULAR_STICKER)
 	btnCustomEmoji := selector.Data("Custom Emoji/表情貼", CB_CUSTOM_EMOJI)
 
 	selector.Inline(selector.Row(btnRegular), selector.Row(btnCustomEmoji))
