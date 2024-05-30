@@ -10,7 +10,7 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-var BOT_VERSION = "2.4.0-RC4"
+var BOT_VERSION = "2.5.0-RC1"
 
 var b *tele.Bot
 var cronScheduler *gocron.Scheduler

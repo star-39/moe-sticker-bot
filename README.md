@@ -7,11 +7,7 @@
 
 ---
 
-A Telegram bot doing sticker stuffs!
-
-Easily import LINE/Kakaotalk stickers, use your own image or video to create Telegram sticker set or CustomEmoji and manage it.
-
-Download stickers/GIF, also supports exporting to WhatsApp.
+Use moe-sticker-bot, a Telegram bot, to easily import or download LINE/Kakaotalk/Telegram stickers, use your own image or video to create Telegram sticker set or CustomEmoji and manage it.
 
 ---
 
@@ -19,12 +15,13 @@ Telegram用萌萌貼圖BOT。
 
 匯入或下載LINE和kakaotalk貼圖包到Telegram. 使用自己的圖片和影片創建Telegram貼圖包或表情貼並管理.
 
-下載Telegram貼圖包/GIF，還可以匯出到WhatsApp。
+下載Telegram貼圖包/GIF。
 
 
 ## Features/功能
   * Import LINE or kakao stickers to Telegram without effort, you can batch or separately assign emojis.
   * Create your own sticker set or CustomEmoji with your own images or videos in any format.
+  * Support mixed-format sticker set. You can put animated and static stickers in the same set.
   * Batch download and convert Telegram stickers or GIFs to original or common formats.
   * Export Telegram stickers to WhatsApp (requires [Msb App](https://github.com/star-39/msb_app), supports iPhone and Android).
   * Manage your sticker set interactively through WebApp: add/move/remove/edit sticker and emoji.
@@ -32,6 +29,7 @@ Telegram用萌萌貼圖BOT。
 
   * 輕鬆匯入LINE/kakao貼圖包到Telegram, 可以統一或分開指定emoji.
   * 輕鬆使用自己任意格式的圖片和影片來創建自己的貼圖包或表情貼.
+  * 支援混合貼圖包。動態靜態貼圖可以放在同一個包內。
   * 下載Telegram/LINE/kakao貼圖包和GIF, 自動變換為常用格式, 並且保留原檔.
   * 匯出Telegram的貼圖包至WhatsApp（需要安裝[Msb App](https://github.com/star-39/msb_app), 支援iPhone和Android）。
   * 互動式WebApp可以輕鬆管理自己的貼圖包: 可以新增/刪除貼圖, 移動位置或修改emoji.
@@ -85,24 +83,22 @@ Telegram用萌萌貼圖BOT。
 
 ## Deployment
 ### Deploy with pre-built containers
-It is __highly recommended__ to deploy moe-sticker-bot using containers.
+It is recommended to deploy moe-sticker-bot using containers.
 A pre-built OCI container is available at https://github.com/users/star-39/packages/container/package/moe-sticker-bot
 
-Simply run:
+Run:
 ```
 docker run -dt ghcr.io/star-39/moe-sticker-bot /moe-sticker-bot --bot_token="..."
 ```
 If you are on ARM64 machine, use `aarch64` tag.
 
-To deploy all features - including database and webapp, you can use kubernetes or podman.
-
 See a real world deployment example on [deployments/kubernetes_msb.yaml](https://github.com/star-39/moe-sticker-bot/blob/master/deployments/kubernetes_msb.yaml).
 
 
 ### System Dependencies
-* ImageMagick
+* ImageMagick(6 or 7, both fine)
 * bsdtar (libarchive-tools)
-* ffmpeg
+* ffmpeg (Requires a lot of components, use a fat static build or package manager's ones pls!)
 * curl
 * gifsicle (for converting GIF)
 * python3 (for following tools)
@@ -112,6 +108,7 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
 * mariadb-server (optional, for database)
 * nginx (optional, for WebApp)
 
+Dependencies above must be accessible through PATH. Don't ask me why they are reported missing by bot.
 
 ## Build
 ### Build Dependencies
@@ -120,34 +117,24 @@ See a real world deployment example on [deployments/kubernetes_msb.yaml](https:/
  * react-js v18+ (optional, for WebApp)
 
 ```bash
-# For Fedora / RHEL / CentOS etc. (Requires RPM Fusion)
-dnf install git ImageMagick libwebp bsdtar curl ffmpeg go gifsicle
-# For Debian / Ubuntu etc.
-apt install git imagemagick libarchive-tools curl ffmpeg go gifsicle
-# For Arch
-pacman -S install git ffmpeg imagemagick curl libarchive go gifsicle
-# For macOS
-brew install git imagemagick ffmpeg curl go bsdtar gifsicle
-# For Windows, please install System Dependencies manually.
-
 git clone https://github.com/star-39/moe-sticker-bot && cd moe-sticker-bot
 
 go build -o moe-sticker-bot cmd/moe-sticker-bot/main.go 
-
-# Install MSB dependencies(optional).
-install tools/msb_emoji.py /usr/local/bin/
-install tools/msb_kakao_decrypt.py /usr/local/bin/
-install tools/msb_rlottie.py /usr/local/bin/
 ```
 
 #### WebApp
-Since 2.0 version of moe-sticker-bot, managing sticker set's order and emoji is now through Telegram's
-new WebApp technology. 
+Since 2.0 version of moe-sticker-bot, managing sticker set's order and emoji is achieved using Telegram's new WebApp technology. 
 
 See details on [web/webapp](https://github.com/star-39/moe-sticker-bot/tree/master/web/webapp3)
 
 
 ## CHANGELOG
+v2.5.0-RC1(20240531)
+* Support mix-typed sticker set.
+* You can add video to static set and vice versa.
+* Removed WhatsApp export temporarily .
+* Many bug fixes.
+
 v2.4.0-RC3(20240226)
   * Remove deduplication during database curation.
   * LINE emoji can be imported to either sticker or CustomEmoji.
