@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -75,6 +76,8 @@ func fetchKakaoMetadata(kakaoJson *KakaoJson, kakaoID string) error {
 		log.Errorln("Failed json parsing kakao link!", err)
 		return err
 	}
+
+	log.Debugln("fetchKakaoMetadata: api link metadata fetched:", apiUrl)
 	return nil
 }
 
@@ -129,6 +132,7 @@ func prepareKakaoZipStickers(ctx context.Context, ld *LineData, workDir string, 
 	zipPath := filepath.Join(workDir, "kakao.zip")
 	os.MkdirAll(workDir, 0755)
 
+	log.Debugln("prepareKakaoZipStickers: downloading zip:", ld.DLink)
 	err := fDownload(ld.DLink, zipPath)
 	if err != nil {
 		return err
@@ -192,12 +196,24 @@ func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
 		log.Errorln("fetchKakaoDetailsFromShareLink: failed httpGetAndroidUA!", err)
 		return "", "", err
 	}
-	split1 := strings.Split(res, "kakaotalk://store/emoticon/")
-	if len(split1) < 2 {
-		return "", "", errors.New("error fetchKakaoDetailsFromShareLink")
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(res))
+	if err != nil {
+		log.Errorln("fetchKakaoDetailsFromShareLink failed gq parsing line link!", err)
+		return "", "", err
 	}
-	eid := strings.Split(split1[1], "?")[0]
-	log.Debugln("kakao eid is: ", eid)
+
+	//This eid seemed to be fake.
+	//There will be no fix soon.
+	//In the future we might use other package to complete 
+	//kakao download.
+	eid := ""
+	doc.Find("a").Each(func(i int, s *goquery.Selection) {
+		value, _ := s.Attr("id")
+		if value == "app_scheme_link" {
+			eid, _ = s.Attr("data-i")
+		}
+	})
+	log.Debugln("kakao eid is:", eid)
 	redirLink, _, err := httpGetWithRedirLink(link)
 	if err != nil {
 		return "", "", err
