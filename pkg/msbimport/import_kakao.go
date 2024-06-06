@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"os"
 	"os/exec"
@@ -18,7 +17,7 @@ import (
 
 func parseKakaoLink(link string, ld *LineData) (string, error) {
 	var kakaoID string
-	var eid string
+	// var eid string
 	var err error
 	var warn string
 
@@ -30,7 +29,7 @@ func parseKakaoLink(link string, ld *LineData) (string, error) {
 		kakaoID = path.Base(url.Path)
 	// Kakao mobile app share link.
 	case "emoticon.kakao.com":
-		eid, kakaoID, err = fetchKakaoDetailsFromShareLink(link)
+		_, kakaoID, err = fetchKakaoDetailsFromShareLink(link)
 		if err != nil {
 			return warn, err
 		}
@@ -49,12 +48,12 @@ func parseKakaoLink(link string, ld *LineData) (string, error) {
 	log.Debugln("Parsed kakao link:", link)
 	log.Debugln(kakaoJson.Result)
 
-	if url.Host == "emoticon.kakao.com" {
-		ld.DLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
-	} else {
-		ld.DLinks = kakaoJson.Result.ThumbnailUrls
-		warn = WARN_KAKAO_PREFER_SHARE_LINK
-	}
+	// if url.Host == "emoticon.kakao.com" {
+	// 	ld.DLink = fmt.Sprintf("http://item.kakaocdn.net/dw/%s.file_pack.zip", eid)
+	// } else {
+	ld.DLinks = kakaoJson.Result.ThumbnailUrls
+	// warn = WARN_KAKAO_PREFER_SHARE_LINK
+	// }
 
 	ld.Title = kakaoJson.Result.Title
 	ld.Id = kakaoJson.Result.TitleUrl
@@ -188,7 +187,7 @@ func kakaoZipExtract(f string, ld *LineData) []string {
 	return files
 }
 
-// kakao eid(code), kakao id
+// Return: kakao eid(code), kakao id, error
 func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
 	log.Debugln("fetchKakaoDetailsFromShareLink: Link is:", link)
 	res, err := httpGetAndroidUA(link)
@@ -204,7 +203,7 @@ func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
 
 	//This eid seemed to be fake.
 	//There will be no fix soon.
-	//In the future we might use other package to complete 
+	//In the future we might use other package to complete
 	//kakao download.
 	eid := ""
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
