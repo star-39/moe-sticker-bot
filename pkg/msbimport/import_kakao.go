@@ -10,7 +10,8 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strings"
+	"regexp"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -192,11 +193,26 @@ func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
 		log.Errorln("fetchKakaoDetailsFromShareLink: failed httpGetAndroidUA!", err)
 		return "", "", err
 	}
-	split1 := strings.Split(res, "kakaotalk://store/emoticon/")
-	if len(split1) < 2 {
-		return "", "", errors.New("error fetchKakaoDetailsFromShareLink")
+
+	eidRegex := regexp.MustCompile(`data-i="(\d+)"`)
+	rawEid := eidRegex.FindStringSubmatch(res)[1]
+	rawEidInt, err := strconv.Atoi(string(rawEid))
+	if err != nil {
+		return "", "", err
 	}
-	eid := strings.Split(split1[1], "?")[0]
+	xorKeysRegex := regexp.MustCompile(`(\d+)\^(\d+)`)
+	xorKeys := xorKeysRegex.FindStringSubmatch(res)
+	xorKey1, err := strconv.Atoi(string(xorKeys[1]))
+	if err != nil {
+		return "", "", err
+	}
+
+	xorKey2, err := strconv.Atoi(string(xorKeys[2]))
+	if err != nil {
+		return "", "", err
+	}
+
+	eid := fmt.Sprintf("%d", rawEidInt-xorKey1^xorKey2)
 	log.Debugln("kakao eid is: ", eid)
 	redirLink, _, err := httpGetWithRedirLink(link)
 	if err != nil {
