@@ -198,18 +198,16 @@ func fetchKakaoDetailsFromShareLink(link string) (string, string, error) {
 	rawEid := eidRegex.FindStringSubmatch(res)[1]
 	rawEidInt, err := strconv.Atoi(string(rawEid))
 	if err != nil {
-		return "", "", err
+		log.Errorln("fetchKakaoDetailsFromShareLink: failed to parse rawEid!", err)
+		return "", "", errors.New("error fetchKakaoDetailsFromShareLink")
 	}
 	xorKeysRegex := regexp.MustCompile(`(\d+)\^(\d+)`)
 	xorKeys := xorKeysRegex.FindStringSubmatch(res)
-	xorKey1, err := strconv.Atoi(string(xorKeys[1]))
-	if err != nil {
-		return "", "", err
-	}
-
+	xorKey1, _ := strconv.Atoi(string(xorKeys[1]))
 	xorKey2, err := strconv.Atoi(string(xorKeys[2]))
 	if err != nil {
-		return "", "", err
+		log.Errorln("fetchKakaoDetailsFromShareLink: failed to parse XOR Keys!", err)
+		return "", "", errors.New("error fetchKakaoDetailsFromShareLink")
 	}
 
 	eid := fmt.Sprintf("%d", rawEidInt-xorKey1^xorKey2)
